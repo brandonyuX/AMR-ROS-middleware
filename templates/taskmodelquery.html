@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+
+<!-- CSS only -->
+<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+<!-- JavaScript Bundle with Popper -->
+<script src="/static/js/jquery-3.6.0.min.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+
+<title>M8M Resource Management</title>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <a class="navbar-brand" href="/">M8M</a>
+
+    <ul class="navbar-nav">
+      <li class="nav-item active">
+        <a class="nav-link" href="/">Home</a>
+      </li>
+      <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Task Model
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <li><a class="dropdown-item" href="taskmodelquery">Query Task Model</a></li>
+            <li><a class="dropdown-item" href="taskmodelcreate">Create Task Model</a></li>
+          </ul>
+        </li>
+      
+    </ul>
+</nav>
+
+</head>
+<body>
+    
+    <main>
+       <!-- PAGE Content -->    
+       <h1>Task Model Configuration</h1>
+        
+        
+       <h4>Query Task Model</h4>
+
+       
+      <form method="POST">
+        <input class="form-control" name="text" type="text" placeholder="Task Model ID">
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-primary">Query</button>
+        </div>
+        
+    </form>
+      <table class="table">
+        <tr>
+            <th>Action Type</th>
+            <th>Step</th>
+            <th>End Step</th>
+            <th>Command</th>
+        </tr>
+
+        <!-- here is a for-loop to give us all the tasks -->
+        {% for subtsk in subtsklist %}
+        <tr>
+            <td>{{ subtsk.action }}</td>
+            <td>{{ subtsk.step }}</td>
+            <td>{{ subtsklen }}</td>
+            <td>{{ subtsk.cmd }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+       
+
+
+    </main>
+
+
+    
+
+    <footer>
+        <div class="row">
+            <div class="col-md-6">
+                <p>Copyright &copy; 2022 M8M Pte Ltd</p>
+            </div>
+            
+        </div>
+    </footer> 
+</body>
+
+
+
+
+</html>

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+
+<!-- CSS only -->
+<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+<!-- JavaScript Bundle with Popper -->
+<script src="/static/js/jquery-3.6.0.min.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+
+<title>M8M Resource Management</title>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <a class="navbar-brand" href="/">M8M</a>
+
+    <ul class="navbar-nav">
+      <li class="nav-item active">
+        <a class="nav-link" href="/">Home</a>
+      </li>
+      <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Task Model
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <li><a class="dropdown-item" href="taskmodelquery">Query Task Model</a></li>
+            <li><a class="dropdown-item" href="taskmodelcreate">Create Task Model</a></li>
+          </ul>
+        </li>
+      
+    </ul>
+</nav>
+
+</head>
+<body>
+    
+    <main>
+       <!-- PAGE Content -->    
+       <h1>Task Model Configuration</h1>
+        <h4>Create Task Model</h4>
+
+        <form method="POST">
+          <div class="form-group row">
+            <label for="tskmodno" class="col-sm-2 col-form-label">Task Model Number</label>
+            <div class="col-sm-10">
+              <input type="number" class="form-control" id="tskmodno" name="tskmodno" placeholder="Task Model No" value={{tskmod}}>
+            </div>
+          </div>
+         
+          <fieldset class="form-group">
+            <div class="row">
+              <legend class="col-form-label col-sm-2 pt-0">Action</legend>
+              <div class="col-sm-10">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios1" value="Move" checked>
+                  <label class="form-check-label" for="gridRadios1">
+                    Move
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios2" value="Unload">
+                  <label class="form-check-label" for="gridRadios2">
+                    Unload
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios3" value="Load">
+                  <label class="form-check-label" for="gridRadios3">
+                    Load
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios4" value="CustomCommand">
+                  <label class="form-check-label" for="gridRadios4">
+                    Custom Command
+                  </label>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+          <div class="form-group row">
+            <label for="custcmd" class="col-sm-2 col-form-label" >Custom Command</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="custcmd" name="custcmd" placeholder="Custom Command" disabled>
+            </div>
+          </div>
+          <div class="form-group row">
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary">Add Step</button>
+            </div>
+          </div>
+        </form>
+
+      
+      <table class="table">
+        <tr>
+            <th>Action Type</th>
+            <th>Step</th>
+            <th>Command</th>
+        </tr>
+
+        <!-- here is a for-loop to give us all the tasks -->
+        {% for subtsk in subtsklist %}
+        <tr>
+            <td>{{ subtsk.action }}</td>
+            <td>{{ subtsk.step }}</td>
+            <td>{{ subtsk.cmd }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+    <form action="/createtm/" method="post">
+      <div class="d-grid gap-2">
+        <button class="btn btn-success btn-block" type="submit" name="createtm" >Create Task Model</button>
+      </div>
+    </form>
+      <form action="/clearsubtask/" method="post">
+        <div class="d-grid gap-2">
+          <button class="btn btn-danger btn-block" type="submit" name="clear" >Clear Sub Task</button>
+        </div>
+      </form>
+      
+    
+    
+
+       
+
+
+    </main>
+
+
+    
+
+    <footer>
+        <div class="row">
+            <div class="col-md-6">
+                <p>Copyright &copy; 2022 M8M Pte Ltd</p>
+            </div>
+            
+        </div>
+    </footer> 
+</body>
+
+<script>
+  var radios = document.querySelectorAll('[name=gridRadios]');
+  Array.from(radios).forEach(function(r){
+  r.addEventListener('click', function(){
+    var cmdtxt = document.getElementById('custcmd');
+    if(this.id == 'gridRadios4')
+      cmdtxt.removeAttribute('disabled');
+    else
+      cmdtxt.setAttribute('disabled', 'disabled');
+  });
+});
+</script>
+
+
+
+</html>

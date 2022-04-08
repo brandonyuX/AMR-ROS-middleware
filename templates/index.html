@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+
+<!-- CSS only -->
+<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+<!-- JavaScript Bundle with Popper -->
+<script src="/static/js/jquery-3.6.0.min.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+
+<title>M8M Resource Management</title>
+
+
+
+
+
+
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <a class="navbar-brand" href="/">M8M</a>
+ 
+      <ul class="navbar-nav">
+        <li class="nav-item active">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Task Model
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <li><a class="dropdown-item" href="taskmodelquery">Query Task Model</a></li>
+              <li><a class="dropdown-item" href="taskmodelcreate">Create Task Model</a></li>
+            </ul>
+          </li>
+        
+      </ul>
+  </nav>
+
+
+</head>
+<body>
+    
+    <main>
+       <!-- PAGE Content -->    
+       <h1>M8M Resource Management Home</h1>
+       
+
+       <h3>Current Tasks</h3>
+       <table class="table">
+        <tr>
+            <th>Robot Assigned</th>
+            <th>Request ID</th>
+            <th>Task Code</th>
+            <th>Current Step</th>
+            <th>Current Location</th>
+        </tr>
+
+        <!-- here is a for-loop to give us all the tasks -->
+        {% for tsk in tsklist %}
+        <tr>
+            <td>{{ tsk.rid }}</td>
+            <td>{{ tsk.reqid }}</td>
+            <td>{{ tsk.tc }}</td>
+            <td>{{ tsk.td }}</td>
+            <td>{{ tsk.startloc }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+ 
+
+  
+   
+      <!-- Button trigger modal -->
+<button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#exampleModal">
+    Add Task
+</button>
+  
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Add Task</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <select class="form-select" aria-label="Select Task Model ID">
+                <option selected>Select Task Model ID</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+            </select>
+            <form class="row g-3">
+                <div class="col-auto">
+                    <select class="form-select" aria-label="Select Action">
+                        <option selected>Select Action</option>
+                        <option value="1">Move</option>
+                        <option value="2">Unload</option>
+                        <option value="3">Load</option>
+                        <option value="4">Custom Command</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <input class="form-control" type="text" placeholder="Default input" aria-label="default input example">
+                </div>
+                
+              </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+
+
+    </main>
+
+
+    
+
+    <footer>
+        <div class="row">
+            <div class="col-md-6">
+                <p>Copyright &copy; 2022 M8M Pte Ltd</p>
+            </div>
+            
+        </div>
+    </footer> 
+</body>
+
+
+
+
+</html>
