@@ -13,7 +13,7 @@
 
 <title>M8M Resource Management</title>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
   <a class="navbar-brand" href="/">M8M</a>
 
     <ul class="navbar-nav">
@@ -87,13 +87,11 @@
             </div>
           </div>
           <div class="form-group row">
-            <div class="d-grid gap-2">
-              <button type="submit" class="btn btn-primary">Add Step</button>
+              <button type="submit" name="type" value="addstep" class="btn btn-primary">Add Step</button>
             </div>
           </div>
         </form>
 
-      
       <table class="table">
         <tr>
             <th>Action Type</th>
@@ -111,14 +109,14 @@
         {% endfor %}
     </table>
     
-    <form action="/createtm/" method="post">
+    <form method="post">
       <div class="d-grid gap-2">
-        <button class="btn btn-success btn-block" type="submit" name="createtm" >Create Task Model</button>
+        <button class="btn btn-success btn-block" type="submit" name="type" value="createtm" >Create Task Model</button>
       </div>
     </form>
-      <form action="/clearsubtask/" method="post">
+      <form method="post">
         <div class="d-grid gap-2">
-          <button class="btn btn-danger btn-block" type="submit" name="clear" >Clear Sub Task</button>
+          <button class="btn btn-danger btn-block" type="submit" name="type" value="clear" >Clear Sub Task</button>
         </div>
       </form>
       
