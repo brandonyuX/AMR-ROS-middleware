@@ -1,7 +1,9 @@
 from cgi import test
 from flask import Flask, render_template,request,session
 import interface.dbinterface as dbinterface
+import main
 from mwclass.testclass import testclass
+from mwclass.robotconfig import RobotConfig
 from mwclass.subtask import SubTask
 from flask_socketio import SocketIO, emit
 from threading import Lock
@@ -39,7 +41,22 @@ def background_thread():
 @app.route('/')
 def index():
     tsklist=dbinterface.getTaskList()
+    rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
+    return render_template('index.html',tsklist=tsklist,reqlist=req_list, async_mode=async_mode)
+
+@app.route('/', methods=['POST'])
+def indexpost():
+    #Read the type of request and process
+    posttype=request.form['type']
+    print(posttype)
+    tsklist=dbinterface.getTaskList()
     return render_template('index.html',tsklist=tsklist, async_mode=async_mode)
+#Define configuration page
+@app.route('/configuration')
+def config():
+    
+    rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
+    return render_template('configuration.html',rbtlist=rc_list)
 
 @app.route('/taskmodelquery')
 def taskmodelconfig():
