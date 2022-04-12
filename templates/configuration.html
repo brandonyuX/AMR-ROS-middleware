@@ -57,98 +57,82 @@
         <div class="row py-lg-5">
           <div class="col-lg-8 col-md-8 mx-auto">
             <h1 class="fw-light">M8M Resource Management Software</h1>
-            <p class="lead text-muted">Main Management Interface</p>
+            <p class="lead text-muted">Robot Configuration</p>
             
           </div>
         </div>
       </section>
 
-      <h3>Current PLC Request</h3>
-              <table class="table">
-               <tr>
-                   <th>PLC ID</th>
-                   <th>Request ID</th>
-                   <th>Destination Location</th>
-                   <th>Priority</th>
-               </tr>
-       
-               <!-- here is a for-loop to give us all the tasks -->
-               {% for req in reqlist %}
-               <tr>
-                   <td>{{ req.plcid }}</td>
-                   <td>{{ req.reqid }}</td>
-                   <td>{{ req.destloc }}</td>
-                   <td>{{ req.priority }}</td>
-               </tr>
-               {% endfor %}
-               
-              
-           </table>
-            
-
-      
-      <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-6">
-              <h3>Current Robot Status</h3>
+      <h3>Current Available Robot</h3>
               <table class="table">
                <tr>
                    <th>Robot ID</th>
-                   <th>X</th>
-                   <th>Y</th>
+                   <th>Alias</th>
+                   <th>Battery Threshold</th>
+                   <th>Robot IP</th>
                </tr>
        
                <!-- here is a for-loop to give us all the tasks -->
-               
+               {% for rbt in rbtlist %}
                <tr>
-                   <td>1</td>
-                   <td id="x_stat">x</td>
-                   <td id="y_stat">y</td>
-               </tr>
-              
-           </table>
-            </div>
-            <div class="col-lg-6">
-              <h3>Current Tasks</h3>
-              <table class="table">
-               <tr>
-                   <th>Robot Assigned</th>
-                   <th>Request ID</th>
-                   <th>Task Code</th>
-                   <th>Current Step</th>
-                   <th>Current Location</th>
-               </tr>
-       
-               <!-- here is a for-loop to give us all the tasks -->
-               {% for tsk in tsklist %}
-               <tr>
-                   <td>{{ tsk.rid }}</td>
-                   <td>{{ tsk.reqid }}</td>
-                   <td>{{ tsk.tc }}</td>
-                   <td>{{ tsk.td }}</td>
-                   <td>{{ tsk.startloc }}</td>
+                   <td>{{ rbt.rid }}</td>
+                   <td>{{ rbt.alias }}</td>
+                   <td>{{ rbt.battthres }}%</td>
+                   <td>{{ rbt.rip }}</td>
                </tr>
                {% endfor %}
+               
+              
            </table>
+
+           <h3>Robot Creation</h3>
+
+           <form method="POST">
+            <div class="form-group row">
+              <label for="tskmodno" class="col-sm-2 col-form-label">Robot IP</label>
+              <div class="col-sm-10">
+                <input type="text" class="form-control" id="rbtip" name="rbtip" placeholder="Task Model No" value={{rbtip}}>
+              </div>
+              
             </div>
-        </div>
-    </div>
-     
-      
-       
-       
-    <h3>Command Line</h3>
+            <div class="form-group row">
+                <label for="tskmodno" class="col-sm-2 col-form-label">Robot Alias</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="alias" name="alias" placeholder="Task Model No" value={{alias}}>
+                </div>
+                
+              </div>
+              <div class="form-group row">
+                <label for="rbtype" class="col-sm-2 col-form-label">Robot Type</label>
+                <div class="col-sm-10">
+                    <select class="form-select" aria-label="Select Robot Type">
+                        <option selected>Select Action</option>
+                        <option value="1">A</option>
+                        <option value="2">B</option>
+                        <option value="3">C</option>
+                        <option value="4">D</option>
+                    </select>
+                </div>
+                
+              </div>
+            
+            <div class="form-group row">
+              <label for="batt" class="col-sm-2 col-form-label" >Battery Threshold</label>
+              <div class="col-sm-10">
+                <input type="number" class="form-control" id="battin" name="battin" placeholder="Task Model No" value={{battin}}>
+              </div>
+            </div>
+            <div class="form-group row">
+                <button type="submit" name="type" value="addrbt" class="btn btn-primary">Add Robot</button>
+              </div>
+            </div>
+          </form>
+            
  
 
    
 
-  <form method="post">
-  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-    Add Task
-</button>
 
-  <button type="button" class="btn btn-primary" id="simulate" type="submit" name="type" value="simulate">Simulate Run</button>
-</form>
   
 
 

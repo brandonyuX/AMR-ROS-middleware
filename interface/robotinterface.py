@@ -18,9 +18,16 @@ import interface.dbinterface as dbinterface
 
 def get_single_info():
     client = roslibpy.Ros(host="172.23.44.12", port=8080)
+    posmsg=''
     client.run()
     listener = roslibpy.Topic(client, '/robot_pose', 'geometry_msgs/Pose')
-    listener.subscribe(receive_message)
+    listener.subscribe(posmsg=receive_single_message)
+
+    def receive_single_message(message):
+            posmsg=message
+            client.terminate()
+            return posmsg
+    return posmsg
 
 def get_info():
     # Loop through ip in configuration file
@@ -156,3 +163,4 @@ def get_task_list():
     
     pass
 
+#get_info()

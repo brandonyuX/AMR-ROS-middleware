@@ -67,26 +67,27 @@ def run():
 
 #run()
 
-
-
-print('M8M AMR Resource Management Software CLI')
-print('*Demonstration Script*')
-print('=====Robot Configuration=====')
-for rc in rc_list:
-    print(rc)
-print('\n')
-
-
-print('=====Robot Information=====')
-for rbt in rbt_list:
-    print(rbt)
-print('\n')
-print(datetime.datetime.now())
-while True:
-    print('Please press [enter] to run one interation of logic')
-    x=input()
-    print('====================================START ROUTINE=========================================================\n')
+def execute():
     run()
+
+# print('M8M AMR Resource Management Software CLI')
+# print('*Demonstration Script*')
+# print('=====Robot Configuration=====')
+# for rc in rc_list:
+#     print(rc)
+# print('\n')
+
+
+# print('=====Robot Information=====')
+# for rbt in rbt_list:
+#     print(rbt)
+# print('\n')
+# print(datetime.datetime.now())
+# while True:
+#     print('Please press [enter] to run one interation of logic')
+#     x=input()
+#     print('====================================START ROUTINE=========================================================\n')
+#     run()
 
 
     
