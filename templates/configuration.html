@@ -87,18 +87,18 @@
 
            <h3>Robot Creation</h3>
 
-           <form method="POST">
+           <form>
             <div class="form-group row">
               <label for="tskmodno" class="col-sm-2 col-form-label">Robot IP</label>
               <div class="col-sm-10">
-                <input type="text" class="form-control" id="rbtip" name="rbtip" placeholder="Task Model No" value={{rbtip}}>
+                <input type="text" class="form-control" id="rbtip" name="rbtip" placeholder="Robot IP" value={{rbtip}} >
               </div>
               
             </div>
             <div class="form-group row">
                 <label for="tskmodno" class="col-sm-2 col-form-label">Robot Alias</label>
                 <div class="col-sm-10">
-                  <input type="text" class="form-control" id="alias" name="alias" placeholder="Task Model No" value={{alias}}>
+                  <input type="text" class="form-control" id="alias" name="alias" placeholder="Robot Alias" value={{alias}}>
                 </div>
                 
               </div>
@@ -106,7 +106,7 @@
                 <label for="rbtype" class="col-sm-2 col-form-label">Robot Type</label>
                 <div class="col-sm-10">
                     <select class="form-select" aria-label="Select Robot Type">
-                        <option selected>Select Action</option>
+                        <option selected>Select Type</option>
                         <option value="1">A</option>
                         <option value="2">B</option>
                         <option value="3">C</option>
@@ -119,16 +119,35 @@
             <div class="form-group row">
               <label for="batt" class="col-sm-2 col-form-label" >Battery Threshold</label>
               <div class="col-sm-10">
-                <input type="number" class="form-control" id="battin" name="battin" placeholder="Task Model No" value={{battin}}>
+                <input type="number" class="form-control" id="battin" name="battin" placeholder="Battery Threshold" value={{battin}}>
               </div>
             </div>
             <div class="form-group row">
-                <button type="submit" name="type" value="addrbt" class="btn btn-primary">Add Robot</button>
+                <button type="button" value="addrbt" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Add Robot</button>
               </div>
             </div>
           </form>
             
- 
+          <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Add Robot</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+           
+          <p>Are you sure you want to add robot?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+          <button type="submit" class="btn btn-primary">Yes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
    
 
@@ -252,7 +271,7 @@
             if(isJsonString(msg.class)){
               var o =JSON.parse(msg.class)
               document.getElementById("x_stat").innerHTML = o.x;
-              document.getElementById("y_stat").innerHTML = o.y
+              document.getElementById("y_stat").innerHTML = o.y;
             }
 
           

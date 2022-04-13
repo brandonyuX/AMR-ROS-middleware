@@ -49,8 +49,11 @@ def indexpost():
     #Read the type of request and process
     posttype=request.form['type']
     print(posttype)
+    main.run()
     tsklist=dbinterface.getTaskList()
-    return render_template('index.html',tsklist=tsklist, async_mode=async_mode)
+    rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
+    return render_template('index.html',tsklist=tsklist,reqlist=req_list, async_mode=async_mode)
+    
 #Define configuration page
 @app.route('/configuration')
 def config():
