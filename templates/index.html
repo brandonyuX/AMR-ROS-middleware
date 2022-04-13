@@ -100,6 +100,7 @@
                    <th>Y</th>
                    <th>Current Location</th>
                    <th>Battery Level</th>
+                   <th>Availability</th>
                </tr>
        
                <!-- here is a for-loop to give us all the tasks -->
@@ -111,6 +112,7 @@
                    <td>{{ rbt.y }}</td>
                    <td>{{rbt.currloc}}</td>
                    <td>{{ rbt.battlvl }}</td>
+                   <td>{{rbt.avail}}</td>
                </tr>
                {% endfor %}
               
@@ -144,8 +146,6 @@
      
       
        
-       
-    <h3>Command Line</h3>
     
  
 
@@ -157,6 +157,7 @@
 </button>
 
   <button type="submit" class="btn btn-primary" id="toastbtn" type="submit" name="type" value="simulate">Simulate Run</button>
+  <button type="submit" class="btn btn-primary" id="clear" type="submit" name="type" value="cleartask">Clear Task</button>
 </form>
   
 

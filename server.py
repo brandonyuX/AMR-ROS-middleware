@@ -49,7 +49,14 @@ def indexpost():
     #Read the type of request and process
     posttype=request.form['type']
     print(posttype)
-    main.run()
+    if(posttype=='simulate'):
+        main.run()
+        
+        
+    if(posttype=="cleartask"):
+        dbinterface.updateRbtStatus('AVAILABLE',1)
+        dbinterface.updateReqStatus('NEW',1)
+        dbinterface.deltask(1)
     tsklist=dbinterface.getTaskList()
     rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
     return render_template('index.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, async_mode=async_mode)

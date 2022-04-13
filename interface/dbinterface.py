@@ -84,7 +84,7 @@ def getBundleInfo():
     row = cursor.fetchone() 
     while row: 
         #print(row[0])
-        rbt=Robot(row[0],row[1],row[2],row[3],row[4],row[5])
+        rbt=Robot(row[0],row[1],row[2],row[3],row[4],row[5],row[6])
         rbt_list.append(rbt)
         row = cursor.fetchone()
     #print('Updated variable from DB!')
@@ -164,7 +164,7 @@ def writeTask(finalrid,reqid,rbt_list,req_list):
     print(startloc)
     print(destloc)
     now = datetime.datetime.utcnow()
-    cursor.execute("INSERT INTO Task (RobotID,ReqID,Completed,TaskCode,TaskDur,StartLoc,EndLoc,LastUpd) VALUES (?,?,?,?,?,?,?,?)",finalrid,reqid,0,000,cost,startloc,destloc,now.strftime('%Y-%m-%d %H:%M:%S'))
+    cursor.execute("INSERT INTO Task (RobotID,ReqID,Completed,TaskCode,CurrStep,LastUpd) VALUES (?,?,?,?,?,?)",finalrid,reqid,0,000,1,now.strftime('%Y-%m-%d %H:%M:%S'))
     cursor.commit()
 
 def writeSubTask(tsklist):
@@ -177,7 +177,13 @@ def updateReqStatus(status,reqid):
     cursor.execute("UPDATE PLCRequest SET Status = ? WHERE ReqID=?",status,reqid) 
     cursor.commit()
 
+def updateRbtStatus(status,rbtid):
+    cursor.execute("UPDATE Robot SET Avail = ? WHERE RobotID=?",status,rbtid) 
+    cursor.commit()
 
+def deltask(reqid):
+    cursor.execute("DELETE FROM Task WHERE ReqID = ?",reqid) 
+    cursor.commit()
 #print(getIP(1))
 
 #insertReq(101,2,1,'Station 3',2,now.strftime('%Y-%m-%d %H:%M:%S'))

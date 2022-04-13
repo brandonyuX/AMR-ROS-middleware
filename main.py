@@ -56,6 +56,8 @@ def run():
                 print('=====> Send command to robot {} to perform task'.format(rid))
                 robotinterface.publish_info(rid)
                 dbinterface.updateReqStatus('PROCESSING',req.reqid)
+                dbinterface.updateRbtStatus('TASK ASSIGNED',rid)
+                dbinterface.writeTask(rid,req.reqid,rbt_list,req_list)
             else:
                 print('!!!!Failed to find appropriate robot for the task!!!!!')
             
