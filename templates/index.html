@@ -98,15 +98,21 @@
                    <th>Robot ID</th>
                    <th>X</th>
                    <th>Y</th>
+                   <th>Current Location</th>
+                   <th>Battery Level</th>
                </tr>
        
                <!-- here is a for-loop to give us all the tasks -->
                
+               {% for rbt in rbtlist %}
                <tr>
-                   <td>1</td>
-                   <td id="x_stat">x</td>
-                   <td id="y_stat">y</td>
+                   <td>{{ rbt.rid }}</td>
+                   <td>{{ rbt.x }}</td>
+                   <td>{{ rbt.y }}</td>
+                   <td>{{rbt.currloc}}</td>
+                   <td>{{ rbt.battlvl }}</td>
                </tr>
+               {% endfor %}
               
            </table>
             </div>

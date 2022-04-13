@@ -33,7 +33,7 @@ def makeDecision(rbt_list,rc_list,req_list,reqid):
         print('<D>From Decision Module : Therefore, Robot {} should perform the task'.format(finalrid))
         index=0
         #Write a corresponding task to database
-        dbinterface.writeTask(finalrid,reqid,rbt_list,req_list)
+        #dbinterface.writeTask(finalrid,reqid,rbt_list,req_list)
         return (finalrid)
     else:
         print('<D>From Decision Module : No available robot found due to battery constraint!!')

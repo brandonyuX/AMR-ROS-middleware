@@ -42,7 +42,7 @@ def background_thread():
 def index():
     tsklist=dbinterface.getTaskList()
     rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
-    return render_template('index.html',tsklist=tsklist,reqlist=req_list, async_mode=async_mode)
+    return render_template('index.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, async_mode=async_mode)
 
 @app.route('/', methods=['POST'])
 def indexpost():
@@ -52,8 +52,8 @@ def indexpost():
     main.run()
     tsklist=dbinterface.getTaskList()
     rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
-    return render_template('index.html',tsklist=tsklist,reqlist=req_list, async_mode=async_mode)
-    
+    return render_template('index.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, async_mode=async_mode)
+
 #Define configuration page
 @app.route('/configuration')
 def config():
