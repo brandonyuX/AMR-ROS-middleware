@@ -70,6 +70,7 @@
                    <th>Request ID</th>
                    <th>Destination Location</th>
                    <th>Priority</th>
+                   <th>Status</th>
                </tr>
        
                <!-- here is a for-loop to give us all the tasks -->
@@ -79,6 +80,7 @@
                    <td>{{ req.reqid }}</td>
                    <td>{{ req.destloc }}</td>
                    <td>{{ req.priority }}</td>
+                   <td>{{req.status}}</td>
                </tr>
                {% endfor %}
                

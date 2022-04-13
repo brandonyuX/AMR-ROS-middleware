@@ -173,8 +173,12 @@ def writeSubTask(tsklist):
         cursor.execute("INSERT INTO SubTask (TaskModelID,ActionType,Step,EndStep,Command) VALUES (?,?,?,?,?)",tsk.tskmodno,tsk.action,tsk.step,len(tsklist),tsk.cmd)
         cursor.commit()
 
+def updateReqStatus(status,reqid):
+    cursor.execute("UPDATE PLCRequest SET Status = ? WHERE ReqID=?",status,reqid) 
+    cursor.commit()
 
-print(getIP(1))
+
+#print(getIP(1))
 
 #insertReq(101,2,1,'Station 3',2,now.strftime('%Y-%m-%d %H:%M:%S'))
 
