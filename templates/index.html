@@ -126,7 +126,7 @@
                    <th>Request ID</th>
                    <th>Task Code</th>
                    <th>Current Step</th>
-                   <th>Current Location</th>
+                   <th>Destination Location</th>
                </tr>
        
                <!-- here is a for-loop to give us all the tasks -->
@@ -136,7 +136,7 @@
                    <td>{{ tsk.reqid }}</td>
                    <td>{{ tsk.tc }}</td>
                    <td>{{ tsk.td }}</td>
-                   <td>{{ tsk.startloc }}</td>
+                   <td>{{ tsk.destloc }}</td>
                </tr>
                {% endfor %}
            </table>

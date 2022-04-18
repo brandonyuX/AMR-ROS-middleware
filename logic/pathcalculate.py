@@ -4,6 +4,8 @@ from dijkstar import Graph, find_path
 graph = Graph()
 #Cost can be calculated using simple euclidean distance
 graph.add_edge(1, 2, (110, 'Station 1'))
+graph.add_edge(2, 1, (110, 'Station 1'))
+graph.add_edge(3, 1, (110, 'Station 1'))
 graph.add_edge(2, 3, (125, 'Station 2'))
 graph.add_edge(3, 4, (108, 'Station 3'))
 graph.add_edge(4, 5, (120, 'Station 4'))

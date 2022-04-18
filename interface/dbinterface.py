@@ -181,6 +181,12 @@ def updateRbtStatus(status,rbtid):
     cursor.execute("UPDATE Robot SET Avail = ? WHERE RobotID=?",status,rbtid) 
     cursor.commit()
 
+#Update position status to database
+def updateRbtPosStatus(rbtid,x,y,r):
+    cursor.execute("UPDATE Robot SET x=?,y=?,r=? WHERE RobotID=?",x,y,r,rbtid) 
+    cursor.commit()
+
+#Delete task based on request id
 def deltask(reqid):
     cursor.execute("DELETE FROM Task WHERE ReqID = ?",reqid) 
     cursor.commit()

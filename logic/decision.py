@@ -4,6 +4,7 @@ import sys
 sys.path.append('../Middleware Development')
 
 import interface.dbinterface as dbinterface
+import interface.robotinterface as robotinterface
 #The module will take input such as distance, availability, battery and priority
 battscale=10
 

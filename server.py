@@ -4,6 +4,7 @@ import interface.dbinterface as dbinterface
 import main
 from mwclass.testclass import testclass
 from mwclass.robotconfig import RobotConfig
+import interface.robotinterface as robotinterface
 from mwclass.subtask import SubTask
 from flask_socketio import SocketIO, emit
 from threading import Lock
@@ -22,10 +23,12 @@ subtasklist=[]
 tclist=[]
 tc=testclass(0,0,0)
 
+
 #Background activity to perform
 def background_thread():
     """Example of how to send server generated events to clients."""
     count = 0
+    robotinterface.startup()
     
     while True:
         socketio.sleep(3)

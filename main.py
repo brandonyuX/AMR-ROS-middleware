@@ -12,6 +12,14 @@ import tkinter as tk
 from flask import Flask, render_template
 rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
 
+mapdict={"Station 1":0,
+            "Station 2":1,
+            "Station 3":2,
+            "Station 4":3,
+            "Station 5":4,
+            "Charging Station":5
+            }
+
 def run():
     rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
     #Print Current robot information
@@ -58,6 +66,8 @@ def run():
                 dbinterface.updateReqStatus('PROCESSING',req.reqid)
                 dbinterface.updateRbtStatus('TASK ASSIGNED',rid)
                 dbinterface.writeTask(rid,req.reqid,rbt_list,req_list)
+                robotinterface.publish_cmd(rid,mapdict[req.destloc])
+
             else:
                 print('!!!!Failed to find appropriate robot for the task!!!!!')
             
