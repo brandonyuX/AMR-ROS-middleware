@@ -50,6 +50,8 @@ def run():
         
             #Loop through robot list 
             for rbt in rbt_list:
+                #Filter out unavailable robots
+                
                 print('Find possible route for robot {} from {} to {}\n'.format(rbt.rid,req.srcloc,req.destloc))
                 print('Current robot position at {}'.format(rbt.currloc))
                 print('=====> Sending route information to path calculate module to calculate cost')
@@ -63,6 +65,7 @@ def run():
             if(rid!=-1):
                 print('=====> Send command to robot {} to perform task'.format(rid))
                 robotinterface.publish_info(rid)
+                dbinterface.updateRbtMsg(rid,'Robot dispatched to perform task')
                 dbinterface.updateReqStatus('PROCESSING',req.reqid)
                 dbinterface.updateRbtStatus('TASK ASSIGNED',rid)
                 dbinterface.writeTask(rid,req.reqid,rbt_list,req_list)

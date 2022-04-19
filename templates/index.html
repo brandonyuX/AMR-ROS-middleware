@@ -89,36 +89,14 @@
             
 
       
-      <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-6">
+        
               <h3>Current Robot Status</h3>
-              <table class="table">
-               <tr>
-                   <th>Robot ID</th>
-                   <th>X</th>
-                   <th>Y</th>
-                   <th>Current Location</th>
-                   <th>Battery Level</th>
-                   <th>Availability</th>
-               </tr>
-       
-               <!-- here is a for-loop to give us all the tasks -->
-               
-               {% for rbt in rbtlist %}
-               <tr>
-                   <td>{{ rbt.rid }}</td>
-                   <td>{{ rbt.x }}</td>
-                   <td>{{ rbt.y }}</td>
-                   <td>{{rbt.currloc}}</td>
-                   <td>{{ rbt.battlvl }}</td>
-                   <td>{{rbt.avail}}</td>
-               </tr>
-               {% endfor %}
-              
-           </table>
-            </div>
-            <div class="col-lg-6">
+              <div id="outputDiv"></div>
+           
+          
+
+
+            
               <h3>Current Tasks</h3>
               <table class="table">
                <tr>
@@ -140,9 +118,9 @@
                </tr>
                {% endfor %}
            </table>
-            </div>
-        </div>
-    </div>
+
+    
+   
      
       
        
@@ -158,6 +136,8 @@
 
   <button type="submit" class="btn btn-primary" id="toastbtn" type="submit" name="type" value="simulate">Simulate Run</button>
   <button type="submit" class="btn btn-primary" id="clear" type="submit" name="type" value="cleartask">Clear Task</button>
+  <button type="submit" class="btn btn-primary" id="stn1" type="submit" name="type" value="stn1">Change to Station 1</button>
+  <button type="submit" class="btn btn-primary" id="stn2" type="submit" name="type" value="stn2">Change to Station 2</button>
 </form>
   
 
@@ -205,7 +185,7 @@
     </div>
   </div>
 
-
+ 
   
 
   <div class="toast-container position-absolute p-3 bottom-0 end-0" id="toastPlacement" data-original-class="toast-container position-absolute p-3" >
@@ -247,6 +227,34 @@
 <script src="/static/js/bootstrap.js"></script>
 
 <script type="text/javascript" charset="utf-8">
+
+//Get data table from flask server
+setInterval(function () {
+            let myRequest = new Request('/get_list');
+            fetch(myRequest).then(response => response.json()).then(function (data) {
+                // let data_table = document.getElementById("data_table");
+                // data_table.innerHTML = "";
+                // var o =JSON.parse(data['output'])
+                // data_table.innerHTML +='<tr>x</tr>'
+                // data_table.innerHTML += `<td>${o.rbtinfo[0].x}</td>`
+                var o =JSON.parse(data['output'])
+                var HTML = "<div><table class=\"table\">";
+                
+                //Build table from array
+                HTML+= "<tr><th>Robot ID</th><th>Current Location</th><th>ROSINFO</th><th>Availability</th></tr>"
+
+                HTML += "<tr><td>"+o.rbtinfo[0].rid+"</td>";
+                HTML += "<td>"+o.rbtinfo[0].currloc+"</td>";
+                HTML += "<td>"+o.rbtinfo[0].msg+"</td>";
+                HTML += "<td>"+o.rbtinfo[0].avail+"</td></tr>";
+                
+                HTML += "</table></div>";
+                document.getElementById("outputDiv").innerHTML = HTML;
+                
+                
+                
+            });
+        }, 1000);
   $(document).ready(function() {
 
     document.getElementById("toastbtn").onclick = function() {

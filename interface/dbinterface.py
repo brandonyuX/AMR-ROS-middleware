@@ -84,7 +84,7 @@ def getBundleInfo():
     row = cursor.fetchone() 
     while row: 
         #print(row[0])
-        rbt=Robot(row[0],row[1],row[2],row[3],row[4],row[5],row[6])
+        rbt=Robot(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7])
         rbt_list.append(rbt)
         row = cursor.fetchone()
     #print('Updated variable from DB!')
@@ -122,6 +122,17 @@ def getSubTaskListByID(tskmodno):
         row = cursor.fetchone()
     return subtsk_list
 
+def getReqList():
+    req_list.clear()
+    #Fetch PLC request list from database
+    cursor.execute("SELECT * FROM PLCRequest") 
+    row = cursor.fetchone() 
+    while row: 
+        #print(row[0])
+        req=PLCReq(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9])
+        req_list.append(req)
+        row = cursor.fetchone()
+    return req_list
 def getTaskList():
      #Fetch Robot task list
     tsk_list.clear()
@@ -177,8 +188,16 @@ def updateReqStatus(status,reqid):
     cursor.execute("UPDATE PLCRequest SET Status = ? WHERE ReqID=?",status,reqid) 
     cursor.commit()
 
+def updateReqDest(loc,reqid):
+    cursor.execute("UPDATE PLCRequest SET DestLoc = ? WHERE ReqID=?",loc,reqid) 
+    cursor.commit()
+
 def updateRbtStatus(status,rbtid):
     cursor.execute("UPDATE Robot SET Avail = ? WHERE RobotID=?",status,rbtid) 
+    cursor.commit()
+
+def updateRbtLoc(rbtid,currloc):
+    cursor.execute("UPDATE Robot SET CurrentLoc=? WHERE RobotID=?",currloc,rbtid) 
     cursor.commit()
 
 #Update position status to database
@@ -186,10 +205,16 @@ def updateRbtPosStatus(rbtid,x,y,r):
     cursor.execute("UPDATE Robot SET x=?,y=?,r=? WHERE RobotID=?",x,y,r,rbtid) 
     cursor.commit()
 
+#Update position status to database
+def updateRbtMsg(rbtid,msg):
+    cursor.execute("UPDATE Robot SET msg=? WHERE RobotID=?",msg,rbtid) 
+    cursor.commit()
+
 #Delete task based on request id
 def deltask(reqid):
     cursor.execute("DELETE FROM Task WHERE ReqID = ?",reqid) 
     cursor.commit()
+
 #print(getIP(1))
 
 #insertReq(101,2,1,'Station 3',2,now.strftime('%Y-%m-%d %H:%M:%S'))
