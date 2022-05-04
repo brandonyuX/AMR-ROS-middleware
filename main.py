@@ -85,6 +85,7 @@ def run():
 
 def execute():
     run()
+    
 
 # print('M8M AMR Resource Management Software CLI')
 # print('*Demonstration Script*')

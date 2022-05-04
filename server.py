@@ -77,8 +77,14 @@ def indexpost():
         dbinterface.deltask(1)
     if(posttype=="stn1"):
         dbinterface.updateReqDest('Station 1',1)
+        dbinterface.deltask(1)
     if(posttype=="stn2"):
         dbinterface.updateReqDest('Station 2',1)
+        dbinterface.deltask(1)
+    if(posttype=="localize"):
+        robotinterface.localize(1)
+        
+        
     tsklist=dbinterface.getTaskList()
     rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
     return render_template('index.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, async_mode=async_mode)

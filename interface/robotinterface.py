@@ -82,7 +82,7 @@ def get_info():
    
 
    
-
+#Move completed callback function
 def move_complete(message):
     print(message)
     tsk_list=dbinterface.getTaskList()
@@ -90,8 +90,9 @@ def move_complete(message):
     
     dbinterface.updateRbtMsg(tsk_list[0].rid,'Robot Reached Station')
     dbinterface.updateRbtStatus('AVAILABLE',tsk_list[0].rid)
-    dbinterface.updateReqStatus('Request Completed',tsk_list[0].req)
-    dbinterface.updateRbtLoc(tsk_list[0].req,req_list[0].destloc)
+    dbinterface.updateReqStatus('Request Completed',tsk_list[0].reqid)
+    print(req_list[0].destloc)
+    dbinterface.updateRbtLoc(tsk_list[0].reqid,req_list[0].destloc)
 
     
     
@@ -108,6 +109,24 @@ def store_rosout(message):
     print(rosmsg)
     #dbinterface.updateRbtMsg(1,rosmsg)
 
+def jack_up(rid):
+    ip=dbinterface.getIP(rid)
+    print(ip)
+    client = roslibpy.Ros(host=ip, port=8080)
+    client.run()
+    button = roslibpy.Topic(client, '/button','std_msgs/UInt16')
+    msg=roslibpy.Message(data=400)
+    button.publish(msg)
+
+def jack_down(rid):
+    ip=dbinterface.getIP(rid)
+    print(ip)
+    client = roslibpy.Ros(host=ip, port=8080)
+    client.run()
+    button = roslibpy.Topic(client, '/button','std_msgs/UInt16')
+    msg=roslibpy.Message(data=401)
+    button.publish(msg)
+
 def publish_info(rid):
     
     print('<RI>Publish goal information to robot {}'.format(rid))
@@ -119,6 +138,7 @@ def publish_cmd(rid,stn):
     client = roslibpy.Ros(host=ip, port=8080)
     client.run()
     cmdsrv = roslibpy.Service(client,'/web_cmd','htbot/mqueue')
+    print(stn)
     if(stn!=0):
         cmdreq=roslibpy.ServiceRequest(dict(cmd=11, LP=stn+1, lps=stnmap[stn]))
     else:
@@ -137,7 +157,7 @@ def localize(rid):
     pm=roslibpy.Param(client,'mapflag')
     pm.name='ZeroLocalisation'
     pm.set(True)
-    client.terminate()
+    #client.terminate()
 
 #Get task list from database
 def get_task_list():

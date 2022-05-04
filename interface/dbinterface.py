@@ -140,7 +140,7 @@ def getTaskList():
     row = cursor.fetchone() 
     while row: 
         #print(row[0])
-        tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8])
+        tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10])
         
         tsk_list.append(tsk)
         row = cursor.fetchone()
@@ -161,10 +161,7 @@ def getIP(rid):
     row = cursor.fetchone() 
     return row[0]
 
-
 def insertReq(plcid,reqid,pickup,destloc,priority,reqtime):
-    
-
     cursor.execute("INSERT INTO PLCRequest(PLCID,ReqID,PickUp,DestLoc,Priority,ReqTime) VALUES (?,?,?,?,?,?)",plcid,reqid,pickup,destloc,priority,reqtime)
     cursor.commit()
 
@@ -213,6 +210,17 @@ def updateRbtMsg(rbtid,msg):
 #Delete task based on request id
 def deltask(reqid):
     cursor.execute("DELETE FROM Task WHERE ReqID = ?",reqid) 
+    cursor.commit()
+
+def incStep(tid,step,comp):
+    if comp:
+        cursor.execute("UPDATE Task SET Completed=? WHERE TaskID=?",1,tid) 
+        cursor.commit()
+    cursor.execute("UPDATE Task SET CurrStep=?, Executing=? WHERE TaskID=?",step,1,tid) 
+    cursor.commit()
+
+def stepComplete(tid):
+    cursor.execute("UPDATE Task SET Executing=? WHERE TaskID=?",0,tid) 
     cursor.commit()
 
 #print(getIP(1))
