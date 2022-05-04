@@ -1,17 +1,17 @@
 #Main class for task 
 
 class Task:
-    def __init__(self,tid,rid,reqid,comp,taskcode,currstep,endstep,startloc,endloc,hsmsg,exec,tskmodno) -> None:
+    def __init__(self,tid,rid,reqid,comp,taskcode,currstep,endstep,destloc,hsmsg,lastupd,exec,tskmodno) -> None:
         self.tid=tid
         self.rid=rid
         self.reqid=reqid
         self.comp=comp
         self.taskcode=taskcode
         self.currstep = currstep
-        self.startloc=startloc
+        self.destloc=destloc
         self.endstep=endstep
-        self.endloc=endloc
         self.hsmsg=hsmsg
+        self.lastupd=lastupd
         self.exec=exec
         self.tskmodno=tskmodno
 

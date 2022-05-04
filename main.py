@@ -2,6 +2,7 @@
 
 
 #import interface.dbinterface as dbinterface
+from cmath import cos
 import interface.dbinterface as dbinterface
 import interface.robotinterface as robotinterface
 import interface.plcinterface as plcinterface
@@ -19,6 +20,7 @@ mapdict={"Station 1":0,
             "Station 5":4,
             "Charging Station":5
             }
+dbmaphash={'STN1' : 'Station 1', 'STN2' : 'Station 2','STN3':'Station 3','STN4':'Station 4','STN5':'Station 5'}
 
 def run():
     rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
@@ -51,12 +53,22 @@ def run():
             #Loop through robot list 
             for rbt in rbt_list:
                 #Filter out unavailable robots
+            
                 
-                print('Find possible route for robot {} from {} to {}\n'.format(rbt.rid,req.srcloc,req.destloc))
+                
                 print('Current robot position at {}'.format(rbt.currloc))
                 print('=====> Sending route information to path calculate module to calculate cost')
                 #Call path calculation module to calculate cost for each robot
-                rbt.setCost(pathcal.calculate_shortest(rbt.currloc,req.srcloc)+pathcal.calculate_shortest(req.srcloc,req.destloc))
+                splitloc=str(req.destloc).split(';')
+                cost=0
+                for index,loc in enumerate(splitloc):
+                    if index==0:
+                        print(loc)
+                        cost+=pathcal.calculate_shortest(rbt.currloc,dbmaphash[loc])
+                    else:
+                        cost+=pathcal.calculate_shortest(dbmaphash[splitloc[index-1]],dbmaphash[loc])
+                rbt.setCost(cost)
+                print('Cost of action: {}'.format(cost))
             
             print('=====> Sending path information to decision module to make a decision')
             #Call decision module to decide on which AMR to do the job
@@ -64,12 +76,12 @@ def run():
             print('======End of decision=====\n')
             if(rid!=-1):
                 print('=====> Send command to robot {} to perform task'.format(rid))
-                robotinterface.publish_info(rid)
-                dbinterface.updateRbtMsg(rid,'Robot dispatched to perform task')
+                
+                #dbinterface.updateRbtMsg(rid,'Robot dispatched to perform task')
                 dbinterface.updateReqStatus('PROCESSING',req.reqid)
-                dbinterface.updateRbtStatus('TASK ASSIGNED',rid)
+                #dbinterface.updateRbtStatus('TASK ASSIGNED',rid)
                 dbinterface.writeTask(rid,req.reqid,rbt_list,req_list)
-                robotinterface.publish_cmd(rid,mapdict[req.destloc])
+                #robotinterface.publish_cmd(rid,mapdict[req.destloc])
 
             else:
                 print('!!!!Failed to find appropriate robot for the task!!!!!')
@@ -81,11 +93,11 @@ def run():
 
             time.sleep(1)
 
-#run()
+run()
 
 def execute():
     run()
-    
+
 
 # print('M8M AMR Resource Management Software CLI')
 # print('*Demonstration Script*')

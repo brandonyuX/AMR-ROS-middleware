@@ -152,4 +152,4 @@ def startup():
 #get_single_info()
 
 #jack_down(1)
-get_single_info()
+#get_single_info()

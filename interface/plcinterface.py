@@ -1,53 +1,70 @@
 #This file provides interface with the PLC and update the database
 #Will use opcua in this example
-from opcua import Client
-from opcua import ua
+import socket,datetime
+import interface.dbinterface as dbinterface
 
-def pullreq():
+HOST='127.0.0.1'
+PORT=65432
 
-    client = Client("opc.tcp://192.168.1.109:49320")
-    # client = Client("opc.tcp://admin@localhost:4840/freeopcua/server/") #connect using a user
-    try:
-        client.connect()
 
-        # Client has a few methods to get proxy to UA nodes that should always be in address space such as Root or Objects
-        root = client.get_root_node()
-        print("Objects node is: ", root)
+decdata=''
 
-        # Node objects have methods to read and write node attributes as well as browse or populate address space
-        print("Children of root are: ", root.get_children())
 
+
+
+def decodemsg(testmsg):
+    print(testmsg)
+
+    tasktype={'0001': 'CreateTask','0002':'MoveStn','0003':'Custom Command'}
+
+    rcvtsk=testmsg[0:4]
+    rcvlen=testmsg[4:8]
+    rcvseq=testmsg[8:12]
+    rcvtskmod=testmsg[12:15]
+    rcvreqid=testmsg[15:19]
+    rcvpriority=testmsg[19:21]
+
+    print('Task Type: {} -> {}'.format(rcvtsk,tasktype[rcvtsk]))
+    print('Message Length: {}'.format(rcvlen))
+    print('Message Sequence Number: {}'.format(rcvseq))
+    print('Task Model Number: {}'.format(rcvtskmod))
+    print('Priority: {}'.format(rcvpriority))
     
-        while True:
+    msglen=int(rcvlen)
+
+    stnmsg=testmsg[21:msglen]
+    splitmsg=testmsg[21:msglen].split(';')
+    print('The extracted stations are: ')
+    for msg in splitmsg:
+        print(msg)
+    now = datetime.datetime.utcnow()
+    formattime=now.strftime('%Y-%m-%d %H:%M:%S')
+    dbinterface.insertReq(1,rcvreqid,stnmsg,int(rcvpriority),formattime,int(rcvtskmod))
+    # asgrbt=1
+    # asgtid=1
+
+    # asgrbt=asgrbt.zfill(4)
+    # asgtid=asgtid.zfill(4)
+    # print('Task assigned to robot {} with Task ID {}'.format(asgrbt,asgtid))
+    # totallen=str(len(rcvtsk)+len(rcvseq)+len(asgrbt)+len(asgtid)+4)
+    # totallen=totallen.zfill(4)
+
+    # response=rcvtsk+totallen+rcvseq+asgrbt+asgtid
+    # print('Reponse to PLC: {}'.format(response))
+
+def start_server():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind((HOST, PORT))
+        s.listen()
+        conn, addr = s.accept()
+        with conn:
+            print(f"Connected by {addr}")
+            while True:
+                data = conn.recv(1024)
             
-                
-            path="ns=2;s=TwincatTest.SeletarDeparture.GVL_MDS.HMI.STATE.{ConveyorName}".format(ConveyorName=conv)
-            state = client.get_node(path)
-            path2="ns=2;s=TwincatTest.SeletarDeparture.GVL_MDS.HMI.STATUS.{ConveyorName}".format(ConveyorName=conv)
-            state2 = client.get_node(path2)
-            
-            #print(conv)
-            
-            datavalue = ua.DataValue(ua.Variant(statevalue, ua.VariantType.Int16))
-            datavalue2 = ua.DataValue(ua.Variant(statusvalue, ua.VariantType.Int16))
-            state.set_value(datavalue)
-            state2.set_value(datavalue2)
-            #print(conv,":",state.get_value(),":",convmap.get(i+1,"No Value"))
-            time.sleep(testtime)
+                if not data:
+                    break
 
-            
-
-        
-            
-            
-            #time.sleep(testtime)           
-        #Query Tag
-
-
-
-
-
-       
-
-    finally:
-        client.disconnect()
+                decdata=(data.decode('utf-8'))
+                decodemsg(decdata)
+                conn.sendall(data)

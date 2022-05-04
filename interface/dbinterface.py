@@ -116,7 +116,20 @@ def getSubTaskListByID(tskmodno):
     row = cursor.fetchone() 
     while row: 
         #print(row[0])
-        tsk=SubTask(row[1],row[2],row[3],row[5])
+        tsk=SubTask(row[0],row[1],row[2],row[3],row[4],row[5])
+        
+        subtsk_list.append(tsk)
+        row = cursor.fetchone()
+    return subtsk_list
+
+#Retrieve Subtask information by task model id and step
+def getSubTaskListByStepID(tskmodno,step):
+    subtsk_list.clear()
+    cursor.execute("SELECT * FROM SubTask WHERE TaskModelID = ? AND Step=?",tskmodno,step) 
+    row = cursor.fetchone() 
+    while row: 
+        #print(row[0])
+        tsk=SubTask(row[0],row[1],row[2],row[3],row[4],row[5])
         
         subtsk_list.append(tsk)
         row = cursor.fetchone()
@@ -161,18 +174,19 @@ def getIP(rid):
     row = cursor.fetchone() 
     return row[0]
 
-def insertReq(plcid,reqid,pickup,destloc,priority,reqtime):
-    cursor.execute("INSERT INTO PLCRequest(PLCID,ReqID,PickUp,DestLoc,Priority,ReqTime) VALUES (?,?,?,?,?,?)",plcid,reqid,pickup,destloc,priority,reqtime)
+def insertReq(plcid,reqid,destloc,priority,reqtime,tskmodno):
+    cursor.execute("INSERT INTO PLCRequest(PLCID,ReqID,DestLoc,Priority,ReqTime,TaskModelNo) VALUES (?,?,?,?,?,?)",plcid,reqid,destloc,priority,reqtime,tskmodno)
     cursor.commit()
 
 def writeTask(finalrid,reqid,rbt_list,req_list):
-    cost=(next((x for x in rbt_list if x.rid == finalrid), None).cost)
+    
     startloc=(next((x for x in rbt_list if x.rid == finalrid), None).currloc)
     destloc=(next((x for x in req_list if x.reqid == reqid), None).destloc)
+    tskmodno=(next((x for x in req_list if x.reqid == reqid), None).tskmodno)
     print(startloc)
     print(destloc)
     now = datetime.datetime.utcnow()
-    cursor.execute("INSERT INTO Task (RobotID,ReqID,Completed,TaskCode,CurrStep,LastUpd) VALUES (?,?,?,?,?,?)",finalrid,reqid,0,000,1,now.strftime('%Y-%m-%d %H:%M:%S'))
+    cursor.execute("INSERT INTO Task (RobotID,ReqID,Completed,TaskCode,CurrStep,LastUpd,Executing,TaskModelID,DestLoc) VALUES (?,?,?,?,?,?,?,?,?)",finalrid,reqid,0,000,1,now.strftime('%Y-%m-%d %H:%M:%S'),0,tskmodno,destloc)
     cursor.commit()
 
 def writeSubTask(tsklist):
@@ -216,7 +230,7 @@ def incStep(tid,step,comp):
     if comp:
         cursor.execute("UPDATE Task SET Completed=? WHERE TaskID=?",1,tid) 
         cursor.commit()
-    cursor.execute("UPDATE Task SET CurrStep=?, Executing=? WHERE TaskID=?",step,1,tid) 
+    cursor.execute("UPDATE Task SET CurrStep=? WHERE TaskID=?",step,tid) 
     cursor.commit()
 
 def stepComplete(tid):
