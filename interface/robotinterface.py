@@ -1,4 +1,5 @@
 #This file will provide the interface to communicate with the robot and update database 
+
 import roslibpy
 import pyodbc
 import sys
@@ -37,35 +38,7 @@ def get_info():
     iplist=dbinterface.getIPList()
     client = roslibpy.Ros(host="172.23.44.12", port=8080)
     client.run()
-    cmdsrv = roslibpy.Service(client,'/web_cmd','htbot/mqueue')
-    # cmdreq=roslibpy.ServiceRequest(values={
-    #                 cmd : 1,
-    #                 LP : 0,
-    #                 GN : 0,
-    #                 gps : "",
-    #                 lps : "POWER",
-    #                     pw : "",
-    #                 tx : 1.0,
-    #                 ty : 2.0,
-    #                 tz : 3.0,
-    #                 rx : 0.0,
-    #                     ry : 0.0,
-    #                 rz : 0.0,
-    #                 rw : 0.0,
-    #                 prd : 0.0,
-    #                     pra : 0.0,
-    #                 psd : 0.0,
-    #                 psa : 0.0,
-    #                 prd1 : 0.0,
-    #                 pra1 : 0.0,
-    #                 psd1 : 0.0,
-    #                 psa1 : 0.0,
-    #                 align : 0.0,
-    #                 func : 0.0 
-    #             })
     
-
-    #print('Subcribed')
     def start_receive_pose():
        #Throttle pose received to 1 per sec
         listener2 = roslibpy.Topic(client, '/rosout','rosgraph_msgs/Log',throttle_rate=1000)
@@ -75,7 +48,6 @@ def get_info():
         listener3=roslibpy.Topic(client,'/move_completed','htbot/status')
         listener3.subscribe(move_complete)
         
-    
     t1 = threading.Thread(target=start_receive_pose)
     t1.start()
     t1.join()
@@ -107,6 +79,10 @@ def store_pose(message):
 def store_rosout(message):
     rosmsg=message['msg']
     print(rosmsg)
+    if rosmsg=='------------ jstate 21 : down cmd completed. -----------':
+        print('Jack down completed')
+    elif rosmsg=='------------ jstate 11 : up cmd completed. -----------':
+        print('Jack Up Completed')
     #dbinterface.updateRbtMsg(1,rosmsg)
 
 def jack_up(rid):
@@ -114,9 +90,11 @@ def jack_up(rid):
     print(ip)
     client = roslibpy.Ros(host=ip, port=8080)
     client.run()
+    
     button = roslibpy.Topic(client, '/button','std_msgs/UInt16')
-    msg=roslibpy.Message(data=400)
+    msg=roslibpy.Message({'data':400})
     button.publish(msg)
+    #client.terminate()
 
 def jack_down(rid):
     ip=dbinterface.getIP(rid)
@@ -124,8 +102,10 @@ def jack_down(rid):
     client = roslibpy.Ros(host=ip, port=8080)
     client.run()
     button = roslibpy.Topic(client, '/button','std_msgs/UInt16')
-    msg=roslibpy.Message(data=401)
+    msg=roslibpy.Message({'data':401})
+    
     button.publish(msg)
+    #client.terminate()
 
 def publish_info(rid):
     
@@ -170,3 +150,6 @@ def startup():
 #publish_cmd(1,2)
 #localize(1)
 #get_single_info()
+
+#jack_down(1)
+get_single_info()

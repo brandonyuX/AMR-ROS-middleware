@@ -140,7 +140,7 @@ def getTaskList():
     row = cursor.fetchone() 
     while row: 
         #print(row[0])
-        tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10])
+        tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11])
         
         tsk_list.append(tsk)
         row = cursor.fetchone()

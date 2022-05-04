@@ -21,7 +21,7 @@ def tskpolling():
             for tsk in tsklist:
                 
                 if(int(tsk.comp)==1):
-                    print('Complete all steps')
+                    print('Completed all steps')
                     loop=False
 
                 if(int(tsk.exec)==1):
