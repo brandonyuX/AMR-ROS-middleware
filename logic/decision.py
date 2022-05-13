@@ -29,13 +29,13 @@ def makeDecision(rbt_list,rc_list,req_list,reqid):
             break
 
     if(finalrid!=-1):
-        print('<D>From Decision Module : Robot {} is number {} choice from path calculation algorithm'.format(finalrid,index))
-        print('<D>From Decision Module : Robot {} is projected to have {} percent of battery left after task is completed based on {} percent of battery required'.format(finalrid,battrem,battreq))
-        print('<D>From Decision Module : Therefore, Robot {} should perform the task'.format(finalrid))
+        print('<DM>From Decision Module : Robot {} is number {} choice from path calculation algorithm'.format(finalrid,index))
+        print('<DM>From Decision Module : Robot {} is projected to have {} percent of battery left after task is completed based on {} percent of battery required'.format(finalrid,battrem,battreq))
+        print('<DM>From Decision Module : Therefore, Robot {} should perform the task'.format(finalrid))
         index=0
         #Write a corresponding task to database
         #dbinterface.writeTask(finalrid,reqid,rbt_list,req_list)
         return (finalrid)
     else:
-        print('<D>From Decision Module : No available robot found due to battery constraint!!')
+        print('<DM>From Decision Module : No available robot found due to battery constraint!!')
         return -1

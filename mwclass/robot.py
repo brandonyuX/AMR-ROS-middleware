@@ -17,7 +17,7 @@ class Robot:
         self.cost=cost
 
     def __str__(self) -> str:
-        tempstr='Robot ID : {}, Current Location : {}, Current Battery Level: {}'.format(self.rid,self.currloc,self.battlvl)
+        tempstr='Robot ID : {}, Current Location : {}, Current Battery Level: {}, Availability: {}'.format(self.rid,self.currloc,self.battlvl,self.avail)
         return tempstr
 
     def toJSON(self):

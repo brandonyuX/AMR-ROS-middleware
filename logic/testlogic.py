@@ -5,4 +5,4 @@ import interface.dbinterface as dbinterface
 
 while(True):
     x=input('Enter to continue')
-    dbinterface.stepComplete(1023)
+    dbinterface.setExecute(0,1027)

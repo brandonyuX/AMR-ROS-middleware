@@ -1,5 +1,5 @@
 from cgi import test
-from flask import Flask, render_template,request,session,make_response
+from flask import Flask, render_template,request,session,make_response,redirect,url_for,jsonify
 import interface.dbinterface as dbinterface
 import main
 from mwclass.testclass import testclass
@@ -9,13 +9,36 @@ from mwclass.subtask import SubTask
 from flask_socketio import SocketIO, emit
 from threading import Lock
 import json
+from flask import Blueprint, render_template, flash
+from flask_simplelogin import SimpleLogin
+from flask_login import login_required, current_user,LoginManager,login_user,logout_user
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField
+from flask_sqlalchemy import SQLAlchemy
+from flask_mongoengine import MongoEngine
+
+
 
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
 # the best option based on installed packages.
 async_mode = None
 
-app = Flask('testapp')
+app = Flask("RMS-Server")
+#Configure database settings
+app.config['MONGODB_SETTINGS'] = {
+    'db': 'your_database',
+    'host': 'localhost',
+    'port': 27017
+}
+app.config['SECRET_KEY'] = '01a0715b-851a-4dfb-88e8-d4e5189fca56'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
+db=MongoEngine()
+login_manager = LoginManager()
+db.init_app(app)
+login_manager.init_app(app)
+
+
 socketio = SocketIO(app, async_mode=async_mode)
 thread = None
 thread_lock = Lock()
@@ -24,9 +47,31 @@ subtasklist=[]
 tclist=[]
 tc=testclass(0,0,0)
 
-robotinterface.get_info()
+#robotinterface.get_info()
+class LoginForm(FlaskForm):
+    username = StringField('Username')
+    password = PasswordField('Password')
+    submit = SubmitField('Submit')
 
+class User(db.Document):   
+    name = db.StringField()
+    password = db.StringField()
+    email = db.StringField()                                                                                                 
+    def to_json(self):        
+        return {"name": self.name,
+                "email": self.email}
 
+    def is_authenticated(self):
+        return True
+
+    def is_active(self):   
+        return True           
+
+    def is_anonymous(self):
+        return False          
+
+    def get_id(self):         
+        return str(self.id)
 #Background activity to perform
 def background_thread():
     """Example of how to send server generated events to clients."""
@@ -54,6 +99,41 @@ def background_thread():
     #     socketio.emit('my_response',
     #                   {'data': count, 'count': count,'class':forjson})
 
+login_manager.login_view = 'login'
+@app.route('/login', methods=['POST'])
+def login():
+    info = json.loads(request.data)
+    username = info.get('username', 'guest')
+    password = info.get('password', '') 
+    user = User.objects(name=username,
+                        password=password).first()
+    if user:
+        login_user(user)
+        return jsonify(user.to_json())
+    else:
+        return jsonify({"status": 401,
+                        "reason": "Username or Password Error"})
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.objects(id=user_id).first()
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    logout_user()
+    return jsonify(**{'result': 200,
+                      'data': {'message': 'logout success'}})
+
+@app.route('/user_info', methods=['POST'])
+def user_info():
+    if current_user.is_authenticated:
+        resp = {"result": 200,
+                "data": current_user.to_json()}
+    else:                                                                                                                    
+        resp = {"result": 401,
+                "data": {"message": "user no login"}}
+    return jsonify(**resp)
+    
 #Define homepage 
 @app.route('/')
 def index():
@@ -68,7 +148,6 @@ def indexpost():
     print(posttype)
     if(posttype=='simulate'):
         main.run()
-        
         
     if(posttype=="cleartask"):
         dbinterface.updateRbtStatus('AVAILABLE',1)
@@ -176,24 +255,7 @@ def taskmodelcreatepost():
 
         return render_template('taskmodelcreate.html',subtsklist=subtasklist,tskmod=tskmodno)
 
-@socketio.event
-def my_event(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    forjson=tc.toJSON()
-    emit('my_response',
-         {'data': message['data'], 'count': session['receive_count'],'class': forjson})
 
-# Receive the test request from client and send back a test response
-@socketio.on('test_message')
-def handle_message(data):
-    print('received message: ' + str(data))
-    emit('test_response', {'data': 'Test response sent'})
-
-# Broadcast a message to all clients
-@socketio.on('broadcast_message')
-def handle_broadcast(data):
-    print('received: ' + str(data))
-    emit('broadcast_response', {'data': 'Broadcast sent'}, broadcast=True)
 
 # @socketio.event
 # def connect():
@@ -203,5 +265,5 @@ def handle_broadcast(data):
 #             thread = socketio.start_background_task(background_thread)
 #     emit('my_response', {'data': 'Connected', 'count': 0})
 
-if __name__ == '__main__':
-    app.run()
+
+app.run()

@@ -35,15 +35,18 @@ tsk_list=[]
 subtsk_list=[]
 
 
+def startup():
+    global cursor
+    print('<DB>Database stack start up')
+    #Set database parameters
+    server = 'NEL-PC\WINCC' 
+    database = 'M8MMiddlewareDB' 
+    username = 'sa' 
+    password = 'saadm1n@m8m' 
 
-#Set database parameters
-server = 'NEL-PC\WINCC' 
-database = 'M8MMiddlewareDB' 
-username = 'sa' 
-password = 'saadm1n@m8m' 
-
-cnxn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
-cursor = cnxn.cursor()
+    cnxn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
+    cursor = cnxn.cursor()
+    print('<DB>Database connected')
 
 def getBundleInfo():
    
@@ -91,7 +94,18 @@ def getBundleInfo():
     #time.sleep(3)
     
     return rc_list,sm_list,req_list,rbt_list
-        
+
+def getRobotList():
+    #Fetch Robot current status
+    cursor.execute("SELECT * FROM Robot") 
+    row = cursor.fetchone() 
+    while row: 
+        #print(row[0])
+        rbt=Robot(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7])
+        rbt_list.append(rbt)
+        row = cursor.fetchone()
+    return rbt_list
+
 def getSubTaskList():
     subtsk_list.clear()
     cursor.execute("SELECT * FROM SubTask") 
@@ -153,7 +167,7 @@ def getTaskList():
     row = cursor.fetchone() 
     while row: 
         #print(row[0])
-        tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11])
+        tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12])
         
         tsk_list.append(tsk)
         row = cursor.fetchone()
@@ -186,7 +200,7 @@ def writeTask(finalrid,reqid,rbt_list,req_list):
     print(startloc)
     print(destloc)
     now = datetime.datetime.utcnow()
-    cursor.execute("INSERT INTO Task (RobotID,ReqID,Completed,TaskCode,CurrStep,LastUpd,Executing,TaskModelID,DestLoc) VALUES (?,?,?,?,?,?,?,?,?)",finalrid,reqid,0,000,1,now.strftime('%Y-%m-%d %H:%M:%S'),0,tskmodno,destloc)
+    cursor.execute("INSERT INTO Task (RobotID,ReqID,Completed,TaskCode,CurrStep,LastUpd,Executing,TaskModelID,DestLoc,Processing) VALUES (?,?,?,?,?,?,?,?,?)",finalrid,reqid,0,000,1,now.strftime('%Y-%m-%d %H:%M:%S'),0,tskmodno,destloc,0)
     cursor.commit()
 
 def writeSubTask(tsklist):
@@ -226,6 +240,7 @@ def deltask(reqid):
     cursor.execute("DELETE FROM Task WHERE ReqID = ?",reqid) 
     cursor.commit()
 
+#Increment step to task 
 def incStep(tid,step,comp):
     if comp:
         cursor.execute("UPDATE Task SET Completed=? WHERE TaskID=?",1,tid) 
@@ -233,9 +248,11 @@ def incStep(tid,step,comp):
     cursor.execute("UPDATE Task SET CurrStep=? WHERE TaskID=?",step,tid) 
     cursor.commit()
 
-def stepComplete(tid):
-    cursor.execute("UPDATE Task SET Executing=? WHERE TaskID=?",0,tid) 
+#Set execution bit for task
+def setExecute(exec,tid):
+    cursor.execute("UPDATE Task SET Executing=? WHERE TaskID=?",exec,tid) 
     cursor.commit()
+
 
 #print(getIP(1))
 

@@ -48,7 +48,7 @@ def run():
         req_list.sort(key=lambda x:x.priority,reverse=False)
         #Loop through request list in order of priority
         for req in req_list:
-            print('=====Start processing request with priority {}=====\n'.format(req.priority))
+            print('<MM>Start processing request with priority {}\n'.format(req.priority))
         
             #Loop through robot list 
             for rbt in rbt_list:
@@ -56,8 +56,8 @@ def run():
             
                 
                 
-                print('Current robot position at {}'.format(rbt.currloc))
-                print('=====> Sending route information to path calculate module to calculate cost')
+                print('<MM>Current robot position at {}'.format(rbt.currloc))
+                print('<MM>Sending route information to path calculate module to calculate cost')
                 #Call path calculation module to calculate cost for each robot
                 splitloc=str(req.destloc).split(';')
                 cost=0
@@ -70,12 +70,12 @@ def run():
                 rbt.setCost(cost)
                 print('Cost of action: {}'.format(cost))
             
-            print('=====> Sending path information to decision module to make a decision')
+            print('<MM>Sending path information to decision module to make a decision')
             #Call decision module to decide on which AMR to do the job
             rid=decision.makeDecision(rbt_list,rc_list,req_list,req.reqid)
-            print('======End of decision=====\n')
+            print('<MM>End of decision\n')
             if(rid!=-1):
-                print('=====> Send command to robot {} to perform task'.format(rid))
+                print('<MM>Send command to robot {} to perform task'.format(rid))
                 
                 #dbinterface.updateRbtMsg(rid,'Robot dispatched to perform task')
                 dbinterface.updateReqStatus('PROCESSING',req.reqid)
@@ -84,7 +84,7 @@ def run():
                 #robotinterface.publish_cmd(rid,mapdict[req.destloc])
 
             else:
-                print('!!!!Failed to find appropriate robot for the task!!!!!')
+                print('<MM>Failed to find appropriate robot for the task!!!!!')
             
             print('\n====================================END ROUTINE=========================================================')
 
@@ -93,7 +93,7 @@ def run():
 
             time.sleep(1)
 
-run()
+#run()
 
 def execute():
     run()

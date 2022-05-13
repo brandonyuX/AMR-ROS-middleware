@@ -14,7 +14,7 @@ class PLCReq:
         self.status=status
 
     def __str__(self) -> str:
-        tempStr='Request from PLC {} to {} with priority {}'.format(self.plcid,self.destloc,self.priority)
+        tempStr='Request from PLC {} with parameters {} with priority {}'.format(self.plcid,self.destloc,self.priority)
         return tempStr
 
         
