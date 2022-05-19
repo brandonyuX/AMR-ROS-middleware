@@ -19,7 +19,7 @@ mapdict={"STN1":0,
             }
 def tskpolling():
     #Initialize database connection
-    dbinterface.startup()
+    #dbinterface.startup()
     rbt_list=dbinterface.getRobotList()
     for rbt in rbt_list:
         print(rbt)
@@ -27,12 +27,12 @@ def tskpolling():
     # for item in list:
     #     print(item)
     #Initialze robot interface
-    robotinterface.startup()
+    #robotinterface.startup()
     
     loop=True
     while(loop):
         #print('=====Start Async task get=====')
-        tsklist=dbinterface.getTaskList()
+        tsklist=dbinterface.getTaskListTop()
         for i,tsk in enumerate(tsklist):
             tskq.append([])
             splitloc=str(tsk.destloc).split(';')
@@ -46,26 +46,26 @@ def tskpolling():
             #If there are active tasks in tasklist, loop through task list to assign job to robot
             for i,tsk in enumerate(tsklist):
                 
-                #Do not process if task is marked as complete
-                if(int(tsk.comp)==1):
-                    print('<MS>Completed all steps for task {}'.format(tsk.tid))
-                    loop=False
-                    break
+                # #Do not process if task is marked as complete
+                # if(int(tsk.comp)==1):
+                #     print('<MS>Completed all steps for task {}'.format(tsk.tid))
+                #     loop=False
+                #     break
 
                 #Do not execute next step when task is still processing
-                elif(int(tsk.exec)==1):
+                if(int(tsk.exec)==1):
                     #print('Task {} for robot {} on step {} still executing'.format(tsk.tid,tsk.rid,tsk.currstep-1))
                     continue
                     
                     
                 else:
 
-                    if(tsk.currstep>1):
-                        for i in range(1,tsk.currstep):
-                            subtsk=dbinterface.getSubTaskListByStepID(tsk.tskmodno,i)
-                            if(subtsk[0].at=='Move'):
-                                #Pop from list if previous move has been established
-                                tskq[i].pop(0)
+                    # if(tsk.currstep>1):
+                    #     for i in range(1,tsk.currstep):
+                    #         subtsk=dbinterface.getSubTaskListByStepID(tsk.tskmodno,i)
+                    #         if(subtsk[0].at=='Move'):
+                    #             #Pop from list if previous move has been established
+                    #             tskq[i].pop(0)
                     #Start execution of subtask
                     #Get action type of subtask 
                    
@@ -73,6 +73,8 @@ def tskpolling():
                    
                     #print('Sending Command to Robot {}.\n Current Step: {} End Step: {}'.format(tsk.rid,tsk.currstep,tsk.endstep))
                     if(tsk.currstep>tsk.endstep):
+                        print('End of execution for task {}'.format(tsk.tid))
+                        dbinterface.writeLog('ms','End of execution for task {}'.format(tsk.tid),True)
                         dbinterface.incStep(tsk.tid,tsk.endstep,True)
                         dbinterface.setExecute(0,tsk.tid)
                     
@@ -84,53 +86,63 @@ def tskpolling():
                         if(subtsk[0].at=='Move'):
                             sname=tskq[i].pop(0)
                             #print(mapdict[sname])
-                            print('<MS>Executing step {} out of {}'.format(tsk.currstep,tsk.endstep))
-                            print('<MS>Sending move command to robot {} bound for {}'.format(tsk.rid,sname))
+                            #print('<MS>Executing step {} out of {}'.format(tsk.currstep,tsk.endstep))
+                            dbinterface.writeLog('ms','<MS>Executing step {} out of {}'.format(tsk.currstep,tsk.endstep),True)
+                            #print('<MS>Sending move command to robot {} bound for {}'.format(tsk.rid,sname))
+                            dbinterface.writeLog('ms','<MS>Sending move command to robot {} bound for {}'.format(tsk.rid,sname),True)
                             #Send command to robot interface to run this step
                             #print(mapdict[sname])
-                            cmdres=robotinterface.publish_cmd(tsk.rid,mapdict[sname])
-                            if(cmdres):
-                                dbinterface.setExecute(1,tsk.tid)
-                                dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
-                            else:
-                                print('<ERR>Robot connection failed. Terminating loop.')
-                                loop=False
+                            #robotinterface.publish_cmd(tsk.rid,mapdict[sname])
+                            
+                            dbinterface.setExecute(1,tsk.tid)
+                            dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
+                            
+                                
                         if(subtsk[0].at=='Load'):
-                            print('<MS>Executing step {} out of {}'.format(tsk.currstep,tsk.endstep))
-                            print('<MS>Sending load command to robot {}.'.format(tsk.rid))
+                            #print('<MS>Executing step {} out of {}'.format(tsk.currstep,tsk.endstep))
+                            #print('<MS>Sending load command to robot {}.'.format(tsk.rid))
+                            dbinterface.writeLog('ms','<MS>Executing step {} out of {}'.format(tsk.currstep,tsk.endstep),True)
+                            dbinterface.writeLog('ms','<MS>Sending load command to robot {}.'.format(tsk.rid),True)
                             dbinterface.setExecute(1,tsk.tid)
                             #Test set execute to false after 5 seconds
                             
-                            robotinterface.jack_up(tsk.rid)
+                            #robotinterface.jack_up(tsk.rid)
                             #Wait for load to complete
                             time.sleep(25)
-                            print('<MS>Load Completed')
+                            dbinterface.writeLog('ms','<MS>Load Completed',True)
                             dbinterface.setExecute(0,tsk.tid)
                             dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
+
                         if(subtsk[0].at=='Unload'):
-                            print('<MS>Executing step {} out of {}'.format(tsk.currstep,tsk.endstep))
-                            print('<MS>Sending unload command to robot {}.'.format(tsk.rid))
+                            #print('<MS>Executing step {} out of {}'.format(tsk.currstep,tsk.endstep))
+                            dbinterface.writeLog('ms','<MS>Executing step {} out of {}'.format(tsk.currstep,tsk.endstep),True)
+                            #print('<MS>Sending unload command to robot {}.'.format(tsk.rid))
+                            dbinterface.writeLog('ms','<MS>Sending unload command to robot {}.'.format(tsk.rid),True)
                             dbinterface.setExecute(1,tsk.tid)
                             #Test set execute to false after 5 seconds
-                            robotinterface.jack_down(tsk.rid)
+                            #robotinterface.jack_down(tsk.rid)
                             #Wait for unload to complete
                             time.sleep(25)
                             print('<MS>Unload Completed')
+                            dbinterface.writeLog('ms','<MS>Unload Completed',True)
                             dbinterface.setExecute(0,tsk.tid)
                             dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
                 #time.sleep(2)
   
             
         else:
-            print('=====No task found yet. Polling...')
-            time.sleep(0.5)
+            #print('=====No task found yet. Polling...')
+            dbinterface.writeLog('ms','No Task Found',False)
+            time.sleep(2)
             
 
 
-
-# t1=threading.Thread(target=tskpolling)
-# t1.start()
-# t1.join()
-tskpolling()
+def startup():
+    
+    print('<MS>Master Scheduler start up')
+    t1=threading.Thread(target=tskpolling)
+    t1.start()
+    #t1.join()
+#tskpolling()
 
 

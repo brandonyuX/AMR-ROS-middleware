@@ -11,7 +11,9 @@ import logic.decision as decision
 import time,datetime
 import tkinter as tk
 from flask import Flask, render_template
-rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
+#Initialize database connection
+#dbinterface.startup()
+#rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
 
 mapdict={"Station 1":0,
             "Station 2":1,
@@ -78,7 +80,7 @@ def run():
                 print('<MM>Send command to robot {} to perform task'.format(rid))
                 
                 #dbinterface.updateRbtMsg(rid,'Robot dispatched to perform task')
-                dbinterface.updateReqStatus('PROCESSING',req.reqid)
+                dbinterface.updateReqStatus('ROBOT ASSIGNED',req.reqid)
                 #dbinterface.updateRbtStatus('TASK ASSIGNED',rid)
                 dbinterface.writeTask(rid,req.reqid,rbt_list,req_list)
                 #robotinterface.publish_cmd(rid,mapdict[req.destloc])

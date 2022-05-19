@@ -16,6 +16,13 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from flask_sqlalchemy import SQLAlchemy
 from flask_mongoengine import MongoEngine
+import logic.mastersch as masterscheduler
+import threading
+
+import logging
+
+
+
 
 
 
@@ -25,6 +32,8 @@ from flask_mongoengine import MongoEngine
 async_mode = None
 
 app = Flask("RMS-Server")
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 #Configure database settings
 app.config['MONGODB_SETTINGS'] = {
     'db': 'your_database',
@@ -37,6 +46,7 @@ db=MongoEngine()
 login_manager = LoginManager()
 db.init_app(app)
 login_manager.init_app(app)
+
 
 
 socketio = SocketIO(app, async_mode=async_mode)
@@ -150,7 +160,7 @@ def indexpost():
         main.run()
         
     if(posttype=="cleartask"):
-        dbinterface.updateRbtStatus('AVAILABLE',1)
+        dbinterface.updateRbtStatus(True,1)
         dbinterface.updateReqStatus('NEW',1)
         dbinterface.updateRbtMsg(1,'Task cancelled')
         dbinterface.deltask(1)
@@ -194,6 +204,7 @@ def taskmodelcreate():
 @app.route("/get_list")
 def get_list():
     rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
+    tsk_list=dbinterface.getTaskList()
     result={}
     result['rbtinfo']=[]
     #Convert python object to json
@@ -208,8 +219,48 @@ def get_list():
         rbt_info['currloc']=rbt.currloc
         result['rbtinfo'].append(rbt_info)
     
+    #Convert task table information to json
+    result2={}
+    result2['taskinfo']=[]
+    #Convert python object to json
+    for tsk in tsk_list:
+        tsk_info={}
+        tsk_info['tid']=tsk.tid
+        tsk_info['rid']=tsk.rid
+        tsk_info['reqid']=tsk.reqid
+        tsk_info['currstep']=tsk.currstep
+        tsk_info['endstep']=tsk.endstep
+        if tsk.comp==1: 
+            tsk_info['completed']='Completed Task' 
+        else:
+            tsk_info['completed']='Active Task'
+       
+        result2['taskinfo'].append(tsk_info)
+
+    #Convert plc request table information to json
+    result3={}
+    result3['reqinfo']=[]
+    #Convert python object to json
+    for req in req_list:
+        req_info={}
+        req_info['plcid']=req.plcid
+        req_info['reqid']=req.reqid
+        req_info['destloc']=req.destloc
+        req_info['tskmodno']=req.tskmodno
+        req_info['status']=req.status
+
+        
+       
+        result3['reqinfo'].append(req_info)
+    
+    msinfo=dbinterface.readLog('ms')
+    #print(msinfo)
+
+
+    
+    
     #print(result)
-    return make_response({"output": json.dumps(result)})
+    return make_response({"rbtarr": json.dumps(result),"taskarr":json.dumps(result2),"reqarr":json.dumps(result3),"msinfo":msinfo})
 
 
 # Routes for task create
@@ -265,5 +316,13 @@ def taskmodelcreatepost():
 #             thread = socketio.start_background_task(background_thread)
 #     emit('my_response', {'data': 'Connected', 'count': 0})
 
+#Initialze all interfaces
+dbinterface.startup()
+masterscheduler.startup()
+#threading.Thread(target=lambda: app.run())
 
-app.run()
+#app.run()
+
+t1=threading.Thread(target=app.run())
+t1.start()
+#t1.join()

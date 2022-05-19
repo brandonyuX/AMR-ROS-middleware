@@ -106,6 +106,7 @@ def getRobotList():
         row = cursor.fetchone()
     return rbt_list
 
+
 def getSubTaskList():
     subtsk_list.clear()
     cursor.execute("SELECT * FROM SubTask") 
@@ -171,6 +172,20 @@ def getTaskList():
         
         tsk_list.append(tsk)
         row = cursor.fetchone()
+
+    return tsk_list
+
+
+#Get the latest task that is not completed
+def getTaskListTop():
+     #Fetch Robot task list
+    tsk_list.clear()
+    cursor.execute("SELECT * FROM Task WHERE Completed=0") 
+    row = cursor.fetchone() 
+    if row:
+        tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12])
+        
+        tsk_list.append(tsk)
 
     return tsk_list
 
@@ -253,7 +268,20 @@ def setExecute(exec,tid):
     cursor.execute("UPDATE Task SET Executing=? WHERE TaskID=?",exec,tid) 
     cursor.commit()
 
-
+#Write to log
+def writeLog(type,msg,disp):
+    if disp:
+        print(msg)
+    if(type=='ms'):
+        cursor.execute("UPDATE MessageTable SET MSMsg=? WHERE MsgID=1",msg) 
+        cursor.commit()
+#Read from log
+def readLog(type):
+    if(type=='ms'):
+        cursor.execute("SELECT MSMsg FROM MessageTable WHERE MsgID=1") 
+        row = cursor.fetchone() 
+        return row[0]
+    
 #print(getIP(1))
 
 #insertReq(101,2,1,'Station 3',2,now.strftime('%Y-%m-%d %H:%M:%S'))

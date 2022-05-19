@@ -16,6 +16,8 @@ import interface.dbinterface as dbinterface
 #Define ros connection
 client = roslibpy.Ros(host="172.23.44.12", port=8080)
 
+taskid=0
+
 def connect():
     print('<RI>Connecting to ROS robot')
     try:
@@ -61,7 +63,7 @@ def get_info():
         
         t1 = threading.Thread(target=start_receive_pose)
         t1.start()
-        t1.join()
+        #t1.join()
     except:
         print('No connection to ROS Robot')
     
@@ -71,10 +73,12 @@ def get_info():
    
 #Move completed callback function
 def move_complete(message):
+    tsklist=dbinterface.getTaskListTop()
+
     print('<RI>Robot Reached, Aligning')
     time.sleep(10)
     print('<RI>Alignment Complete, proceeding to next instruction.')
-    dbinterface.setExecute(0,1027)
+    dbinterface.setExecute(0,tsklist[0].tid)
     # tsk_list=dbinterface.getTaskList()
     # req_list=dbinterface.getReqList()
     
@@ -178,7 +182,7 @@ def startup():
     #Start connection
     connect()
 
-    get_info()
+    #get_info()
 #publish_cmd(1,2)
 #localize(1)
 #get_single_info()
