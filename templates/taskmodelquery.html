@@ -30,8 +30,20 @@
           </ul>
         </li>
         <a class="nav-link" href="configuration">Configuration</a>
+        
     </ul>
-    
+
+    <ul class="navbar-nav ms-auto">
+     
+       
+        <span class="navbar-text">
+          Hi! You are logged in as <b>{{ current_user.username }}.</b>
+        </span>
+        <a class="nav-link ms-auto" href="logout">Logout</a> 
+      
+    </ul>
+      
+  </ul>
 </nav>
 
 </head>

@@ -183,8 +183,7 @@ def getTaskListTop():
     cursor.execute("SELECT * FROM Task WHERE Completed=0") 
     row = cursor.fetchone() 
     if row:
-        tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12])
-        
+        tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12])  
         tsk_list.append(tsk)
 
     return tsk_list

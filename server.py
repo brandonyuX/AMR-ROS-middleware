@@ -11,15 +11,17 @@ from threading import Lock
 import json
 from flask import Blueprint, render_template, flash
 from flask_simplelogin import SimpleLogin
-from flask_login import login_required, current_user,LoginManager,login_user,logout_user
+from flask_login import login_required, current_user,LoginManager,login_user,logout_user,UserMixin
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from flask_sqlalchemy import SQLAlchemy
-from flask_mongoengine import MongoEngine
 import logic.mastersch as masterscheduler
+from wtforms.validators import InputRequired, Length, ValidationError
 import threading
+from flask_bcrypt import Bcrypt
 
 import logging
+import os.path
 
 
 
@@ -34,20 +36,6 @@ async_mode = None
 app = Flask("RMS-Server")
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
-#Configure database settings
-app.config['MONGODB_SETTINGS'] = {
-    'db': 'your_database',
-    'host': 'localhost',
-    'port': 27017
-}
-app.config['SECRET_KEY'] = '01a0715b-851a-4dfb-88e8-d4e5189fca56'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
-db=MongoEngine()
-login_manager = LoginManager()
-db.init_app(app)
-login_manager.init_app(app)
-
-
 
 socketio = SocketIO(app, async_mode=async_mode)
 thread = None
@@ -57,101 +45,98 @@ subtasklist=[]
 tclist=[]
 tc=testclass(0,0,0)
 
-#robotinterface.get_info()
-class LoginForm(FlaskForm):
-    username = StringField('Username')
-    password = PasswordField('Password')
-    submit = SubmitField('Submit')
+db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SECRET_KEY'] = 'thisisasecretkey'
 
-class User(db.Document):   
-    name = db.StringField()
-    password = db.StringField()
-    email = db.StringField()                                                                                                 
-    def to_json(self):        
-        return {"name": self.name,
-                "email": self.email}
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), nullable=False, unique=True)
+    password = db.Column(db.String(80), nullable=False)
 
-    def is_authenticated(self):
-        return True
 
-    def is_active(self):   
-        return True           
-
-    def is_anonymous(self):
-        return False          
-
-    def get_id(self):         
-        return str(self.id)
-#Background activity to perform
-def background_thread():
-    """Example of how to send server generated events to clients."""
-    count = 0
-    #robotinterface.get_info()
-    
-    # while True:
-    #     socketio.sleep(3)
-    #     rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
-    #     count += 1
-    #     tc.x=count
-    #     tc.y=count+1
-    #     tc.z=count+2
-    #     result={}
-    #     result['rbtinfo']=[]
-    #     for rbt in rbt_list:
-    #         rbt_info={}
-    #         rbt_info['x']=rbt.x
-    #         rbt_info['y']=rbt.y
-    #         rbt_info['r']=rbt.r
-    #         rbt_info['msg']=rbt.msg
-    #         result['rbtinfo'].append(rbt_info)
-
-    #     forjson=json.dumps(result)
-    #     socketio.emit('my_response',
-    #                   {'data': count, 'count': count,'class':forjson})
-
+login_manager = LoginManager()
+login_manager.init_app(app)
 login_manager.login_view = 'login'
-@app.route('/login', methods=['POST'])
-def login():
-    info = json.loads(request.data)
-    username = info.get('username', 'guest')
-    password = info.get('password', '') 
-    user = User.objects(name=username,
-                        password=password).first()
-    if user:
-        login_user(user)
-        return jsonify(user.to_json())
-    else:
-        return jsonify({"status": 401,
-                        "reason": "Username or Password Error"})
+
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.objects(id=user_id).first()
+    return User.query.get(int(user_id))
 
-@app.route('/logout', methods=['POST'])
+
+class RegisterForm(FlaskForm):
+    username = StringField(validators=[
+                           InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
+
+    password = PasswordField(validators=[
+                             InputRequired(), Length(min=1, max=20)], render_kw={"placeholder": "Password"})
+
+    submit = SubmitField('Register')
+
+    def validate_username(self, username):
+        existing_user_username = User.query.filter_by(
+            username=username.data).first()
+        if existing_user_username:
+            raise ValidationError(
+                'That username already exists. Please choose a different one.')
+
+
+class LoginForm(FlaskForm):
+    username = StringField(validators=[
+                           InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
+
+    password = PasswordField(validators=[
+                             InputRequired(), Length(min=8, max=20)], render_kw={"placeholder": "Password"})
+
+    submit = SubmitField('Login')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user:
+            if bcrypt.check_password_hash(user.password, form.password.data):
+                login_user(user)
+                return redirect(url_for('index'))
+    return render_template('login.html', form=form)
+
+@ app.route('/register', methods=['GET', 'POST'])
+def register():
+    form = RegisterForm()
+
+    if form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(form.password.data)
+        new_user = User(username=form.username.data, password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+        return redirect(url_for('login'))
+
+    return render_template('register.html', form=form)
+
+@app.route('/logout', methods=['GET', 'POST'])
+@login_required
 def logout():
     logout_user()
-    return jsonify(**{'result': 200,
-                      'data': {'message': 'logout success'}})
+    return redirect(url_for('login'))
 
-@app.route('/user_info', methods=['POST'])
-def user_info():
-    if current_user.is_authenticated:
-        resp = {"result": 200,
-                "data": current_user.to_json()}
-    else:                                                                                                                    
-        resp = {"result": 401,
-                "data": {"message": "user no login"}}
-    return jsonify(**resp)
-    
+
+
+
+
+ 
 #Define homepage 
 @app.route('/')
+@login_required
 def index():
     tsklist=dbinterface.getTaskList()
     rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
     return render_template('index.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, async_mode=async_mode)
 
 @app.route('/', methods=['POST'])
+@login_required
 def indexpost():
     #Read the type of request and process
     posttype=request.form['type']
@@ -180,28 +165,33 @@ def indexpost():
 
 #Define configuration page
 @app.route('/configuration')
+@login_required
 def config():
     
     rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
     return render_template('configuration.html',rbtlist=rc_list)
 
 @app.route('/taskmodelquery')
+@login_required
 def taskmodelconfig():
     return render_template('taskmodelquery.html')
 
 @app.route('/taskmodelquery', methods=['POST'])
+@login_required
 def taskmodelconfigget():
     text = request.form['text']
     subtsklist=dbinterface.getSubTaskListByID(text)
     return render_template('taskmodelquery.html',subtsklist=subtsklist,subtsklen=len(subtsklist))
 
 @app.route('/taskmodelcreate')
+@login_required
 def taskmodelcreate():
     return render_template('taskmodelcreate.html')
 
 
 #Try getting list test
 @app.route("/get_list")
+@login_required
 def get_list():
     rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
     tsk_list=dbinterface.getTaskList()
@@ -265,6 +255,7 @@ def get_list():
 
 # Routes for task create
 @app.route('/taskmodelcreate', methods=['POST'])
+@login_required
 def taskmodelcreatepost():
     #Read the type of request and process
     posttype=request.form['type']
@@ -319,10 +310,11 @@ def taskmodelcreatepost():
 #Initialze all interfaces
 dbinterface.startup()
 masterscheduler.startup()
+robotinterface.startup()
 #threading.Thread(target=lambda: app.run())
 
 #app.run()
 
-t1=threading.Thread(target=app.run())
+t1=threading.Thread(target=app.run(),daemon=True)
 t1.start()
 #t1.join()

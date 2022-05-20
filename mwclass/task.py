@@ -17,6 +17,6 @@ class Task:
         self.processing=processing
 
     def __str__(self) -> str:
-        text="{} {} {} {} {} {} {} {} {}".format(self.tid,self.rid,self.reqid,self.comp,self.taskcode,self.currstep,self.endstep,self.startloc,self.endloc)
+        text="{} {} {} {} {} {} {}".format(self.tid,self.rid,self.reqid,self.comp,self.taskcode,self.currstep,self.endstep)
         return text
         

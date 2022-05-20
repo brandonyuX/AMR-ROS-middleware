@@ -36,8 +36,20 @@
             </ul>
           </li>
           <a class="nav-link" href="configuration">Configuration</a>
+          
       </ul>
-      
+
+      <ul class="navbar-nav ms-auto">
+       
+         
+          <span class="navbar-text">
+            Hi! You are logged in as <b>{{ current_user.username }}.</b>
+          </span>
+          <a class="nav-link ms-auto" href="logout">Logout</a> 
+        
+      </ul>
+        
+    </ul>
   </nav>
 
   <div class="alert alert-success alert-dismissible " role="alert" id="buttonAlert">
@@ -54,7 +66,7 @@
       
        <!-- PAGE Content -->    
        <section class="py-3 text-center container">
-        <div class="row py-lg-5">
+        <div class="row py-lg-4">
           <div class="col-lg-8 col-md-8 mx-auto">
             <h1 class="fw-light">M8M Resource Management Software</h1>
             <p class="lead text-muted">Main Management Interface</p>
@@ -80,9 +92,6 @@
 </button>
 
   <button type="submit" class="btn btn-primary" id="toastbtn" type="submit" name="type" value="simulate">Simulate Run</button>
-  <button type="submit" class="btn btn-primary" id="clear" type="submit" name="type" value="cleartask">Clear Task</button>
-  <button type="submit" class="btn btn-primary" id="stn1" type="submit" name="type" value="stn1">Change to Station 1</button>
-  <button type="submit" class="btn btn-primary" id="stn2" type="submit" name="type" value="stn2">Change to Station 2</button>
   <button type="submit" class="btn btn-primary" id="localize" type="submit" name="type" value="localize">Localize all robot</button>
 </form>
   
@@ -239,7 +248,7 @@ var get_table=function getInfo() {
 
             });
         }
-  setInterval(get_table,1000);
+  setInterval(get_table,3000);
   get_table();
   $(document).ready(function() {
 

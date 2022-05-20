@@ -52,16 +52,16 @@ def get_info():
         
        
 
-        def start_receive_pose():
+        def start_receive_info():
             #Throttle pose received to 1 per sec
-            listener2 = roslibpy.Topic(client, '/rosout','rosgraph_msgs/Log',throttle_rate=1000)
+            listener2 = roslibpy.Topic(client, '/rosout','rosgraph_msgs/Log',throttle_rate=2000)
             listener2.subscribe(store_rosout)
-            listener = roslibpy.Topic(client, '/robot_pose', 'geometry_msgs/Pose',throttle_rate=1000)
+            listener = roslibpy.Topic(client, '/robot_pose', 'geometry_msgs/Pose',throttle_rate=3000)
             listener.subscribe(store_pose)
             listener3=roslibpy.Topic(client,'/move_completed','htbot/status')
             listener3.subscribe(move_complete)
         
-        t1 = threading.Thread(target=start_receive_pose)
+        t1 = threading.Thread(target=start_receive_info)
         t1.start()
         #t1.join()
     except:
@@ -98,16 +98,16 @@ def store_pose(message):
     x=message['position']['x']
     y=message['position']['y']
     r=message['orientation']['w']
-    #dbinterface.updateRbtPosStatus(1,x,y,r)       
+    dbinterface.updateRbtPosStatus(1,x,y,r)       
 
 def store_rosout(message):
     rosmsg=message['msg']
     #print(rosmsg)
-    if rosmsg=='------------ jstate 21 : down cmd completed. -----------':
-        print('Jack down completed')
-    elif rosmsg=='------------ jstate 11 : up cmd completed. -----------':
-        print('Jack Up Completed')
-    #dbinterface.updateRbtMsg(1,rosmsg)
+    # if rosmsg=='------------ jstate 21 : down cmd completed. -----------':
+    #     print('Jack down completed')
+    # elif rosmsg=='------------ jstate 11 : up cmd completed. -----------':
+    #     print('Jack Up Completed')
+    dbinterface.updateRbtMsg(1,rosmsg)
 
 def jack_up(rid):
     ip=dbinterface.getIP(rid)
@@ -152,7 +152,7 @@ def publish_cmd(rid,stn):
             cmdreq=roslibpy.ServiceRequest(dict(cmd=11, LP=stn, lps=stnmap[stn]))
         
         result=cmdsrv.call(cmdreq)
-        #print(result)
+        print(result)
         print('<RI>Command successfully sent to robot {}'.format(rid))
         return True
     except:
@@ -162,8 +162,8 @@ def publish_cmd(rid,stn):
 
 
 def localize(rid):
-    ip=dbinterface.getIP(rid)
-    print(ip)
+    # ip=dbinterface.getIP(rid)
+    # print(ip)
     #client = roslibpy.Ros(host=ip, port=8080)
     #client.run()
     pm=roslibpy.Param(client,'mapflag')
@@ -181,8 +181,7 @@ def startup():
     print('<RI>Robot Interface stack start up')
     #Start connection
     connect()
-
-    #get_info()
+    get_info()
 #publish_cmd(1,2)
 #localize(1)
 #get_single_info()
