@@ -23,10 +23,13 @@ def connect():
     try:
         
         client.run(timeout=1)
+        dbinterface.updateRbtStatus(True,1)
         print('<RI>Connection suceeded')
     except:
-        print('<ERR>No connection to ROS robot')
-        sys.exit(0)
+        dbinterface.writeLog('ms','<ERR>No connection to ROS robot',True)
+        dbinterface.updateRbtStatus(False,1)
+
+        #sys.exit(0)
 
 #Specify connection to ros host
 #ros = roslibpy.Ros(host='localhost', port=9090)
@@ -60,16 +63,22 @@ def get_info():
             listener.subscribe(store_pose)
             listener3=roslibpy.Topic(client,'/move_completed','htbot/status')
             listener3.subscribe(move_complete)
+            statlisterner=roslibpy.Topic(client,'/stat','htbot/stat')
+            statlisterner.subscribe(stat_callback)
         
         t1 = threading.Thread(target=start_receive_info)
         t1.start()
-        #t1.join()
+        t1.join()
     except:
         print('No connection to ROS Robot')
     
     
    
-
+#Heartbeat function
+def stat_callback(message):
+    print(message.heartbeat)
+    print(message.avgvolt)
+    print(message.avgcurr)
    
 #Move completed callback function
 def move_complete(message):
@@ -98,6 +107,9 @@ def store_pose(message):
     x=message['position']['x']
     y=message['position']['y']
     r=message['orientation']['w']
+    x=round(x,5)
+    y=round(y,5)
+    r=round(r,5)
     dbinterface.updateRbtPosStatus(1,x,y,r)       
 
 def store_rosout(message):
@@ -145,7 +157,7 @@ def publish_cmd(rid,stn):
         #client = roslibpy.Ros(host=ip, port=8080)
         #client.run(timeout=1)
         cmdsrv = roslibpy.Service(client,'/web_cmd','htbot/mqueue')
-        
+        print(stn)
         if(stn!=0):
             cmdreq=roslibpy.ServiceRequest(dict(cmd=11, LP=stn+1, lps=stnmap[stn]))
         else:
@@ -160,6 +172,23 @@ def publish_cmd(rid,stn):
         return False
     #client.terminate()
 
+def abort():
+    try:
+        #client = roslibpy.Ros(host=ip, port=8080)
+        #client.run(timeout=1)
+        cmdsrv = roslibpy.Service(client,'/web_cmd','htbot/mqueue')
+        
+       
+        cmdreq=roslibpy.ServiceRequest(dict(cmd=29))
+        
+        
+        result=cmdsrv.call(cmdreq)
+        print(result)
+        print('<RI>Robot movement aborted')
+        return True
+    except:
+        print("<ERR>Fail to connect to robot")
+        return False
 
 def localize(rid):
     # ip=dbinterface.getIP(rid)

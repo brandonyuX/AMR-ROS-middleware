@@ -19,6 +19,7 @@ import logic.mastersch as masterscheduler
 from wtforms.validators import InputRequired, Length, ValidationError
 import threading
 from flask_bcrypt import Bcrypt
+import time
 
 import logging
 import os.path
@@ -157,6 +158,8 @@ def indexpost():
         dbinterface.deltask(1)
     if(posttype=="localize"):
         robotinterface.localize(1)
+    if(posttype=='abort'):
+        robotinterface.abort()
         
         
     tsklist=dbinterface.getTaskList()
@@ -275,24 +278,26 @@ def taskmodelcreatepost():
             print('Task Model already exist, please delete old task model to create new task model')
         return render_template('taskmodelcreate.html')
 
-    if(posttype=="clear"):
+    elif(posttype=="clear"):
         print('Run clear routine')
         subtasklist.clear()
         return render_template('taskmodelcreate.html')
-    if posttype=="addstep":
+    elif (posttype=="addstep"):
+        print('enter add step')
         tskmodno=request.form['tskmodno']
         sel=request.form['gridRadios']
+        print(tskmodno+' '+sel)
         if(sel=='CustomCommand'):
             cmd=request.form['custcmd']
             print(cmd)
             print(len(subtasklist))
-            st=SubTask(tskmodno,sel,str(len(subtasklist)+1),cmd)
+            st=SubTask(1,tskmodno,sel,str(len(subtasklist)+1),len(subtasklist),cmd)
             subtasklist.append(st)
         else:
             print(tskmodno)
             print(sel)
             print(len(subtasklist))
-            st=SubTask(tskmodno,sel,str(len(subtasklist)+1),'')
+            st=SubTask(1,tskmodno,sel,str(len(subtasklist)+1),len(subtasklist),'')
             subtasklist.append(st)
 
         return render_template('taskmodelcreate.html',subtsklist=subtasklist,tskmod=tskmodno)
@@ -311,6 +316,7 @@ def taskmodelcreatepost():
 dbinterface.startup()
 masterscheduler.startup()
 robotinterface.startup()
+
 #threading.Thread(target=lambda: app.run())
 
 #app.run()

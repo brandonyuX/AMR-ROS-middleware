@@ -61,10 +61,11 @@
           </div>
         </div>
       </section>
-       <h1>Task Model Configuration</h1>
-        <h4>Create Task Model</h4>
-
+       <!-- <h1>Task Model Configuration</h1>
+        <h4>Create Task Model</h4> -->
+        
         <form method="POST">
+
           <div class="form-group row">
             <label for="tskmodno" class="col-sm-2 col-form-label">Task Model Number</label>
             <div class="col-sm-10">
@@ -110,11 +111,10 @@
               <input type="text" class="form-control" id="custcmd" name="custcmd" placeholder="Custom Command" disabled>
             </div>
           </div>
-          <div class="form-group row">
-              <button type="submit" name="type" value="addstep" class="btn btn-primary">Add Step</button>
-            </div>
-          </div>
-        </form>
+        
+       
+        
+      
 
       <table class="table">
         <tr>
@@ -127,23 +127,22 @@
         {% for subtsk in subtsklist %}
         <tr>
             <td>{{ subtsk.at }}</td>
-            <td>{{ subtsk.step }}</td>
+            <td>{{ subtsk.currstep }}</td>
             <td>{{ subtsk.cmd }}</td>
         </tr>
         {% endfor %}
     </table>
     
-    <form method="post">
-      <div class="d-grid gap-2">
+    
+      <div class="d-grid gap-2 col-4 mx-auto">
+        <button type="submit" name="type" value="addstep" class="btn btn-primary">Add Step</button>
         <button class="btn btn-success btn-block" type="submit" name="type" value="createtm" >Create Task Model</button>
+        <button class="btn btn-danger btn-block" type="submit" name="type" value="clear" >Clear Sub Task</button>
       </div>
     </form>
-      <form method="post">
-        <div class="d-grid gap-2">
-          <button class="btn btn-danger btn-block" type="submit" name="type" value="clear" >Clear Sub Task</button>
-        </div>
-      </form>
       
+    
+   
     
     
 
@@ -155,14 +154,10 @@
 
     
 
-    <footer>
-        <div class="row">
-            <div class="col-md-6">
-                <p>Copyright &copy; 2022 M8M Pte Ltd</p>
-            </div>
-            
-        </div>
-    </footer> 
+    <body class="d-flex flex-column min-vh-100">
+      <div class="wrapper flex-grow-1"></div>
+      <footer><p>Copyright &copy; 2022 M8M Pte Ltd</p></footer>
+  </body>
 </body>
 
 <script>

@@ -197,6 +197,7 @@ def getIPList():
         iplist.append(row[0])
         row = cursor.fetchone()
     return iplist
+
 def getIP(rid):
     cursor.execute("SELECT RobotIP FROM Configuration WHERE RobotID=?",rid) 
     row = cursor.fetchone() 
@@ -259,8 +260,9 @@ def incStep(tid,step,comp):
     if comp:
         cursor.execute("UPDATE Task SET Completed=? WHERE TaskID=?",1,tid) 
         cursor.commit()
-    cursor.execute("UPDATE Task SET CurrStep=? WHERE TaskID=?",step,tid) 
-    cursor.commit()
+    else:
+        cursor.execute("UPDATE Task SET CurrStep=? WHERE TaskID=?",step,tid) 
+        cursor.commit()
 
 #Set execution bit for task
 def setExecute(exec,tid):

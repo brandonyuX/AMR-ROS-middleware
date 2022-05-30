@@ -8,7 +8,7 @@ sys.path.append('../Middleware Development')
 import interface.dbinterface as dbinterface
 import interface.robotinterface as robotinterface
 
-production=True
+production=False
 tskq=[]
 dbmaphash={'STN1' : 'Station 1', 'STN2' : 'Station 2','STN3':'Station 3','STN4':'Station 4','STN5':'Station 5'}
 mapdict={"STN1":0,
@@ -28,11 +28,11 @@ def tskpolling():
     #     print(item)
     #Initialze robot interface
     #robotinterface.startup()
-    
+    time.sleep(5)
     loop=True
     while(loop):
         #print('=====Start Async task get=====')
-       
+        time.sleep(2)
         tsklist=dbinterface.getTaskListTop()
         
 
@@ -46,20 +46,16 @@ def tskpolling():
                 tskq[i].append(loc)
         
         if len(tsklist)>0:
-            time.sleep(1)
+           
             #If there are active tasks in tasklist, loop through task list to assign job to robot
             for i,tsk in enumerate(tsklist):
-                #print(tsk)
-                # #Do not process if task is marked as complete
-                # if(int(tsk.comp)==1):
-                #     print('<MS>Completed all steps for task {}'.format(tsk.tid))
-                #     loop=False
-                #     break
+              
 
                 #Do not execute next step when task is still processing
                 if(int(tsk.exec)==1):
-                    dbinterface.writeLog('ms','Task {} for robot {} on step {} is executing'.format(tsk.tid,tsk.rid,tsk.currstep-1),False)
+                    #dbinterface.writeLog('ms','Task {} for robot {} on step {} is executing'.format(tsk.tid,tsk.rid,tsk.currstep-1),False)
                     #print('Task {} for robot {} on step {} still executing'.format(tsk.tid,tsk.rid,tsk.currstep-1))
+                    continue
                     
                     
                     
@@ -108,8 +104,7 @@ def tskpolling():
                                 dbinterface.setExecute(1,tsk.tid)
                                 dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
                             else:
-                                dbinterface.setExecute(1,tsk.tid)
-                                
+                                dbinterface.setExecute(1,tsk.tid) 
                                 time.sleep(10)
                                 dbinterface.writeLog('ms','Move Completed',True)
                                 dbinterface.setExecute(0,tsk.tid)

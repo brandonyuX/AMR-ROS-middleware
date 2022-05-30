@@ -8,8 +8,11 @@
 
 <!-- CSS only -->
 <link rel="stylesheet" href="/static/css/bootstrap.css">
-
-
+<script type="text/javascript" src="/static/js/easeljs.min.js"></script>
+<script type="text/javascript" src="/static/js/eventemitter2.min.js"></script>
+<script type="text/javascript" src="/static/js/roslib.js"></script>
+<script type="text/javascript" src="/static/js/ros2d.js"></script>
+<script type="text/javascript" src="/static/js/nav2d.min.js"></script>
 
 <title>M8M Resource Management</title>
 
@@ -74,16 +77,118 @@
           </div>
         </div>
       </section>
-      <H3>Master Scheduler Status</H3>
+
+      <!-- <div id="nav"></div> -->
+
+      <div class="row">
+
+        <!-- Master Scheduler Message -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Master Scheduler</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="msmsg"></div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--Request Message-->
+        <div class="col-xl-3 col-md-6 mb-4">
+          <div class="card border-left-primary shadow h-100 py-2">
+              <div class="card-body">
+                  <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                          <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                              Current PLC Requests</div>
+                          <div class="h5 mb-0 font-weight-bold text-gray-800" id="plcreq"></div>
+                      </div>
+                      <div class="col-auto">
+                          <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+       <!--No of task-->
+       <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Task in Queue</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="tskq"></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+      <!--Active robots-->
+      <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Number of Robots Available</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="rbtavail"></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+       
+    <!-- </div>
+    <div class="card border-success mb-3" style="max-width: 18rem;">
+      <div class="card-header">Robot 1</div>
+      <div class="card-body text-success">
+        <h5 class="card-title">Status</h5>
+        <p class="card-text">Connection: Active</p>
+        <p class="card-text">Available for tasks</p>
+      </div>
+    </div> -->
+
+        
+
+         
       <div id="msinfo"></div>
-      <h3>Current PLC Request</h3>
-      <div id="reqtable"></div>
+
+      <div class="container-fluid">
+        <div class="row">
+      
+          <div class="col">
+          <h3>Current PLC Request</h3>
+          <div id="reqtable"></div>
+          </div>
+
+          <div class="col">
+          <h3>Current Task</h3>
+          <div id="tasktable"></div>
+          </div>
+
+        </div>
+      </div>
         
       <h3>Current Robot Status</h3>
       <div id="outputDiv"></div>
 
-      <h3>Current Task</h3>
-      <div id="tasktable"></div>
+      
            
           
   <form method="post">
@@ -93,6 +198,7 @@
 
   <button type="submit" class="btn btn-primary" id="toastbtn" type="submit" name="type" value="simulate">Simulate Run</button>
   <button type="submit" class="btn btn-primary" id="localize" type="submit" name="type" value="localize">Localize all robot</button>
+  <button type="submit" class="btn btn-danger" id="abort" type="submit" name="type" value="abort">Abort!</button>
 </form>
   
 
@@ -192,17 +298,24 @@ var get_table=function getInfo() {
                 // var o =JSON.parse(data['output'])
                 // data_table.innerHTML +='<tr>x</tr>'
                 // data_table.innerHTML += `<td>${o.rbtinfo[0].x}</td>`
-                var o =JSON.parse(data['rbtarr'])
+                var availno=0
+                var rbtarr =JSON.parse(data['rbtarr'])
                 var HTML = "<div><table class=\"table\">";
                 
                 //Build robot information table from array
-                HTML+= "<tr><th>Robot ID</th><th>Current Location</th><th>ROSINFO</th><th>Availability</th></tr>"
-
-                HTML += "<tr><td>"+o.rbtinfo[0].rid+"</td>";
-                HTML += "<td>"+o.rbtinfo[0].currloc+"</td>";
-                HTML += "<td>"+o.rbtinfo[0].msg+"</td>";
-                HTML += "<td>"+o.rbtinfo[0].avail+"</td></tr>";
+                HTML+= "<tr><th>Robot ID</th><th>Current Location</th><th>x</th><th>y</th><th>r</th><th>ROSINFO</th></tr>"
+                for (let i=0;i<rbtarr.rbtinfo.length;i++){
+                HTML += "<tr><td>"+rbtarr.rbtinfo[i].rid+"</td>";
+                HTML += "<td>"+rbtarr.rbtinfo[i].currloc+"</td>";
+                HTML += "<td>"+rbtarr.rbtinfo[i].x+"</td>";
+                HTML += "<td>"+rbtarr.rbtinfo[i].y+"</td>";
+                HTML += "<td>"+rbtarr.rbtinfo[i].r+"</td>";
+                HTML += "<td>"+rbtarr.rbtinfo[i].msg+"</td></tr>";
+                if(rbtarr.rbtinfo[i].avail==true){
+                  availno+=1
+                }
                 
+                }
                 HTML += "</table></div>";
                 document.getElementById("outputDiv").innerHTML = HTML;
 
@@ -240,11 +353,12 @@ var get_table=function getInfo() {
                 
 
                 var msinfo =(data['msinfo'])
-                var HTML = "<div><table class=\"table\">";
-                HTML+= "<tr><th>Message</th></tr>"
-                HTML += "<tr><td>"+msinfo+"</td></tr>";
-                HTML += "</table></div>";
-                document.getElementById("msinfo").innerHTML = HTML;
+               
+                document.getElementById("msmsg").innerHTML = msinfo;
+                document.getElementById("plcreq").innerHTML = reqarr.reqinfo.length;
+                document.getElementById("rbtavail").innerHTML = availno;
+                document.getElementById("tskq").innerHTML = taskarr.taskinfo.length;
+
 
             });
         }
@@ -293,6 +407,30 @@ var get_table=function getInfo() {
 }
 
   });
+
+  /**
+   * Setup all GUI elements when the page is loaded.
+   */
+    // Connect to ROS.
+    var ros = new ROSLIB.Ros({
+      url : 'ws://localhost:9090'
+    });
+
+    // Create the main viewer.
+    var viewer = new ROS2D.Viewer({
+      divID : 'nav',
+      width : 750,
+      height : 800
+    });
+
+    // Setup the nav client.
+    var nav = NAV2D.OccupancyGridClientNav({
+      ros : ros,
+      rootObject : viewer.scene,
+      viewer : viewer,
+      serverName : '/pr2_move_base'
+    });
+  
 </script>
 
 
