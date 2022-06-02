@@ -76,9 +76,9 @@ def get_info():
    
 #Heartbeat function
 def stat_callback(message):
-    print(message.heartbeat)
-    print(message.avgvolt)
-    print(message.avgcurr)
+    #print(message.heartbeat)
+    print(message['heartbeat'])
+    #print(message.avgcurr)
    
 #Move completed callback function
 def move_complete(message):
