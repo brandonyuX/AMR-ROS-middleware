@@ -63,8 +63,8 @@ def get_info():
             listener.subscribe(store_pose)
             listener3=roslibpy.Topic(client,'/move_completed','htbot/status')
             listener3.subscribe(move_complete)
-            statlisterner=roslibpy.Topic(client,'/stat','htbot/stat')
-            statlisterner.subscribe(stat_callback)
+            #statlisterner=roslibpy.Topic(client,'/stat','htbot/stat')
+            #statlisterner.subscribe(stat_callback)
         
         t1 = threading.Thread(target=start_receive_info)
         t1.start()
@@ -76,9 +76,10 @@ def get_info():
    
 #Heartbeat function
 def stat_callback(message):
-    #print(message.heartbeat)
-    print(message['heartbeat'])
-    #print(message.avgcurr)
+    
+    print(message)
+
+    
    
 #Move completed callback function
 def move_complete(message):

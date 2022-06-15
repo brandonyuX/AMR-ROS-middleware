@@ -36,6 +36,7 @@ def tskpolling():
         tsklist=dbinterface.getTaskListTop()
         
 
+
         for i,tsk in enumerate(tsklist):
             #tskq.clear()
             #print(tsk)
@@ -105,14 +106,27 @@ def tskpolling():
                                 dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
                             else:
                                 dbinterface.setExecute(1,tsk.tid) 
-                                time.sleep(10)
+                                time.sleep(5)
                                 dbinterface.writeLog('ms','Move Completed',True)
                                 dbinterface.setExecute(0,tsk.tid)
                                 dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
                                 
+                        #Misc location
+                        if(subtsk[0].at=='Misc'):
+                            dbinterface.writeLog('ms','<MS>Executing step {} out of {}'.format(tsk.currstep,tsk.endstep),True)
+                            dbinterface.writeLog('ms','<MS>Sending wait command to robot {}.'.format(tsk.rid),True)
+                            #Send approach signal to host PLC
+                            dbinterface.setExecute(1,tsk.tid)
+                            #Wait for user to press button to confirm operation done
                             
-                            
-                                
+                            time.sleep(5)
+
+                            dbinterface.writeLog('ms','<MS>Wait Completed',True)
+                            dbinterface.setExecute(0,tsk.tid)
+                            dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
+                        
+
+                        #Loading subtask         
                         if(subtsk[0].at=='Load'):
                             #print('<MS>Executing step {} out of {}'.format(tsk.currstep,tsk.endstep))
                             #print('<MS>Sending load command to robot {}.'.format(tsk.rid))
@@ -128,6 +142,7 @@ def tskpolling():
                             dbinterface.setExecute(0,tsk.tid)
                             dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
 
+                        #Unload subtask
                         if(subtsk[0].at=='Unload'):
                             #print('<MS>Executing step {} out of {}'.format(tsk.currstep,tsk.endstep))
                             dbinterface.writeLog('ms','<MS>Executing step {} out of {}'.format(tsk.currstep,tsk.endstep),True)
