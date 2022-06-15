@@ -15,7 +15,7 @@ from flask_login import login_required, current_user,LoginManager,login_user,log
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from flask_sqlalchemy import SQLAlchemy
-import logic.mastersch as masterscheduler
+import schedulers.mastersch as masterscheduler
 from wtforms.validators import InputRequired, Length, ValidationError
 import threading
 from flask_bcrypt import Bcrypt
@@ -303,7 +303,36 @@ def taskmodelcreatepost():
         return render_template('taskmodelcreate.html',subtsklist=subtasklist,tskmod=tskmodno)
 
 
+#API Section
+#API for MES to write in Work Order
 
+#Route to create work order
+@app.route('/api/wo/create',methods=['POST'])
+def createWo():
+    woid=request.values.get('woid')
+    print(woid)
+    response = make_response("Work Order Generated", 200)
+    response.mimetype = "text/plain"
+    return response
+
+#API to communicate with WMS
+@app.route('/api/wms/create',methods=['POST'])
+def createWMSTask():
+    woid=request.values.get('woid')
+    print(woid)
+    response = make_response("WMS Creation", 200)
+    response.mimetype = "text/plain"
+    return response
+
+@app.route('/api/wms/status',methods=['POST'])
+def createWMSTask():
+    woid=request.values.get('woid')
+    print(woid)
+    response = make_response("WMS Update", 200)
+    response.mimetype = "text/plain"
+    return response
+
+    
 # @socketio.event
 # def connect():
 #     global thread
