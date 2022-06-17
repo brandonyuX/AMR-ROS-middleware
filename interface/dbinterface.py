@@ -12,6 +12,7 @@ from mwclass.plcrequest import PLCReq
 from mwclass.subtask import SubTask
 from mwclass.task import Task
 from mwclass.robot import Robot
+from mwclass.workorder import WO
 from threading import Thread
 
 
@@ -34,6 +35,11 @@ tsk_list=[]
 #Sub Task List
 subtsk_list=[]
 
+#Work order list
+wo_list=[]
+
+#Get current time 
+now = datetime.datetime.utcnow()
 
 def startup():
     global cursor
@@ -214,7 +220,7 @@ def writeTask(finalrid,reqid,rbt_list,req_list):
     tskmodno=(next((x for x in req_list if x.reqid == reqid), None).tskmodno)
     print(startloc)
     print(destloc)
-    now = datetime.datetime.utcnow()
+    
     cursor.execute("INSERT INTO Task (RobotID,ReqID,Completed,TaskCode,CurrStep,LastUpd,Executing,TaskModelID,DestLoc,Processing) VALUES (?,?,?,?,?,?,?,?,?)",finalrid,reqid,0,000,1,now.strftime('%Y-%m-%d %H:%M:%S'),0,tskmodno,destloc,0)
     cursor.commit()
 
@@ -283,6 +289,25 @@ def readLog(type):
         row = cursor.fetchone() 
         return row[0]
     
+
+#Write into Work Order
+def writeWO(wolist):
+    for wo in wolist:
+        cursor.execute("INSERT INTO WOList (WOID,BatchID,FillVol,ReqTime) VALUES (?,?,?,?)",wo.woid,wo.batchid,wo.fillvol,now.strftime('%Y-%m-%d %H:%M:%S'))
+        cursor.commit()
+
+def getWO():
+    wo_list.clear()
+    cursor.execute("SELECT * FROM WOList") 
+    row = cursor.fetchone() 
+    while row:
+        wo=WO(row[1],row[2],row[3])
+        wo_list.append(wo)
+        row = cursor.fetchone()
+
+    return wo_list
+    
+
 #print(getIP(1))
 
 #insertReq(101,2,1,'Station 3',2,now.strftime('%Y-%m-%d %H:%M:%S'))

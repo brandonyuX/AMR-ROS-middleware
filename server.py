@@ -3,6 +3,7 @@ from flask import Flask, render_template,request,session,make_response,redirect,
 import interface.dbinterface as dbinterface
 import main
 from mwclass.testclass import testclass
+from mwclass.workorder import WO
 from mwclass.robotconfig import RobotConfig
 import interface.robotinterface as robotinterface
 from mwclass.subtask import SubTask
@@ -23,6 +24,7 @@ import time
 
 import logging
 import os.path
+import json
 
 
 
@@ -306,11 +308,23 @@ def taskmodelcreatepost():
 #API Section
 #API for MES to write in Work Order
 
-#Route to create work order
+#Route to create work order 
 @app.route('/api/wo/create',methods=['POST'])
 def createWo():
-    woid=request.values.get('woid')
-    print(woid)
+    #Receive body information
+    recv=request.get_data()
+    #Parse to json object from string
+    parsedJSON= json.loads(recv)
+    #Send information to database
+    wolist=[]
+    for item in parsedJSON:
+        msg='Word Order ID:{}\nBatch ID:{}\nRequired Quantity:{}\nFill Volume:{}ml\n'.format(item['wo_id'],item['details']['batch_id'],item['details']['req_qty'],item['details']['fill_vol'])
+        print(msg)
+        wo=WO(item['wo_id'],item['details']['batch_id'],item['details']['fill_vol'])
+        wolist.append(wo)
+
+    #Write to Work Order Table in database
+    dbinterface.writeWO(wolist)
     response = make_response("Work Order Generated", 200)
     response.mimetype = "text/plain"
     return response
@@ -319,13 +333,14 @@ def createWo():
 @app.route('/api/wms/create',methods=['POST'])
 def createWMSTask():
     woid=request.values.get('woid')
+
     print(woid)
     response = make_response("WMS Creation", 200)
     response.mimetype = "text/plain"
     return response
 
 @app.route('/api/wms/status',methods=['POST'])
-def createWMSTask():
+def getWMSStatus():
     woid=request.values.get('woid')
     print(woid)
     response = make_response("WMS Update", 200)
