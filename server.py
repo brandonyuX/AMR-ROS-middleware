@@ -2,7 +2,7 @@ from cgi import test
 from flask import Flask, render_template,request,session,make_response,redirect,url_for,jsonify
 import interface.dbinterface as dbinterface
 import main
-from mwclass.testclass import testclass
+from testclass import testclass
 from mwclass.workorder import WO
 from mwclass.robotconfig import RobotConfig
 import interface.robotinterface as robotinterface
@@ -318,7 +318,7 @@ def createWo():
     #Send information to database
     wolist=[]
     for item in parsedJSON:
-        msg='Word Order ID:{}\nBatch ID:{}\nRequired Quantity:{}\nFill Volume:{}ml\n'.format(item['wo_id'],item['details']['batch_id'],item['details']['req_qty'],item['details']['fill_vol'])
+        msg='Word Order ID:{}\nBatch ID:{}\nRequired Quantity:{}\nFill Volume:{}ml\nPriority:{}\n'.format(item['wo_id'],item['details']['batch_id'],item['details']['req_qty'],item['details']['fill_vol'],item['details']['priority'])
         print(msg)
         wo=WO(item['wo_id'],item['details']['batch_id'],item['details']['fill_vol'])
         wolist.append(wo)
@@ -330,6 +330,7 @@ def createWo():
     return response
 
 #API to communicate with WMS
+#Create WMS task 
 @app.route('/api/wms/create',methods=['POST'])
 def createWMSTask():
     woid=request.values.get('woid')
@@ -339,6 +340,7 @@ def createWMSTask():
     response.mimetype = "text/plain"
     return response
 
+#Query WMS status 
 @app.route('/api/wms/status',methods=['POST'])
 def getWMSStatus():
     woid=request.values.get('woid')
@@ -346,6 +348,7 @@ def getWMSStatus():
     response = make_response("WMS Update", 200)
     response.mimetype = "text/plain"
     return response
+
 
     
 # @socketio.event

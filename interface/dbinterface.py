@@ -295,6 +295,8 @@ def writeWO(wolist):
     for wo in wolist:
         cursor.execute("INSERT INTO WOList (WOID,BatchID,FillVol,ReqTime) VALUES (?,?,?,?)",wo.woid,wo.batchid,wo.fillvol,now.strftime('%Y-%m-%d %H:%M:%S'))
         cursor.commit()
+        cursor.execute("INSERT INTO WOQueue (WOID) VALUES (?)",wo.woid)
+        cursor.commit()
 
 def getWO():
     wo_list.clear()
@@ -306,7 +308,40 @@ def getWO():
         row = cursor.fetchone()
 
     return wo_list
-    
+
+def getWOID(wo_id):
+    wo_list.clear()
+    cursor.execute("SELECT * FROM WOList WHERE WOID=?",wo_id) 
+    row = cursor.fetchone() 
+    while row:
+        wo=WO(row[1],row[2],row[3])
+        wo_list.append(wo)
+        row = cursor.fetchone()
+
+    return wo_list
+#Get work order queue information
+def getWOQ(stn):
+    if stn>5 or stn<1:
+        print('No such station!')
+    else:
+        cursor.execute("SELECT * FROM WOQueue")
+        row = cursor.fetchone() 
+        while row:
+            stat=row[2*stn]
+            if stat=='a':
+                return row[1]
+            row = cursor.fetchone()
+
+def updWO(wo_id,stn,stat):
+    wo_list.clear()
+    cursor.execute("UPDATE WOLQueue SET  WHERE WOID=?",wo_id) 
+    row = cursor.fetchone() 
+    while row:
+        wo=WO(row[1],row[2],row[3])
+        wo_list.append(wo)
+        row = cursor.fetchone()
+
+    return wo_list
 
 #print(getIP(1))
 
