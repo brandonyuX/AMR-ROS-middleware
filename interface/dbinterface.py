@@ -221,7 +221,7 @@ def writeTask(finalrid,reqid,rbt_list,req_list):
     print(startloc)
     print(destloc)
     
-    cursor.execute("INSERT INTO Task (RobotID,ReqID,Completed,TaskCode,CurrStep,LastUpd,Executing,TaskModelID,DestLoc,Processing) VALUES (?,?,?,?,?,?,?,?,?)",finalrid,reqid,0,000,1,now.strftime('%Y-%m-%d %H:%M:%S'),0,tskmodno,destloc,0)
+    cursor.execute("INSERT INTO Task (RobotID,ReqID,Completed,TaskCode,CurrStep,LastUpd,Executing,TaskModelID,DestLoc,Processing) VALUES (?,?,?,?,?,?,?,?,?)",finalrid,reqid,0,000,1,datetime.now(),0,tskmodno,destloc,0)
     cursor.commit()
 
 def writeSubTask(tsklist):
@@ -293,7 +293,7 @@ def readLog(type):
 #Write into Work Order
 def writeWO(wolist):
     for wo in wolist:
-        cursor.execute("INSERT INTO WOList (WOID,BatchID,FillVol,ReqTime) VALUES (?,?,?,?)",wo.woid,wo.batchid,wo.fillvol,now.strftime('%Y-%m-%d %H:%M:%S'))
+        cursor.execute("INSERT INTO WOList (WOID,BatchID,FillVol,ReqTime) VALUES (?,?,?,?)",wo.woid,wo.batchid,wo.fillvol,datetime.now())
         cursor.commit()
         cursor.execute("INSERT INTO WOQueue (WOID) VALUES (?)",wo.woid)
         cursor.commit()
@@ -321,7 +321,7 @@ def getWOID(wo_id):
     return wo_list
 #Get work order queue information
 def getWOQ(stn):
-    if stn>5 or stn<1:
+    if stn>6 or stn<1:
         print('No such station!')
     else:
         cursor.execute("SELECT * FROM WOQueue")
@@ -332,16 +332,24 @@ def getWOQ(stn):
                 return row[1]
             row = cursor.fetchone()
 
-def updWO(wo_id,stn,stat):
-    wo_list.clear()
-    cursor.execute("UPDATE WOLQueue SET  WHERE WOID=?",wo_id) 
-    row = cursor.fetchone() 
-    while row:
-        wo=WO(row[1],row[2],row[3])
-        wo_list.append(wo)
-        row = cursor.fetchone()
-
-    return wo_list
+#Set work order, station number and status (a-available,p-in progress, c-completed, f-fault)
+def updateWO(wo_id,stn,stat):
+   
+    if stn==1:
+        cursor.execute("UPDATE WOQueue SET USStatus = ?, USLastUpd = ? WHERE WOID=?",stat,datetime.datetime.now(),wo_id) 
+    elif stn==2:
+        cursor.execute("UPDATE WOQueue SET FSStatus = ?, FSLastUpd = ? WHERE WOID=?",stat,datetime.datetime.now(),wo_id) 
+    elif stn==3:
+        cursor.execute("UPDATE WOQueue SET CSStatus = ?, CSLastUpd = ? WHERE WOID=?",stat,datetime.datetime.now(),wo_id) 
+    elif stn==4:
+        cursor.execute("UPDATE WOQueue SET LSStatus = ?, LSLastUpd = ? WHERE WOID=?",stat,datetime.datetime.now(),wo_id) 
+    elif stn==5:
+        cursor.execute("UPDATE WOQueue SET ISStatus = ?, ISLastUpd = ? WHERE WOID=?",stat,datetime.datetime.now(),wo_id) 
+    elif stn==6:
+        cursor.execute("UPDATE WOQueue SET PSStatus = ?, PSLastUpd = ? WHERE WOID=?",stat,datetime.datetime.now(),wo_id) 
+    else:
+        print('Invalid station number')
+    cursor.commit()
 
 #print(getIP(1))
 

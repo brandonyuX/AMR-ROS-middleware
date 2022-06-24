@@ -13,38 +13,7 @@
 
 <title>M8M Resource Management</title>
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <a class="navbar-brand" href="/">M8M</a>
-
-    <ul class="navbar-nav">
-      <li class="nav-item active">
-        <a class="nav-link" href="/">Home</a>
-      </li>
-      <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Task Model
-          </a>
-          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <li><a class="dropdown-item" href="taskmodelquery">Query Task Model</a></li>
-            <li><a class="dropdown-item" href="taskmodelcreate">Create Task Model</a></li>
-          </ul>
-        </li>
-        <a class="nav-link" href="configuration">Configuration</a>
-        
-    </ul>
-
-    <ul class="navbar-nav ms-auto">
-     
-       
-        <span class="navbar-text">
-          Hi! You are logged in as <b>{{ current_user.username }}.</b>
-        </span>
-        <a class="nav-link ms-auto" href="logout">Logout</a> 
-      
-    </ul>
-      
-  </ul>
-</nav>
+<div id="nav-placeholder"></div>
 
 </head>
 <body>
@@ -113,3 +82,11 @@
 
 
 </html>
+
+<script>
+  $(document).ready(function() {
+
+$("#nav-placeholder").load("/navbar");
+
+});
+</script>

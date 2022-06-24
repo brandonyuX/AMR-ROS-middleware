@@ -2,7 +2,7 @@ from cgi import test
 from flask import Flask, render_template,request,session,make_response,redirect,url_for,jsonify
 import interface.dbinterface as dbinterface
 import main
-from testclass import testclass
+import test_wo
 from mwclass.workorder import WO
 from mwclass.robotconfig import RobotConfig
 import interface.robotinterface as robotinterface
@@ -46,7 +46,6 @@ thread_lock = Lock()
 actiondict={'0':'Move','1':'Unload','2':'Load','3':'Custom Command'}
 subtasklist=[]
 tclist=[]
-tc=testclass(0,0,0)
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
@@ -126,8 +125,10 @@ def logout():
     return redirect(url_for('login'))
 
 
-
-
+@app.route('/navbar', methods=['GET'])
+@login_required
+def nav():
+    return render_template('navbar.html')
 
  
 #Define homepage 

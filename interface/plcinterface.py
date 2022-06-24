@@ -1,16 +1,30 @@
 #This file provides interface with the PLC and update the database
 #Will use opcua in this example
-import socket,datetime
-import interface.dbinterface as dbinterface
+import socket,datetime,sys
 
+sys.path.append('../Middleware Development')
+import interface.dbinterface as dbinterface
+from opcua import Client
 HOST='127.0.0.1'
 PORT=65432
 
 
 decdata=''
 
+if __name__ == "__main__":
+    #Connect to opc server
+    client = Client("opc.tcp://192.168.1.201:49320")
+    try:
+        client.connect()
+        #print(client.get_values(85))
 
-
+        print('Successfully connected to OPC Server.')
+    except:
+        print('Error connecting to OPC')
+    finally:
+        client.disconnect()
+        
+    
 
 def decodemsg(testmsg):
     print(testmsg)

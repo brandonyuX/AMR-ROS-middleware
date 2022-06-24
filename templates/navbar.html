@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<link rel="stylesheet" href="/static/css/bootstrap.css">
+<script type="text/javascript" src="/static/js/easeljs-NEXT.js"></script>
+<script type="text/javascript" src="/static/js/eventemitter2.js"></script>
+<script type="text/javascript" src="/static/js/roslib.js"></script>
+<script type="text/javascript" src="/static/js/ros2d.js"></script>
+<script type="text/javascript" src="/static/js/nav2d.js"></script>
+<html>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="/">M8M</a>
+ 
+      <ul class="navbar-nav">
+        <a class="nav-link" href="/">Home</a>
+        <a class="nav-link" href="amr">AMR Management</a>
+        <a class="nav-link" href="wo">Work Order Management</a>
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Task Model
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <li><a class="dropdown-item" href="taskmodelquery">Query Task Model</a></li>
+              <li><a class="dropdown-item" href="taskmodelcreate">Create Task Model</a></li>
+            </ul>
+          </li>
+          <a class="nav-link" href="configuration">Configuration</a>
+          
+      </ul>
+
+      <ul class="navbar-nav ms-auto">
+       
+         
+          <span class="navbar-text">
+            Hi! You are logged in as <b>{{ current_user.username }}.</b>
+          </span>
+          <a class="nav-link ms-auto" href="logout">Logout</a> 
+        
+      </ul>
+        
+    </ul>
+  </nav>
+
+  </html>
