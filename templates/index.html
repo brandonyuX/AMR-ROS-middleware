@@ -275,6 +275,27 @@ var get_table=function getInfo() {
                 // var o =JSON.parse(data['output'])
                 // data_table.innerHTML +='<tr>x</tr>'
                 // data_table.innerHTML += `<td>${o.rbtinfo[0].x}</td>`
+               
+                //Build Work Order table from array
+                var rbtarr =JSON.parse(data['rbtarr'])
+                var HTML = "<h3>Current Robot Status</h3><div><table class=\"table\">";
+                
+                HTML+= "<tr><th>Robot ID</th><th>Current Location</th><th>x</th><th>y</th><th>r</th><th>ROSINFO</th></tr>"
+                for (let i=0;i<rbtarr.rbtinfo.length;i++){
+                HTML += "<tr><td>"+rbtarr.rbtinfo[i].rid+"</td>";
+                HTML += "<td>"+rbtarr.rbtinfo[i].currloc+"</td>";
+                HTML += "<td>"+rbtarr.rbtinfo[i].x+"</td>";
+                HTML += "<td>"+rbtarr.rbtinfo[i].y+"</td>";
+                HTML += "<td>"+rbtarr.rbtinfo[i].r+"</td>";
+                HTML += "<td>"+rbtarr.rbtinfo[i].msg+"</td></tr>";
+                if(rbtarr.rbtinfo[i].avail==true){
+                  availno+=1
+                }
+                
+                }
+                HTML += "</table></div>";
+                document.getElementById("outputDiv").innerHTML = HTML;
+                
                 var availno=0
                 var rbtarr =JSON.parse(data['rbtarr'])
                 var HTML = "<h3>Current Robot Status</h3><div><table class=\"table\">";
@@ -295,6 +316,7 @@ var get_table=function getInfo() {
                 }
                 HTML += "</table></div>";
                 document.getElementById("outputDiv").innerHTML = HTML;
+                
 
                 var taskarr =JSON.parse(data['taskarr'])
                 var HTML = "<div><table class=\"table\">";
