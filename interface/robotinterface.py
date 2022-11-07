@@ -159,10 +159,8 @@ def publish_cmd(rid,stn):
         #client.run(timeout=1)
         cmdsrv = roslibpy.Service(client,'/web_cmd','htbot/mqueue')
         print(stn)
-        if(stn!=0):
-            cmdreq=roslibpy.ServiceRequest(dict(cmd=11, LP=stn+1, lps=stnmap[stn]))
-        else:
-            cmdreq=roslibpy.ServiceRequest(dict(cmd=11, LP=stn, lps=stnmap[stn]))
+        cmdreq=roslibpy.ServiceRequest(dict(cmd=15, lps=stn))
+       
         
         result=cmdsrv.call(cmdreq)
         print(result)

@@ -16,7 +16,7 @@ from flask_login import login_required, current_user,LoginManager,login_user,log
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from flask_sqlalchemy import SQLAlchemy
-import schedulers.mastersch as masterscheduler
+import schedulers.rbtscheduler as masterscheduler
 from wtforms.validators import InputRequired, Length, ValidationError
 import threading
 from flask_bcrypt import Bcrypt

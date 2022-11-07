@@ -89,7 +89,7 @@ def tskpolling():
                         dbinterface.updateReqStatus('PROCESSING REQUEST',tsk.reqid)
                         subtsk=dbinterface.getSubTaskListByStepID(tsk.tskmodno,tsk.currstep)
                         
-
+                        #Define multiple request task
                         if(subtsk[0].at=='Move'):
                             #print('attempt move')
                             sname=tskq[i].pop(0)
@@ -101,7 +101,7 @@ def tskpolling():
                             #Send command to robot interface to run this step
                             #print(mapdict[sname])
                             if production:
-                                robotinterface.publish_cmd(tsk.rid,mapdict[sname])
+                                robotinterface.publish_cmd(tsk.rid,sname)
                                 dbinterface.setExecute(1,tsk.tid)
                                 dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
                             else:
@@ -120,7 +120,7 @@ def tskpolling():
                             #Wait for user to press button to confirm operation done
                             
                             time.sleep(5)
-
+                            
                             dbinterface.writeLog('ms','<MS>Wait Completed',True)
                             dbinterface.setExecute(0,tsk.tid)
                             dbinterface.incStep(tsk.tid,tsk.currstep+1,False)

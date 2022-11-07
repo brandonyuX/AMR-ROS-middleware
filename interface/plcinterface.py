@@ -13,7 +13,7 @@ decdata=''
 
 if __name__ == "__main__":
     #Connect to opc server
-    client = Client("opc.tcp://192.168.1.201:49320")
+    client = Client("opc.tcp://192.168.1.201:49321")
     try:
         client.connect()
         #print(client.get_values(85))
@@ -21,8 +21,8 @@ if __name__ == "__main__":
         print('Successfully connected to OPC Server.')
     except:
         print('Error connecting to OPC')
-    finally:
-        client.disconnect()
+    # finally:
+    #     client.disconnect()
         
     
 
@@ -65,6 +65,11 @@ def decodemsg(testmsg):
 
     # response=rcvtsk+totallen+rcvseq+asgrbt+asgtid
     # print('Reponse to PLC: {}'.format(response))
+def start_receive():
+    pass
+
+def start_send():
+    pass 
 
 def start_server():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
