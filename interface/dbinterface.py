@@ -3,6 +3,7 @@ import pyodbc
 import sys
 import time
 import datetime
+import yaml
 # setting path
 sys.path.append('../Middleware Development')
 
@@ -44,13 +45,15 @@ now = datetime.datetime.utcnow()
 def startup():
     global cursor
     print('<DB>Database stack start up')
-    #Set database parameters
-    server = 'NEL-PC\WINCC' 
-    database = 'M8MMiddlewareDB' 
-    username = 'sa' 
-    password = 'saadm1n@m8m' 
+    with open('server-config.yaml', 'r') as f:
+        doc = yaml.safe_load(f)
 
-    cnxn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
+    #Set database parameters from config files
+    server=doc['DATABASE']['SERVER']
+    database=doc['DATABASE']['DB']
+    
+    
+    cnxn = pyodbc.connect('Driver=SQL Server;Server='+server+';Database='+database+';Trusted_Connection=yes;')
     cursor = cnxn.cursor()
     print('<DB>Database connected')
 

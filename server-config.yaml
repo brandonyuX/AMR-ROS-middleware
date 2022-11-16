@@ -1,2 +1,6 @@
 SERVER:
     WMSIP: 192.168.0.222
+
+DATABASE:
+    SERVER: NEL-PC\WINCC
+    DB: M8MMiddlewareDB

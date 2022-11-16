@@ -56,7 +56,7 @@ app.config['SECRET_KEY'] = 'thisisasecretkey'
 
 
 with open('server-config.yaml', 'r') as f:
-    doc = yaml.load(f)
+    doc = yaml.safe_load(f)
 
 wmsip=doc['SERVER']['WMSIP']
 
