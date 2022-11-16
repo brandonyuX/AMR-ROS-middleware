@@ -22,6 +22,7 @@ import threading
 from flask_bcrypt import Bcrypt
 import time
 import requests
+import yaml
 
 import logging
 import os.path
@@ -52,6 +53,14 @@ db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SECRET_KEY'] = 'thisisasecretkey'
+
+
+with open('server-config.yaml', 'r') as f:
+    doc = yaml.load(f)
+
+wmsip=doc['SERVER']['WMSIP']
+
+
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -318,6 +327,8 @@ def taskmodelcreatepost():
 #Ingress 
 
 #Route to create work order 
+#{"Batch ID": String, "Init SN": String, "Manufacture Date": String, "Fill and Pack Date": String, "Fill Volume": Number, "Target Torque": Number, "Work Orders": [String, String, String, ...]}
+
 @app.route('/syngenta/rm/production/createwo',methods=['POST'])
 def createWOTask():
     #Receive body information
@@ -327,10 +338,10 @@ def createWOTask():
     #Send information to database
     wolist=[]
     for item in parsedJSON:
-        msg='Word Order ID:{}\nBatch ID:{}\nRequired Quantity:{}\nFill Volume:{}ml\nPriority:{}\n'.format(item['wo_id'],item['details']['batch_id'],item['details']['req_qty'],item['details']['fill_vol'],item['details']['priority'])
+        msg='Batch ID:{}\nInit SN:{}\nManufacture Date:{}\nFill and Pack Date:{}ml\nFill Volume:{}\nTarget Torque:{}\nWork Orders:{}'.format(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'])
         print(msg)
-        wo=WO(item['wo_id'],item['details']['batch_id'],item['details']['fill_vol'])
-        wolist.append(wo)
+        #wo=WO(item['wo_id'],item['details']['batch_id'],item['details']['fill_vol'])
+        #wolist.append(wo)
 
     #Write to Work Order Table in database
     dbinterface.writeWO(wolist)
@@ -341,10 +352,8 @@ def createWOTask():
 #Route for information carton completion status
 @app.route('/syngenta/rm/production/cartonready',methods=['POST'])
 def cartonReady():
-    woid=request.values.get('woid')
-
-    print(woid)
-    response = make_response("WMS Creation", 200)
+   
+    response = make_response("Carton Ready Received", 200)
     response.mimetype = "text/plain"
     return response
 
@@ -352,63 +361,58 @@ def cartonReady():
 #Request empty bottle from WMS
 @app.route('/wmsreq/eb')
 def reqEb():
-    res = requests.post('http://192.168.0.222/syngenta/mc/production/requesteb')
+    res = requests.post('http://',wmsip,'/syngenta/mc/production/requesteb')
     print ('response from server:'+res.text)
    
 
 #Send empty tote box from unscrambling station to warehouse
 @app.route('/wmsreq/stb')
 def reqstb():
-    res = requests.post('http://192.168.0.222/syngenta/mc/production/storeetb')
+    res = requests.post('http://',wmsip,'/syngenta/mc/production/storeetb')
     print ('response from server:'+res.text)
     
 #Send empty tote box from warehouse to case packing station
 @app.route('/wmsreq/sfc')
 def reqsfc():
-    res = requests.post('http://192.168.0.222/syngenta/mc/production/storefc')
+    res = requests.post('http://',wmsip,'/syngenta/mc/production/storefc')
     print ('response from server:'+res.text)
 
 #Check if WMS is available for operation
 @app.route('/wmsreq/wmsrdy')
 def reqwmsrdy():
-    res = requests.post('http://192.168.0.222/syngenta/mc/wms/status')
+    res = requests.post('http://',wmsip,'/syngenta/mc/wms/status')
     print ('response from server:'+res.text)
 
 #Inform WMS to start the custom operation. WMS subsequently create the tasks required for the custom operation. E.g. Retrieve multiple Tote Box
 @app.route('/wmsreq/customop')
 def customop():
     dictToSend = {'WMS Request ID':'12345'}
-    res = requests.post('http://192.168.0.222/syngenta/mc/wms/startcustomop',json=dictToSend)
+    res = requests.post('http://',wmsip,'/syngenta/mc/wms/startcustomop',json=dictToSend)
     print ('response from server:'+res.text)
 
 #AMR to retrieve tote box with WMS task ID
 @app.route('/wmsreq/wmsrtb')
 def reqrtb():
     dictToSend = {'WMS Request ID':'12345'}
-    res = requests.post('http://192.168.0.222/syngenta/mc/amr/custom/retrievetb',json=dictToSend)
+    res = requests.post('http://',wmsip,'/syngenta/mc/amr/custom/retrievetb',json=dictToSend)
     print ('response from server:'+res.text)
 
 #AMR to store tote box with WMS task ID
 @app.route('/wmsreq/wmsstbwid')
 def reqstbwid():
     dictToSend = {'WMS Request ID':'12345'}
-    res = requests.post('http://192.168.0.222/syngenta/mc/amr/custom/storetb',json=dictToSend)
+    res = requests.post('http://',wmsip,'/syngenta/mc/amr/custom/storetb',json=dictToSend)
     print ('response from server:'+res.text)
 
 #AMR to retrieve custom carton with WMS task ID
 @app.route('/wmsreq/wmsrcc')
 def reqrcc():
     dictToSend = {'WMS Request ID':'12345'}
-    res = requests.post('http://192.168.0.222/syngenta/mc/amr/custom/retrievecarton',json=dictToSend)
+    res = requests.post('http://',wmsip,'/syngenta/mc/amr/custom/retrievecarton',json=dictToSend)
     print ('response from server:'+res.text)
 
-#AMR to retrieve custom carton with WMS task ID
-@app.route('/wmsreq/wmsrcc')
-def reqrcc():
-    dictToSend = {'WMS Request ID':'12345'}
-    res = requests.post('http://192.168.0.222/syngenta/mc/amr/custom/retrievecarton',json=dictToSend)
-    print ('response from server:'+res.text)
-    
+
+
 #API to communicate with WMS
 #Main Controller to RMS API
 
@@ -416,27 +420,23 @@ def reqrcc():
 #Ingress
 @app.route('/syngenta/rm/wms/taskstatus',methods=['POST'])
 def queryTaskStatus():
-    woid=request.values.get('woid')
+    #woid=request.values.get('woid')
 
-    print(woid)
+    
     response = make_response("WMS Creation", 200)
     response.mimetype = "text/plain"
     return response
 
 @app.route('/syngenta/rm/wms/customrequest',methods=['POST'])
 def createCustomReq():
-    woid=request.values.get('woid')
-
-    print(woid)
+    
     response = make_response("WMS Creation", 200)
     response.mimetype = "text/plain"
     return response
 
 @app.route('/syngenta/rm/wms/taskcreated',methods=['POST'])
 def createWMSTask():
-    woid=request.values.get('woid')
-
-    print(woid)
+   
     response = make_response("WMS Creation", 200)
     response.mimetype = "text/plain"
     return response
