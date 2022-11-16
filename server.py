@@ -21,6 +21,7 @@ from wtforms.validators import InputRequired, Length, ValidationError
 import threading
 from flask_bcrypt import Bcrypt
 import time
+import requests
 
 import logging
 import os.path
@@ -348,11 +349,66 @@ def cartonReady():
     return response
 
 #Egress
+#Request empty bottle from WMS
+@app.route('/wmsreq/eb')
+def reqEb():
+    res = requests.post('http://192.168.0.222/syngenta/mc/production/requesteb')
+    print ('response from server:'+res.text)
+   
 
+#Send empty tote box from unscrambling station to warehouse
+@app.route('/wmsreq/stb')
+def reqstb():
+    res = requests.post('http://192.168.0.222/syngenta/mc/production/storeetb')
+    print ('response from server:'+res.text)
+    
+#Send empty tote box from warehouse to case packing station
+@app.route('/wmsreq/sfc')
+def reqsfc():
+    res = requests.post('http://192.168.0.222/syngenta/mc/production/storefc')
+    print ('response from server:'+res.text)
 
+#Check if WMS is available for operation
+@app.route('/wmsreq/wmsrdy')
+def reqwmsrdy():
+    res = requests.post('http://192.168.0.222/syngenta/mc/wms/status')
+    print ('response from server:'+res.text)
 
+#Inform WMS to start the custom operation. WMS subsequently create the tasks required for the custom operation. E.g. Retrieve multiple Tote Box
+@app.route('/wmsreq/customop')
+def customop():
+    dictToSend = {'WMS Request ID':'12345'}
+    res = requests.post('http://192.168.0.222/syngenta/mc/wms/startcustomop',json=dictToSend)
+    print ('response from server:'+res.text)
 
+#AMR to retrieve tote box with WMS task ID
+@app.route('/wmsreq/wmsrtb')
+def reqrtb():
+    dictToSend = {'WMS Request ID':'12345'}
+    res = requests.post('http://192.168.0.222/syngenta/mc/amr/custom/retrievetb',json=dictToSend)
+    print ('response from server:'+res.text)
 
+#AMR to store tote box with WMS task ID
+@app.route('/wmsreq/wmsstbwid')
+def reqstbwid():
+    dictToSend = {'WMS Request ID':'12345'}
+    res = requests.post('http://192.168.0.222/syngenta/mc/amr/custom/storetb',json=dictToSend)
+    print ('response from server:'+res.text)
+
+#AMR to retrieve custom carton with WMS task ID
+@app.route('/wmsreq/wmsrcc')
+def reqrcc():
+    dictToSend = {'WMS Request ID':'12345'}
+    res = requests.post('http://192.168.0.222/syngenta/mc/amr/custom/retrievecarton',json=dictToSend)
+    print ('response from server:'+res.text)
+
+#AMR to retrieve custom carton with WMS task ID
+@app.route('/wmsreq/wmsrcc')
+def reqrcc():
+    dictToSend = {'WMS Request ID':'12345'}
+    res = requests.post('http://192.168.0.222/syngenta/mc/amr/custom/retrievecarton',json=dictToSend)
+    print ('response from server:'+res.text)
+    
 #API to communicate with WMS
 #Main Controller to RMS API
 
