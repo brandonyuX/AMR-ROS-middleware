@@ -312,11 +312,13 @@ def taskmodelcreatepost():
 
 
 #API Section
-#API for MES to write in Work Order
+#API for MES communication
+
+#Ingress 
 
 #Route to create work order 
-@app.route('/api/wo/create',methods=['POST'])
-def createWo():
+@app.route('/syngenta/rm/production/createwo',methods=['POST'])
+def createWOTask():
     #Receive body information
     recv=request.get_data()
     #Parse to json object from string
@@ -335,10 +337,9 @@ def createWo():
     response.mimetype = "text/plain"
     return response
 
-#API to communicate with WMS
-#Create WMS task 
-@app.route('/api/wms/create',methods=['POST'])
-def createWMSTask():
+#Route for information carton completion status
+@app.route('/syngenta/rm/production/cartonready',methods=['POST'])
+def cartonReady():
     woid=request.values.get('woid')
 
     print(woid)
@@ -346,14 +347,54 @@ def createWMSTask():
     response.mimetype = "text/plain"
     return response
 
-#Query WMS status 
-@app.route('/api/wms/status',methods=['POST'])
-def getWMSStatus():
+#Egress
+
+
+
+
+
+#API to communicate with WMS
+#Main Controller to RMS API
+
+
+#Ingress
+@app.route('/syngenta/rm/wms/taskstatus',methods=['POST'])
+def queryTaskStatus():
     woid=request.values.get('woid')
+
     print(woid)
-    response = make_response("WMS Update", 200)
+    response = make_response("WMS Creation", 200)
     response.mimetype = "text/plain"
     return response
+
+@app.route('/syngenta/rm/wms/customrequest',methods=['POST'])
+def createCustomReq():
+    woid=request.values.get('woid')
+
+    print(woid)
+    response = make_response("WMS Creation", 200)
+    response.mimetype = "text/plain"
+    return response
+
+@app.route('/syngenta/rm/wms/taskcreated',methods=['POST'])
+def createWMSTask():
+    woid=request.values.get('woid')
+
+    print(woid)
+    response = make_response("WMS Creation", 200)
+    response.mimetype = "text/plain"
+    return response
+    
+@app.route('/syngenta/rm/wms/manualtask',methods=['POST'])
+def createManualTask():
+    woid=request.values.get('woid')
+
+    print(woid)
+    response = make_response("WMS Creation", 200)
+    response.mimetype = "text/plain"
+    return response
+
+
 
 
     
