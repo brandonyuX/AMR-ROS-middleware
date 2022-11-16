@@ -8,7 +8,7 @@ sys.path.append('../Middleware Development')
 import interface.dbinterface as dbinterface
 import interface.robotinterface as robotinterface
 
-production=False
+production=True
 tskq=[]
 dbmaphash={'STN1' : 'Station 1', 'STN2' : 'Station 2','STN3':'Station 3','STN4':'Station 4','STN5':'Station 5'}
 mapdict={"STN1":0,
@@ -101,8 +101,9 @@ def tskpolling():
                             #Send command to robot interface to run this step
                             #print(mapdict[sname])
                             if production:
-                                robotinterface.publish_cmd(tsk.rid,sname)
+                                
                                 dbinterface.setExecute(1,tsk.tid)
+                                robotinterface.publish_cmd(tsk.rid,sname)
                                 dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
                             else:
                                 dbinterface.setExecute(1,tsk.tid) 

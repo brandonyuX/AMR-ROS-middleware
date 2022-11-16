@@ -170,7 +170,7 @@ def getReqList():
 def getTaskList():
      #Fetch Robot task list
     tsk_list.clear()
-    cursor.execute("SELECT * FROM Task") 
+    cursor.execute("SELECT * FROM RbtTask") 
     row = cursor.fetchone() 
     while row: 
         #print(row[0])
@@ -186,7 +186,7 @@ def getTaskList():
 def getTaskListTop():
      #Fetch Robot task list
     tsk_list.clear()
-    cursor.execute("SELECT * FROM Task WHERE Completed=0") 
+    cursor.execute("SELECT * FROM RbtTask WHERE Completed=0") 
     row = cursor.fetchone() 
     if row:
         tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12])  
@@ -258,21 +258,21 @@ def updateRbtMsg(rbtid,msg):
 
 #Delete task based on request id
 def deltask(reqid):
-    cursor.execute("DELETE FROM Task WHERE ReqID = ?",reqid) 
+    cursor.execute("DELETE FROM RbtTask WHERE ReqID = ?",reqid) 
     cursor.commit()
 
 #Increment step to task 
 def incStep(tid,step,comp):
     if comp:
-        cursor.execute("UPDATE Task SET Completed=? WHERE TaskID=?",1,tid) 
+        cursor.execute("UPDATE RbtTask SET Completed=? WHERE TaskID=?",1,tid) 
         cursor.commit()
     else:
-        cursor.execute("UPDATE Task SET CurrStep=? WHERE TaskID=?",step,tid) 
+        cursor.execute("UPDATE RbtTask SET CurrStep=? WHERE TaskID=?",step,tid) 
         cursor.commit()
 
 #Set execution bit for task
 def setExecute(exec,tid):
-    cursor.execute("UPDATE Task SET Executing=? WHERE TaskID=?",exec,tid) 
+    cursor.execute("UPDATE RbtTask SET Executing=? WHERE TaskID=?",exec,tid) 
     cursor.commit()
 
 #Write to log

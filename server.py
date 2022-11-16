@@ -137,7 +137,7 @@ def nav():
 def index():
     tsklist=dbinterface.getTaskList()
     rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
-    return render_template('index.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, async_mode=async_mode)
+    return render_template('index-test.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, async_mode=async_mode)
 
 @app.route('/', methods=['POST'])
 @login_required
@@ -167,7 +167,7 @@ def indexpost():
         
     tsklist=dbinterface.getTaskList()
     rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
-    return render_template('index.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, async_mode=async_mode)
+    return render_template('index-test.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, async_mode=async_mode)
 
 #Define configuration page
 @app.route('/configuration')
@@ -193,6 +193,11 @@ def taskmodelconfigget():
 @login_required
 def taskmodelcreate():
     return render_template('taskmodelcreate.html')
+
+@app.route('/amr-control')
+@login_required
+def amrcontrol():
+    return render_template('amr-control.html')
 
 
 #Try getting list test

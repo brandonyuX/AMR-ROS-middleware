@@ -14,7 +14,7 @@ sys.path.append('../Middleware Development')
 import interface.dbinterface as dbinterface
 
 #Define ros connection
-client = roslibpy.Ros(host="172.23.44.12", port=8080)
+client = roslibpy.Ros(host="192.168.0.110", port=8080)
 
 taskid=0
 
@@ -84,11 +84,11 @@ def stat_callback(message):
 #Move completed callback function
 def move_complete(message):
     tsklist=dbinterface.getTaskListTop()
-
-    print('<RI>Robot Reached, Aligning')
-    time.sleep(10)
-    print('<RI>Alignment Complete, proceeding to next instruction.')
+    #print(message)
+    
     dbinterface.setExecute(0,tsklist[0].tid)
+    print('<RI>Move Completed')
+   
     # tsk_list=dbinterface.getTaskList()
     # req_list=dbinterface.getReqList()
     
@@ -111,7 +111,7 @@ def store_pose(message):
     x=round(x,5)
     y=round(y,5)
     r=round(r,5)
-    dbinterface.updateRbtPosStatus(1,x,y,r)       
+    #dbinterface.updateRbtPosStatus(1,x,y,r)       
 
 def store_rosout(message):
     rosmsg=message['msg']
@@ -158,7 +158,7 @@ def publish_cmd(rid,stn):
         #client = roslibpy.Ros(host=ip, port=8080)
         #client.run(timeout=1)
         cmdsrv = roslibpy.Service(client,'/web_cmd','htbot/mqueue')
-        print(stn)
+        #print(stn)
         cmdreq=roslibpy.ServiceRequest(dict(cmd=15, lps=stn))
        
         
