@@ -62,6 +62,9 @@ wmsip=doc['SERVER']['WMSIP']
 
 
 
+
+
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
@@ -113,7 +116,7 @@ def login():
             if bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)
                 return redirect(url_for('index'))
-    return render_template('login.html', form=form)
+    return render_template('login-new.html', form=form)
 
 @ app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -340,8 +343,9 @@ def createWOTask():
     for item in parsedJSON:
         msg='Batch ID:{}\nInit SN:{}\nManufacture Date:{}\nFill and Pack Date:{}ml\nFill Volume:{}\nTarget Torque:{}\nWork Orders:{}'.format(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'])
         print(msg)
-        #wo=WO(item['wo_id'],item['details']['batch_id'],item['details']['fill_vol'])
-        #wolist.append(wo)
+        wo=WO(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'])
+        wolist.append(wo)
+
 
     #Write to Work Order Table in database
     dbinterface.writeWO(wolist)
@@ -361,54 +365,54 @@ def cartonReady():
 #Request empty bottle from WMS
 @app.route('/wmsreq/eb')
 def reqEb():
-    res = requests.post('http://',wmsip,'/syngenta/mc/production/requesteb')
+    res = requests.post('http://'+wmsip+'/syngenta/mc/production/requesteb')
     print ('response from server:'+res.text)
    
 
 #Send empty tote box from unscrambling station to warehouse
 @app.route('/wmsreq/stb')
 def reqstb():
-    res = requests.post('http://',wmsip,'/syngenta/mc/production/storeetb')
+    res = requests.post('http://'+wmsip+'/syngenta/mc/production/storeetb')
     print ('response from server:'+res.text)
     
 #Send empty tote box from warehouse to case packing station
 @app.route('/wmsreq/sfc')
 def reqsfc():
-    res = requests.post('http://',wmsip,'/syngenta/mc/production/storefc')
+    res = requests.post('http://'+wmsip+'/syngenta/mc/production/storefc')
     print ('response from server:'+res.text)
 
 #Check if WMS is available for operation
 @app.route('/wmsreq/wmsrdy')
 def reqwmsrdy():
-    res = requests.post('http://',wmsip,'/syngenta/mc/wms/status')
+    res = requests.post('http://'+wmsip+'/syngenta/mc/wms/status')
     print ('response from server:'+res.text)
 
 #Inform WMS to start the custom operation. WMS subsequently create the tasks required for the custom operation. E.g. Retrieve multiple Tote Box
 @app.route('/wmsreq/customop')
 def customop():
     dictToSend = {'WMS Request ID':'12345'}
-    res = requests.post('http://',wmsip,'/syngenta/mc/wms/startcustomop',json=dictToSend)
+    res = requests.post('http://'+wmsip+'/syngenta/mc/wms/startcustomop',json=dictToSend)
     print ('response from server:'+res.text)
 
 #AMR to retrieve tote box with WMS task ID
 @app.route('/wmsreq/wmsrtb')
 def reqrtb():
     dictToSend = {'WMS Request ID':'12345'}
-    res = requests.post('http://',wmsip,'/syngenta/mc/amr/custom/retrievetb',json=dictToSend)
+    res = requests.post('http://'+wmsip+'/syngenta/mc/amr/custom/retrievetb',json=dictToSend)
     print ('response from server:'+res.text)
 
 #AMR to store tote box with WMS task ID
 @app.route('/wmsreq/wmsstbwid')
 def reqstbwid():
     dictToSend = {'WMS Request ID':'12345'}
-    res = requests.post('http://',wmsip,'/syngenta/mc/amr/custom/storetb',json=dictToSend)
+    res = requests.post('http://'+wmsip+'/syngenta/mc/amr/custom/storetb',json=dictToSend)
     print ('response from server:'+res.text)
 
 #AMR to retrieve custom carton with WMS task ID
 @app.route('/wmsreq/wmsrcc')
 def reqrcc():
     dictToSend = {'WMS Request ID':'12345'}
-    res = requests.post('http://',wmsip,'/syngenta/mc/amr/custom/retrievecarton',json=dictToSend)
+    res = requests.post('http://'+wmsip+'/syngenta/mc/amr/custom/retrievecarton',json=dictToSend)
     print ('response from server:'+res.text)
 
 
