@@ -212,6 +212,7 @@ def getIP(rid):
     row = cursor.fetchone() 
     return row[0]
 
+
 def insertReq(plcid,reqid,destloc,priority,reqtime,tskmodno):
     cursor.execute("INSERT INTO PLCRequest(PLCID,ReqID,DestLoc,Priority,ReqTime,TaskModelNo) VALUES (?,?,?,?,?,?)",plcid,reqid,destloc,priority,reqtime,tskmodno)
     cursor.commit()
@@ -296,10 +297,10 @@ def readLog(type):
 #Write into Work Order
 def writeWO(wolist):
     for wo in wolist:
-        cursor.execute("INSERT INTO WOList (WOID,BatchID,FillVol,ReqTime) VALUES (?,?,?,?)",wo.woid,wo.batchid,wo.fillvol,datetime.now())
+        cursor.execute("INSERT INTO WOList (BatchID,sn,mfgdate,fnpdate,fillvol,torque,wolist) VALUES (?,?,?,?,?,?,?)",wo.batchid,wo.sn,wo.mfgdate,wo.fnpdate,wo.fillvol,wo.torque,wo.wolist)
         cursor.commit()
-        cursor.execute("INSERT INTO WOQueue (WOID) VALUES (?)",wo.woid)
-        cursor.commit()
+        # cursor.execute("INSERT INTO WOQueue (WOID) VALUES (?)",wo.woid)
+        # cursor.commit()
 
 def getWO():
     wo_list.clear()
@@ -354,8 +355,13 @@ def updateWO(wo_id,stn,stat):
         print('Invalid station number')
     cursor.commit()
 
+#Get destination mapping for particular action
+def getActLoc(action):
+    cursor.execute("SELECT * FROM ActionFlow WHERE FlowAction=?",action) 
+    row = cursor.fetchone() 
+    return row[2],row[3]
+
 #print(getIP(1))
 
 #insertReq(101,2,1,'Station 3',2,now.strftime('%Y-%m-%d %H:%M:%S'))
-
 

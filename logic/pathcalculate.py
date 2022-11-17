@@ -3,21 +3,29 @@ from dijkstar import Graph, find_path
 
 graph = Graph()
 #Cost can be calculated using simple euclidean distance
-graph.add_edge(1, 2, (110, 'Station 1'))
-graph.add_edge(2, 1, (110, 'Station 1'))
-graph.add_edge(3, 1, (110, 'Station 1'))
-graph.add_edge(2, 3, (125, 'Station 2'))
-graph.add_edge(3, 4, (108, 'Station 3'))
-graph.add_edge(4, 5, (120, 'Station 4'))
-graph.add_edge(5, 1, (120, 'Station 5'))
-graph.add_edge(1,6, (120, 'Charging Station'))
 
-graphdict={"Station 1":1,
-            "Station 2":2,
-            "Station 3":3,
-            "Station 4":4,
-            "Station 5":5,
-            "Charging Station":6
+graph.add_edge(1,3,(100,'Charging Station'))
+graph.add_edge(3,1,(100,'Turning Point'))
+graph.add_edge(2,3,(100,'Unscrambling Station'))
+graph.add_edge(3,2,(100,'Turning Point'))
+graph.add_edge(3,4,(100,'Warehouse'))
+graph.add_edge(4,3,(100,'Turning Point'))
+graph.add_edge(4,5,(100,'Packing Station'))
+graph.add_edge(5,4,(100,'Warehouse'))
+graph.add_edge(3,6,(100,'Custom Location'))
+graph.add_edge(6,3,(100,'Custom Location'))
+graph.add_edge(5,7,(100,'Custom Location'))
+graph.add_edge(7,5,(100,'Custom Location'))
+
+
+
+
+graphdict={"Charging Station":1,
+            "Unscrambling Station":2,
+            "Turning Point":3,
+            "Warehouse":4,
+            "Packing Station":5,
+            "Custom Location 1":6
             }
 
 
@@ -39,4 +47,11 @@ def calculate_shortest(src,dest):
     print('<P>From Path Calculate Module : {}\n'.format(tempstr))
     return (find_path(graph, graphdict[src], graphdict[dest], cost_func=cost_func).total_cost)
 
+def cal_shortest_edge(e1,e2):
+    tempstr=(find_path(graph, e1, e2))
+    print('<P>From Path Calculate Module : {}\n'.format(tempstr))
 
+pathlist=find_path(graph,1,2, cost_func=cost_func).nodes
+for path in pathlist:
+    key = next(key for key, value in graphdict.items() if value == path)
+    print(key+'-->')
