@@ -356,10 +356,10 @@ def updateWO(wo_id,stn,stat):
     cursor.commit()
 
 #Get destination mapping for particular action
-def getActLoc(action):
+def getFlow(action):
     cursor.execute("SELECT * FROM ActionFlow WHERE FlowAction=?",action) 
     row = cursor.fetchone() 
-    return row[2],row[3]
+    return row[2]
 
 #print(getIP(1))
 

@@ -79,7 +79,7 @@ def stat_callback(message):
     
     print(message)
 
-    
+
    
 #Move completed callback function
 def move_complete(message):
@@ -216,3 +216,7 @@ def startup():
 
 #jack_down(1)
 #get_single_info()
+def movetoloc(stn):
+    print('<RI> Moving to {}'.format(stn))
+    time.sleep(5)
+    return True
