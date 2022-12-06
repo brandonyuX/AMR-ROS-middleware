@@ -14,6 +14,7 @@ from mwclass.subtask import SubTask
 from mwclass.task import Task
 from mwclass.robot import Robot
 from mwclass.workorder import WO
+from mwclass.user import User
 from threading import Thread
 
 
@@ -357,11 +358,42 @@ def updateWO(wo_id,stn,stat):
 
 #Get destination mapping for particular action
 def getFlow(action):
-    cursor.execute("SELECT * FROM ActionFlow WHERE FlowAction=?",action) 
+    cursor.execute("SELECT * FROM ActionFlow WHERE FlowAction= ?",action) 
     row = cursor.fetchone() 
     return row[2]
 
 #print(getIP(1))
+#Return user
+def getUser(username):
+    cursor.execute("SELECT * FROM UserTable WHERE username= ?",username) 
+    row = cursor.fetchone() 
+    if row:
+        user=User(row[1],row[2]) 
+        return user
+    else:
+        return ''
 
-#insertReq(101,2,1,'Station 3',2,now.strftime('%Y-%m-%d %H:%M:%S'))
+#Check if user exists
+def userExist(username):
+    cursor.execute("SELECT * FROM UserTable WHERE username= ?",username) 
+    row=cursor.fetchone()
+    if row:
+        return True
+    else:
+        return False
+
+#Create user with username and hashed password
+def addUser(username,password):
+    cursor.execute("INSERT INTO UserTable (username,password) VALUES (?,?)",username,password) 
+    
+    cursor.commit()  
+    
+def getUserName(userid):
+    print(userid)
+    cursor.execute("SELECT * FROM UserTable WHERE username=?",userid) 
+    row = cursor.fetchone() 
+    if row:
+        print(row[0])
+        return row[0]
+    
 

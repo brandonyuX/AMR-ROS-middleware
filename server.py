@@ -33,6 +33,8 @@ import json
 
 
 
+
+
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
 # the best option based on installed packages.
@@ -41,6 +43,7 @@ async_mode = None
 app = Flask("RMS-Server")
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
+app.debug=True
 
 socketio = SocketIO(app, async_mode=async_mode)
 thread = None
@@ -49,16 +52,21 @@ actiondict={'0':'Move','1':'Unload','2':'Load','3':'Custom Command'}
 subtasklist=[]
 tclist=[]
 
-db = SQLAlchemy(app)
-bcrypt = Bcrypt(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-app.config['SECRET_KEY'] = 'thisisasecretkey'
 
 
 with open('server-config.yaml', 'r') as f:
     doc = yaml.safe_load(f)
 
 wmsip=doc['SERVER']['WMSIP']
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+db = SQLAlchemy(app)
+
+bcrypt = Bcrypt(app)
+
+app.config['SECRET_KEY'] = 'thisisasecretkey'
+
+
+
 
 
 
@@ -74,10 +82,15 @@ class User(db.Model, UserMixin):
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+login_manager.session_protection = "strong"
 
+# @app.before_first_request
+# def create_tables():
+#     db.create_all()
 
 @login_manager.user_loader
 def load_user(user_id):
+    
     return User.query.get(int(user_id))
 
 
@@ -129,7 +142,7 @@ def register():
         db.session.commit()
         return redirect(url_for('login'))
 
-    return render_template('register.html', form=form)
+    return render_template('register-new.html', form=form)
 
 @app.route('/logout', methods=['GET', 'POST'])
 @login_required
@@ -211,6 +224,11 @@ def taskmodelcreate():
 @login_required
 def amrcontrol():
     return render_template('amr-control.html')
+
+@app.route('/amr-settings')
+@login_required
+def amrsettings():
+    return render_template('amr-settings.html')
 
 
 #Try getting list test
