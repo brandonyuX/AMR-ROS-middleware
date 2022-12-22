@@ -1,18 +1,24 @@
 #This file provides interface with the PLC and update the database
 #Will use opcua in this example
-import socket,datetime,sys,signal
+import socket,datetime,sys,signal,asyncio,yaml
 import time
-
-sys.path.append('../Middleware Development')
-import interface.dbinterface as dbinterface
+import os
+dirname = os.path.dirname(__file__)
+filename = os.path.join(dirname, 'emulator-settings.yaml')
 from opcua import Client,ua
-HOST='127.0.0.1'
-PORT=65432
+with open(filename, 'r') as f:
+    doc = yaml.safe_load(f)
 
-
+HOST=doc['SERVER']['OPCIP']
+PORT=doc['SERVER']['PORT']
+startstate=[False,False,False,False,False,False,False]
+qstr=doc['WO']['QUEUE']
+print(qstr)
+queue=qstr.split('.')
 
 decdata=''
-client = Client("opc.tcp://192.168.1.201:49321")
+client = Client("opc.tcp://{}:{}".format(HOST,PORT))
+neworder=False
 
 
 
@@ -24,23 +30,44 @@ def connectOPC():
     
 
 def checkProcQty(station):
+    
     procqtypath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.ProcessedQty".format(station)
     reqqtypath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.RequiredQty".format(station)
+    stastatuspath="ns=2;s=Syngenta.SmartLab.FNP.Info.Station{}.StationState".format(station)
     procqtystate=client.get_node(procqtypath)
     reqqtystate=client.get_node(reqqtypath)
+    stastatusstate=client.get_node(stastatuspath)
 
     procqty=procqtystate.get_value()
     reqqty=reqqtystate.get_value()
 
-    return True if procqty==reqqty else False
+    if procqty==reqqty:
+        startstate[station-1]=False
+        stastatusstate.set_value(ua.DataValue(ua.Variant(1,ua.VariantType.UInt16)))
+        return True
+    else:
+        return False
 
 def incProcQty(station):
+    time.sleep(0.1)
     procqtypath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.ProcessedQty".format(station)
+    cmdpausepath="ns=2;s=Syngenta.SmartLab.FNP.Info.Station{}.CmdPause".format(station)
+    stastatuspath="ns=2;s=Syngenta.SmartLab.FNP.Info.Station{}.StationState".format(station)
+
     procqtystate=client.get_node(procqtypath)
+    cmdpausetate=client.get_node(cmdpausepath)
+    stastatusstate=client.get_node(stastatuspath)
 
     procqty=procqtystate.get_value()
-    newqty=procqty+1
-    procqtystate.set_value(ua.DataValue(ua.Variant(newqty,ua.VariantType.UInt16)))
+    cmdpause=cmdpausetate.get_value()
+    
+    if(procqty<=19) and not cmdpause:
+        newqty=procqty+1
+        procqtystate.set_value(ua.DataValue(ua.Variant(newqty,ua.VariantType.UInt16)))
+        stastatusstate.set_value(ua.DataValue(ua.Variant(2,ua.VariantType.UInt16)))
+
+    elif cmdpause:
+        stastatusstate.set_value(ua.DataValue(ua.Variant(3,ua.VariantType.UInt16)))
 
 def writeWODetails(station,wonum,wostatus,reqqty,procqty):
     
@@ -50,31 +77,38 @@ def writeWODetails(station,wonum,wostatus,reqqty,procqty):
             wostatuspath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.WorkOrderStatus".format(i)
             reqqtypath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.RequiredQty".format(i)
             procqtypath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.ProcessedQty".format(i)
+            stastatuspath="ns=2;s=Syngenta.SmartLab.FNP.Info.Station{}.StationState".format(i)
 
             wonumstate=client.get_node(wonumpath)
             wostatusstate=client.get_node(wostatuspath)
             reqqtystate=client.get_node(reqqtypath)
             procqtystate=client.get_node(procqtypath)
+            stastatusstate=client.get_node(stastatuspath)
 
             wonumstate.set_value(ua.DataValue(ua.Variant(wonum,ua.VariantType.String)))
             wostatusstate.set_value(ua.DataValue(ua.Variant(wostatus,ua.VariantType.UInt16)))
             reqqtystate.set_value(ua.DataValue(ua.Variant(reqqty,ua.VariantType.UInt16)))
             procqtystate.set_value(ua.DataValue(ua.Variant(procqty,ua.VariantType.UInt16)))
+            stastatusstate.set_value(ua.DataValue(ua.Variant(2,ua.VariantType.UInt16)))
+            neworder=True
     else:
         wonumpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.WorkOrderNumber".format(station)
         wostatuspath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.WorkOrderStatus".format(station)
         reqqtypath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.RequiredQty".format(station)
         procqtypath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.ProcessedQty".format(station)
+        stastatuspath="ns=2;s=Syngenta.SmartLab.FNP.Info.Station{}.StationState".format(station)
 
         wonumstate=client.get_node(wonumpath)
         wostatusstate=client.get_node(wostatuspath)
         reqqtystate=client.get_node(reqqtypath)
         procqtystate=client.get_node(procqtypath)
+        stastatusstate=client.get_node(stastatuspath)
 
         wonumstate.set_value(ua.DataValue(ua.Variant(wonum,ua.VariantType.String)))
         wostatusstate.set_value(ua.DataValue(ua.Variant(wostatus,ua.VariantType.UInt16)))
         reqqtystate.set_value(ua.DataValue(ua.Variant(reqqty,ua.VariantType.UInt16)))
         procqtystate.set_value(ua.DataValue(ua.Variant(procqty,ua.VariantType.UInt16)))
+        stastatusstate.set_value(ua.DataValue(ua.Variant(2,ua.VariantType.UInt16)))
  
 
 
@@ -86,11 +120,15 @@ def startWOACK(station):
  
 def getWOACK(station):      
     woackpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.StartAck".format(station)
+    wonumpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.WorkOrderNumber".format(station)
 
     woackstate=client.get_node(woackpath)
+    wonumstate=client.get_node(wonumpath)
+
+    currwo=wonumstate.get_value()
     ack=woackstate.get_value()
     
-    if ack=="MESACK":
+    if ack==currwo:
         return True
     else:
         return False
@@ -136,7 +174,7 @@ def decodemsg(testmsg):
 
     # response=rcvtsk+totallen+rcvseq+asgrbt+asgtid
     # print('Reponse to PLC: {}'.format(response))
-queue=['WO001','WO002','WO003','WO004']
+
 
 def getNextWO(station):
     wopath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.WorkOrderNumber".format(station)
@@ -151,7 +189,8 @@ def getNextWO(station):
         return queue[woindex+1]
 
 
-if __name__ == "__main__":
+
+def startWOS():
     connectOPC()
     wonum=1
     
@@ -161,20 +200,40 @@ if __name__ == "__main__":
             
             for i in range(1,7):
                 incProcQty(i)
+                
                 if(checkProcQty(i)):
                     woval=getNextWO(i)
                     if(woval=='end'):
                         print('End of Work Order for station {}'.format(i))
                         writeWODetails(i,'END',1,20,0)
                     else:
-                        startWOACK(i)
-                        while(getWOACK(i)!=True):
-                            print('Waiting for MES Acknowledgement for {} for station {}'.format(woval,i))
-                            time.sleep(1)
-                        print('Detected order completion, sending {} to station {}'.format(woval,i))
-                        writeWODetails(i,woval,1,20,0)
+                        if(getWOACK(i)!=True):
+                            startWOACK(i)
+                        if(getWOACK(i)):
+                            print('Detected order completion, sending {} to station {}'.format(woval,i))
+                            writeWODetails(i,woval,1,20,0)
+                            startstate[i]=True
+
                         
                         
         except KeyboardInterrupt:
             
             client.disconnect()
+
+async def procqtyinc():
+    while True:
+        for i in range(0,6):
+            print(i)
+            if(startstate[i]):
+                incProcQty(i)
+
+# async def multiple_tasks():
+#   input_coroutines = [startWOS(), procqtyinc()]
+#   res = await asyncio.gather(*input_coroutines, return_exceptions=True)
+#   return res
+
+# loop = asyncio.get_event_loop()
+
+# loop.run_until_complete(multiple_tasks())
+
+startWOS()
