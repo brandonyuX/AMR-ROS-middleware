@@ -7,6 +7,7 @@ from mwclass.workorder import WO
 from mwclass.robotconfig import RobotConfig
 import interface.robotinterface as robotinterface
 from mwclass.subtask import SubTask
+import interface.plcinterface as plcinterface
 from flask_socketio import SocketIO, emit
 from threading import Lock
 import json
@@ -83,6 +84,8 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.session_protection = "strong"
+
+
 
 # @app.before_first_request
 # def create_tables():
@@ -163,7 +166,7 @@ def nav():
 def index():
     tsklist=dbinterface.getTaskList()
     rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
-    return render_template('index-test.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, async_mode=async_mode)
+    return render_template('index.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, async_mode=async_mode)
 
 @app.route('/', methods=['POST'])
 @login_required
@@ -359,9 +362,9 @@ def createWOTask():
     #Send information to database
     wolist=[]
     for item in parsedJSON:
-        msg='Batch ID:{}\nInit SN:{}\nManufacture Date:{}\nFill and Pack Date:{}ml\nFill Volume:{}\nTarget Torque:{}\nWork Orders:{}'.format(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'])
+        msg='Batch ID:{}\nInit SN:{}\nManufacture Date:{}\nFill and Pack Date:{}ml\nFill Volume:{}\nTarget Torque:{}\nWork Orders:{}\n'.format(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'][0])
         print(msg)
-        wo=WO(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'])
+        wo=WO(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'][0])
         wolist.append(wo)
 
 
@@ -435,15 +438,20 @@ def createManualTask():
 #             thread = socketio.start_background_task(background_thread)
 #     emit('my_response', {'data': 'Connected', 'count': 0})
 
-#Initialze all interfaces
-dbinterface.startup()
-masterscheduler.startup()
-robotinterface.startup()
+
 
 #threading.Thread(target=lambda: app.run())
 
-#app.run()
 
-t1=threading.Thread(target=app.run(),daemon=True)
-t1.start()
+#Initialize all interfaces
+dbinterface.startup()
+#masterscheduler.startup()
+robotinterface.startup()
+plcinterface.startup()
+
+app.run()
+
+
+# t1=threading.Thread(target=app.run(),daemon=True)
+# t1.start()
 #t1.join()

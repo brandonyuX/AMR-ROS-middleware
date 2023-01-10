@@ -2,9 +2,11 @@
 #Will use opcua in this example
 import socket,datetime,sys,signal
 import time
+import threading
 
 sys.path.append('../Middleware Development')
 import interface.dbinterface as dbinterface
+import interface.wmsinterface as wmsinterface
 from opcua import Client,ua
 HOST='127.0.0.1'
 PORT=65432
@@ -16,9 +18,12 @@ client = Client("opc.tcp://192.168.1.201:49321")
 
 
 
-def connectOPC():
+def startup():
     try:
         client.connect()
+        print('Connection to OPC Server successful!')
+        t1=threading.Thread(target=readTags,daemon=True)
+        t1.start()
     except:
         print("Problems connecting to OPC Server")
     
@@ -151,30 +156,38 @@ def getNextWO(station):
         return queue[woindex+1]
 
 
-if __name__ == "__main__":
-    connectOPC()
-    wonum=1
-    
-    writeWODetails(0,queue[0],1,20,0)
+def readTags():
     while True:
-        try:
-            
-            for i in range(1,7):
-                incProcQty(i)
-                if(checkProcQty(i)):
-                    woval=getNextWO(i)
-                    if(woval=='end'):
-                        print('End of Work Order for station {}'.format(i))
-                        writeWODetails(i,'END',1,20,0)
-                    else:
-                        startWOACK(i)
-                        while(getWOACK(i)!=True):
-                            print('Waiting for MES Acknowledgement for {} for station {}'.format(woval,i))
-                            time.sleep(1)
-                        print('Detected order completion, sending {} to station {}'.format(woval,i))
-                        writeWODetails(i,woval,1,20,0)
-                        
-                        
-        except KeyboardInterrupt:
-            
-            client.disconnect()
+        reqbotpath="ns=2;s=Syngenta.SmartLab.FNP.Info.Station1.RequestBottle"
+        rettotpath="ns=2;s=Syngenta.SmartLab.FNP.Info.Station1.ReturnToteBox"
+        cp2path="ns=2;s=Syngenta.SmartLab.FNP.Info.Station6.CartonPresent2"
+
+
+        reqbotstate=client.get_node(reqbotpath)
+        rettotstate=client.get_node(rettotpath)
+        cp2state=client.get_node(cp2path)
+
+
+        reqbot=reqbotstate.get_value()
+        rettot=rettotstate.get_value()
+        cp2=cp2state.get_value()
+
+        if(reqbot):
+            wmsinterface.reqEb()
+            dbinterface.insertRbtTask('Warehouse;Station1')
+            reqbotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+
+        if(rettot):
+            wmsinterface.reqstb()
+            dbinterface.insertRbtTask('Station1;Warehouse')
+            rettotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+
+        if(cp2):
+            wmsinterface.reqsfc()
+            dbinterface.insertRbtTask('Station6;Warehouse')
+            cp2state.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+
+
+
+
+  

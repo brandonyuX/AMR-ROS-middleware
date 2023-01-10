@@ -51,7 +51,8 @@ def cal_shortest_edge(e1,e2):
     tempstr=(find_path(graph, e1, e2))
     print('<P>From Path Calculate Module : {}\n'.format(tempstr))
 
-pathlist=find_path(graph,1,2, cost_func=cost_func).nodes
-for path in pathlist:
-    key = next(key for key, value in graphdict.items() if value == path)
-    print(key+'-->')
+def test():
+    pathlist=find_path(graph,1,2, cost_func=cost_func).nodes
+    for path in pathlist:
+        key = next(key for key, value in graphdict.items() if value == path)
+        print(key+'-->')

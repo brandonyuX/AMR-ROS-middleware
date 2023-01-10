@@ -218,6 +218,12 @@ def insertReq(plcid,reqid,destloc,priority,reqtime,tskmodno):
     cursor.execute("INSERT INTO PLCRequest(PLCID,ReqID,DestLoc,Priority,ReqTime,TaskModelNo) VALUES (?,?,?,?,?,?)",plcid,reqid,destloc,priority,reqtime,tskmodno)
     cursor.commit()
 
+
+def insertRbtTask(destloc):
+    cursor.execute("INSERT INTO RbtTask(RobotID,Completed,TaskCode,CurrStep,EndStep,DestLoc,Executing,TaskModelID,ReqID) VALUES (?,?,?,?,?,?,?,?,?)",1,0,0,0,2,destloc,0,2,100)
+    cursor.commit()
+    print('<DB> Write to robot task destination {}'.format(destloc))
+
 def writeTask(finalrid,reqid,rbt_list,req_list):
     
     startloc=(next((x for x in rbt_list if x.rid == finalrid), None).currloc)
@@ -298,8 +304,20 @@ def readLog(type):
 #Write into Work Order
 def writeWO(wolist):
     for wo in wolist:
-        cursor.execute("INSERT INTO WOList (BatchID,sn,mfgdate,fnpdate,fillvol,torque,wolist) VALUES (?,?,?,?,?,?,?)",wo.batchid,wo.sn,wo.mfgdate,wo.fnpdate,wo.fillvol,wo.torque,wo.wolist)
+        cursor.execute("INSERT INTO wo_stn1 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,20,0,'','','NEW',wo.fillvol,wo.torque)
         cursor.commit()
+        cursor.execute("INSERT INTO wo_stn2 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,20,0,'','','NEW',wo.fillvol,wo.torque)
+        cursor.commit()
+        cursor.execute("INSERT INTO wo_stn3 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,20,0,'','','NEW',wo.fillvol,wo.torque)
+        cursor.commit()
+        cursor.execute("INSERT INTO wo_stn4 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,20,0,'','','NEW',wo.fillvol,wo.torque)
+        cursor.commit()
+        cursor.execute("INSERT INTO wo_stn5 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,20,0,'','','NEW',wo.fillvol,wo.torque)
+        cursor.commit()
+        cursor.execute("INSERT INTO wo_stn6 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,20,0,'','','NEW',wo.fillvol,wo.torque)
+        cursor.commit()
+
+    print('<DB> Write Work Order to all stations')
         # cursor.execute("INSERT INTO WOQueue (WOID) VALUES (?)",wo.woid)
         # cursor.commit()
 

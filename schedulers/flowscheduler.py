@@ -6,7 +6,7 @@ import asyncio
 sys.path.append('../Middleware Development')
 import interface.dbinterface as dbinterface
 import interface.robotinterface as rbtinterface
-dbinterface.startup()
+#dbinterface.startup()
 
 flowStr=dbinterface.getFlow('GetEmptyBottle')
 

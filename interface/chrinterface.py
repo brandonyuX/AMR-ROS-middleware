@@ -23,14 +23,19 @@ def retract():
     client.write_coil(1,0,3)
 
 def start():
+    client.write_coil(4,0,3)
     client.write_coil(3,1,3)
     time.sleep(1)
-    client.write_coil(3,0,3)
+    
 
 def stop():
+    client.write_coil(3,0,3)
     client.write_coil(4,1,3)
     time.sleep(1)
-    client.write_coil(4,0,3)
+    
+def read():
+    result = client.read_holding_registers(0, 10, unit=3)
+    print(result)
 
 while True:
     choice=input("1 - Extend, 2 - Retract 3 - Start 4 - Stop\n")
@@ -43,3 +48,5 @@ while True:
             start()
         case '4':
             stop()
+        case '5':
+            read()

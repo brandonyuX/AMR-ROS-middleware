@@ -14,7 +14,9 @@ wmsip=doc['SERVER']['WMSIP']
 
 def reqEb():
     try:
-        res = requests.post('http://'+wmsip+'/syngenta/mc/production/requesteb',timeout=5)
+        print('<WI>Request bottle from WMS')
+        #res = requests.post('http://'+wmsip+'/syngenta/mc/production/requesteb',timeout=5)
+        res = requests.post('https://63bcd5b8fa38d30d85d2459d.mockapi.io/requesteb',timeout=5)
         print ('response from server:'+res.text)
     except:
         print('WMS Connection timeout!')

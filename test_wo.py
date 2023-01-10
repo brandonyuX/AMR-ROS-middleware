@@ -2,7 +2,7 @@ import interface.dbinterface as dbinterface
 import time
 
 
-dbinterface.startup()
+#dbinterface.startup()
 
 def start_wo():
     wo_id='WO001'
