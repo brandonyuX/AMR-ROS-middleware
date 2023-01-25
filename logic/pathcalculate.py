@@ -1,31 +1,52 @@
 #The module calculate the distance between 2 points given a source and destination location
 from dijkstar import Graph, find_path
+import sys
+
+sys.path.append('../Middleware Development')
+import interface.dbinterface as dbinterface
 
 graph = Graph()
 #Cost can be calculated using simple euclidean distance
 
-graph.add_edge(1,3,(100,'Charging Station'))
-graph.add_edge(3,1,(100,'Turning Point'))
-graph.add_edge(2,3,(100,'Unscrambling Station'))
-graph.add_edge(3,2,(100,'Turning Point'))
-graph.add_edge(3,4,(100,'Warehouse'))
-graph.add_edge(4,3,(100,'Turning Point'))
-graph.add_edge(4,5,(100,'Packing Station'))
-graph.add_edge(5,4,(100,'Warehouse'))
-graph.add_edge(3,6,(100,'Custom Location'))
-graph.add_edge(6,3,(100,'Custom Location'))
-graph.add_edge(5,7,(100,'Custom Location'))
-graph.add_edge(7,5,(100,'Custom Location'))
+graph.add_edge(1,4,(100,'Charging Station'))
+graph.add_edge(4,1,(100,"TPDown"))
 
+graph.add_edge(2,3,(100,'Stn 1'))
+graph.add_edge(3,2,(100,'TPUp'))
 
+graph.add_edge(3,4,(100,'TPUp'))
+graph.add_edge(4,3,(100,"TPDown"))
 
+graph.add_edge(4,5,(100,'TPDown'))
+graph.add_edge(5,4,(100,"TPLeft"))
 
-graphdict={"Charging Station":1,
-            "Unscrambling Station":2,
-            "Turning Point":3,
-            "Warehouse":4,
-            "Packing Station":5,
-            "Custom Location 1":6
+graph.add_edge(3,5,(100,'TPUp'))
+graph.add_edge(5,3,(100,"TPLeft"))
+
+graph.add_edge(4,9,(100,'TPDown'))
+graph.add_edge(9,4,(100,"CL2"))
+
+graph.add_edge(5,6,(100,'TPLeft'))
+graph.add_edge(6,5,(100,"WH"))
+
+graph.add_edge(6,7,(100,'WH'))
+graph.add_edge(7,6,(100,"Stn 6"))
+
+graph.add_edge(5,7,(100,'TPLeft'))
+graph.add_edge(7,5,(100,"Stn 6"))
+
+graph.add_edge(7,8,(100,'Stn 6'))
+graph.add_edge(8,7,(100,"CL2"))
+
+graphdict={"CHR":1,
+            "Stn1":2,
+            "TPUp":3,
+            "TPDown":4,
+            "TPLeft":5,
+            "WH":6,
+            "Stn6":7,
+            "CL1":8,
+            "CL2":9
             }
 
 
@@ -39,13 +60,43 @@ def cost_func(u, v, edge, prev_edge):
      if name != prev_name:
          cost += 10
      return cost
-
+# function to return key for any value
+def get_key(val):
+    for key, value in graphdict.items():
+        if val == value:
+            return key
+ 
+    return "key doesn't exist"
 
 #Calculate shortest path given a source and destination
 def calculate_shortest(src,dest):
     tempstr=(find_path(graph, graphdict[src], graphdict[dest], cost_func=cost_func))
     print('<P>From Path Calculate Module : {}\n'.format(tempstr))
     return (find_path(graph, graphdict[src], graphdict[dest], cost_func=cost_func).total_cost)
+
+#Generate path based on graph
+def generate_path(src,dest):
+    strlist=[]
+    currentloc=dbinterface.getRbtLoc(1)
+
+
+    curr2src=find_path(graph, graphdict[currentloc], graphdict[src], cost_func=cost_func)
+
+    src2dest=(find_path(graph, graphdict[src], graphdict[dest], cost_func=cost_func))
+    
+    
+    for i in range(len(curr2src[0])):
+        val=curr2src[0][i]
+        strlist.append(get_key(val))
+    strlist.append('SRC')
+
+    for i in range(len(src2dest[0])-1):
+        val=src2dest[0][i+1]
+        strlist.append(get_key(val))
+    strlist.append('DEST')
+    
+    ret_str=";".join(strlist)
+    return (ret_str)
 
 def cal_shortest_edge(e1,e2):
     tempstr=(find_path(graph, e1, e2))
@@ -56,3 +107,9 @@ def test():
     for path in pathlist:
         key = next(key for key, value in graphdict.items() if value == path)
         print(key+'-->')
+
+dbinterface.startup()
+#print(generate_path('WH','Stn1'))
+# # for i in range(len(pathinfo[0])):
+
+# #     print(pathinfo[0][i])

@@ -2,9 +2,10 @@
 
 import roslibpy
 import pyodbc
-import sys
+import sys,os
 import threading
 import time
+
 
 from sqlalchemy import true
 
@@ -12,11 +13,15 @@ from sqlalchemy import true
 sys.path.append('../Middleware Development')
 
 import interface.dbinterface as dbinterface
+import interface.chrinterface as chrinterface
 
 #Define ros connection
-client = roslibpy.Ros(host="192.168.0.110", port=8080)
+client = roslibpy.Ros(host="192.168.0.242", port=8080)
 
 taskid=0
+lastgoal=''
+os.environ['convcomplete'] = 'False'
+os.environ['reached'] = 'False'
 
 def connect():
     print('<RI>Connecting to ROS robot')
@@ -25,6 +30,7 @@ def connect():
         client.run(timeout=1)
         dbinterface.updateRbtStatus(True,1)
         print('<RI>Connection suceeded')
+        
     except:
         dbinterface.writeLog('ms','<ERR>No connection to ROS robot',True)
         dbinterface.updateRbtStatus(False,1)
@@ -34,6 +40,15 @@ def connect():
 #Specify connection to ros host
 #ros = roslibpy.Ros(host='localhost', port=9090)
 #ros.run()
+
+def publish_sound(msg):
+    
+    talker = roslibpy.Topic(client, '/sound_mode', 'std_msgs/String')
+    print(msg)
+    message = {'data': msg}
+
+    # Publish the message
+    talker.publish(message)
 
 def get_single_info():
     #client = roslibpy.Ros(host="172.23.44.12", port=8080)
@@ -61,8 +76,13 @@ def get_info():
             listener2.subscribe(store_rosout)
             listener = roslibpy.Topic(client, '/robot_pose', 'geometry_msgs/Pose',throttle_rate=3000)
             listener.subscribe(store_pose)
-            listener3=roslibpy.Topic(client,'/move_completed','htbot/status')
+            listener3=roslibpy.Topic(client,'/move_base/result','move_base_msgs/MoveBaseActionResult')
             listener3.subscribe(move_complete)
+            battlisterner=roslibpy.Topic(client,'/batt_charge','std_msgs/String')
+            battlisterner.subscribe(batt_cb)
+            convlistener=roslibpy.Topic(client,'/convcomplete','std_msgs/String')
+            convlistener.subscribe(convcb)
+
             #statlisterner=roslibpy.Topic(client,'/stat','htbot/stat')
             #statlisterner.subscribe(stat_callback)
         
@@ -71,7 +91,23 @@ def get_info():
         t1.join()
     except:
         print('No connection to ROS Robot')
-    
+
+
+#Conveyor complete callback
+def convcb(message):
+    if(message['data']=='receive-complete'):
+        #print('<RI>Received')
+        os.environ['convcomplete'] ='True'
+    if(message['data']=='send-complete'):
+        #print('<RI>Sent')
+        os.environ['convcomplete'] ='True'
+
+
+#Battery callback function
+def batt_cb(message):
+    #print(message)
+    dbinterface.updateRbtBatt(1,float(message['data']))
+
     
    
 #Heartbeat function
@@ -83,11 +119,16 @@ def stat_callback(message):
    
 #Move completed callback function
 def move_complete(message):
-    tsklist=dbinterface.getTaskListTop()
-    #print(message)
-    
-    dbinterface.setExecute(0,tsklist[0].tid)
-    print('<RI>Move Completed')
+    global lastgoal
+    #tsklist=dbinterface.getTaskListTop()
+    #print(message
+    #)
+    status=message['status']['text']
+    if status=='Goal reached.':
+        dbinterface.updateRbtLoc(1,lastgoal)
+        os.environ['reached'] = 'True'
+        #dbinterface.setExecute(0,tsklist[0].tid)
+        print('<RI>Move Completed')
    
     # tsk_list=dbinterface.getTaskList()
     # req_list=dbinterface.getReqList()
@@ -111,7 +152,7 @@ def store_pose(message):
     x=round(x,5)
     y=round(y,5)
     r=round(r,5)
-    #dbinterface.updateRbtPosStatus(1,x,y,r)       
+    dbinterface.updateRbtPosStatus(1,x,y,r)       
 
 def store_rosout(message):
     rosmsg=message['msg']
@@ -144,6 +185,63 @@ def jack_down(rid):
     button.publish(msg)
     #client.terminate()
 
+#Toggle conveyor receive
+def receive_item():
+    try:
+        #client = roslibpy.Ros(host=ip, port=8080)
+        #client.run(timeout=1)
+        cmdsrv = roslibpy.Service(client,'/web_cmd','htbot/mqueue')
+        
+        
+        cmdreq=roslibpy.ServiceRequest(dict(cmd=6))
+        
+        
+        result=cmdsrv.call(cmdreq)
+        print(result)
+        print('<RI>Robot conveyor receive start')
+        return True
+    except:
+        print("<ERR>Fail to connect to robot")
+        return False
+
+#Toggle conveyor reset
+def reset_conv():
+    try:
+        #client = roslibpy.Ros(host=ip, port=8080)
+        #client.run(timeout=1)
+        cmdsrv = roslibpy.Service(client,'/web_cmd','htbot/mqueue')
+        
+        
+        cmdreq=roslibpy.ServiceRequest(dict(cmd=7))
+        
+        
+        result=cmdsrv.call(cmdreq)
+        #print(result)
+        print('<RI>Robot conveyor receive start')
+        return True
+    except:
+        print("<ERR>Fail to connect to robot")
+        return False
+
+#Toggle conveyor send
+def send_item():
+    try:
+        #client = roslibpy.Ros(host=ip, port=8080)
+        #client.run(timeout=1)
+        cmdsrv = roslibpy.Service(client,'/web_cmd','htbot/mqueue')
+        
+        
+        cmdreq=roslibpy.ServiceRequest(dict(cmd=5))
+        
+        
+        result=cmdsrv.call(cmdreq)
+        #print(result)
+        print('<RI>Robot conveyor send start')
+        return True
+    except:
+        print("<ERR>Fail to connect to robot")
+        return False
+
 def publish_info(rid):
     
     print('<RI>Publish goal information to robot {}'.format(rid))
@@ -151,20 +249,22 @@ def publish_info(rid):
 #Publish move command to robot through robot interface
 #Input: rid - Robot ID, stn - Station
 def publish_cmd(rid,stn): 
-    stnmap={0:'REF',1:'STN1',2:'STN2',3:'STN3'} 
-    ip=dbinterface.getIP(rid)
+    #stnmap={0:'REF',1:'STN1',2:'STN2',3:'STN3'} 
     
     try:
         #client = roslibpy.Ros(host=ip, port=8080)
         #client.run(timeout=1)
+        #print(stn)
         cmdsrv = roslibpy.Service(client,'/web_cmd','htbot/mqueue')
         #print(stn)
+        #print('make service request')
         cmdreq=roslibpy.ServiceRequest(dict(cmd=15, lps=stn))
        
-        
+        #print('call service')
         result=cmdsrv.call(cmdreq)
-        print(result)
-        print('<RI>Command successfully sent to robot {}'.format(rid))
+        #print(result)
+        #print('<RI>Command successfully sent to robot {}'.format(rid))
+        lastgoal=stn
         return True
     except:
         print("<ERR>Fail to connect to robot")

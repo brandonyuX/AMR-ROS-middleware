@@ -1,12 +1,14 @@
 #This file provides interface with the PLC and update the database
 #Will use opcua in this example
 import socket,datetime,sys,signal
-import time
+import time,os
 import threading
+
 
 sys.path.append('../Middleware Development')
 import interface.dbinterface as dbinterface
 import interface.wmsinterface as wmsinterface
+import logic.pathcalculate as pathcalculate
 from opcua import Client,ua
 HOST='127.0.0.1'
 PORT=65432
@@ -14,8 +16,18 @@ PORT=65432
 
 
 decdata=''
-client = Client("opc.tcp://192.168.1.201:49321")
+client = Client("opc.tcp://192.168.82.254:49321")
 
+graphdict={"CHR":1,
+            "Stn1":2,
+            "TPUp":3,
+            "TPDown":4,
+            "TPLeft":5,
+            "WH":6,
+            "Stn6":7,
+            "CL1":8,
+            "CL2":9
+            }
 
 
 def startup():
@@ -158,34 +170,46 @@ def getNextWO(station):
 
 def readTags():
     while True:
+
         reqbotpath="ns=2;s=Syngenta.SmartLab.FNP.Info.Station1.RequestBottle"
         rettotpath="ns=2;s=Syngenta.SmartLab.FNP.Info.Station1.ReturnToteBox"
         cp2path="ns=2;s=Syngenta.SmartLab.FNP.Info.Station6.CartonPresent2"
+        ccpath="ns=2;s=Syngenta.SmartLab.FNP.CL.CustomComplete"
 
 
         reqbotstate=client.get_node(reqbotpath)
         rettotstate=client.get_node(rettotpath)
         cp2state=client.get_node(cp2path)
+        ccstate=client.get_node(ccpath)
 
 
         reqbot=reqbotstate.get_value()
         rettot=rettotstate.get_value()
         cp2=cp2state.get_value()
+        cc=ccstate.get_value()
 
+        #Procedure to request bottles
         if(reqbot):
-            wmsinterface.reqEb()
-            dbinterface.insertRbtTask('Warehouse;Station1')
+            #wmsinterface.reqEb()
+            
+            pathinfo=pathcalculate.generate_path('WH','Stn1')
+            dbinterface.insertRbtTask(pathinfo,1)
             reqbotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
 
+        #Procedure to return tote box
         if(rettot):
-            wmsinterface.reqstb()
-            dbinterface.insertRbtTask('Station1;Warehouse')
+            #wmsinterface.reqstb()
+            pathinfo=pathcalculate.generate_path('Stn1','WH')
+            dbinterface.insertRbtTask(pathinfo,1)
             rettotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
 
         if(cp2):
             wmsinterface.reqsfc()
             dbinterface.insertRbtTask('Station6;Warehouse')
             cp2state.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+
+        if(cc):
+            os.environ['waitcomplete'] = 'True'
 
 
 

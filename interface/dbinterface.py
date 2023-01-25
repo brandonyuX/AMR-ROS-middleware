@@ -219,10 +219,11 @@ def insertReq(plcid,reqid,destloc,priority,reqtime,tskmodno):
     cursor.commit()
 
 
-def insertRbtTask(destloc):
-    cursor.execute("INSERT INTO RbtTask(RobotID,Completed,TaskCode,CurrStep,EndStep,DestLoc,Executing,TaskModelID,ReqID) VALUES (?,?,?,?,?,?,?,?,?)",1,0,0,0,2,destloc,0,2,100)
+def insertRbtTask(destloc,tskmod):
+    cursor.execute("INSERT INTO RbtTask(RobotID,Completed,TaskCode,CurrStep,EndStep,DestLoc,Executing,TaskModelID,ReqID) VALUES (?,?,?,?,?,?,?,?,?)",1,0,0,1,4,destloc,0,tskmod,100)
     cursor.commit()
     print('<DB> Write to robot task destination {}'.format(destloc))
+
 
 def writeTask(finalrid,reqid,rbt_list,req_list):
     
@@ -253,13 +254,28 @@ def updateRbtStatus(status,rbtid):
     cursor.execute("UPDATE Robot SET Avail = ? WHERE RobotID=?",status,rbtid) 
     cursor.commit()
 
+#Update robot charging
+def updateRbtCharge(rbtid,state):
+    cursor.execute("UPDATE Robot SET Charging = ? WHERE RobotID=?",state,rbtid) 
+    cursor.commit()
+
 def updateRbtLoc(rbtid,currloc):
     cursor.execute("UPDATE Robot SET CurrentLoc=? WHERE RobotID=?",currloc,rbtid) 
     cursor.commit()
 
+def getRbtLoc(rbtid):
+    cursor.execute("SELECT CurrentLoc FROM Robot WHERE RobotID=?",rbtid) 
+    row = cursor.fetchone() 
+    return row[0]
+
 #Update position status to database
 def updateRbtPosStatus(rbtid,x,y,r):
     cursor.execute("UPDATE Robot SET x=?,y=?,r=? WHERE RobotID=?",x,y,r,rbtid) 
+    cursor.commit()
+
+#Update robot battery level
+def updateRbtBatt(rbtid,battlvl):
+    cursor.execute("UPDATE Robot SET BattLvl=? WHERE RobotID=?",battlvl,rbtid) 
     cursor.commit()
 
 #Update position status to database

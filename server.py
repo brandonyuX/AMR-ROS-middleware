@@ -44,7 +44,7 @@ async_mode = None
 app = Flask("RMS-Server")
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
-app.debug=True
+app.debug=False
 
 socketio = SocketIO(app, async_mode=async_mode)
 thread = None
@@ -445,7 +445,7 @@ def createManualTask():
 
 #Initialize all interfaces
 dbinterface.startup()
-#masterscheduler.startup()
+masterscheduler.startup()
 robotinterface.startup()
 plcinterface.startup()
 
