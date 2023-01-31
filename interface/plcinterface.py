@@ -16,7 +16,7 @@ PORT=65432
 
 
 decdata=''
-client = Client("opc.tcp://192.168.82.254:49321")
+client = Client("opc.tcp://192.168.0.253:49321")
 
 graphdict={"CHR":1,
             "Stn1":2,
@@ -167,6 +167,34 @@ def getNextWO(station):
     else:
         return queue[woindex+1]
 
+def writePLC(type,value):
+    if type=="rts":
+        rtspath="ns=2;s=SyngentaPLC.Station1.RequestToSend"
+        rtsstate=client.get_node(rtspath)
+        rtsstate.set_value(ua.DataValue(ua.Variant(value,ua.VariantType.Boolean)))
+    if type=="rtr":
+        rtrpath="ns=2;s=SyngentaPLC.Station1.RequestToReceive"
+        rtrstate=client.get_node(rtrpath)
+        rtrstate.set_value(ua.DataValue(ua.Variant(value,ua.VariantType.Boolean)))
+
+#Read plc tag
+def readPLC(type,loc):
+    if(loc=="Stn1"):
+        #If type is tail end sensor
+        if type=="te":
+            itcpath="ns=2;s=SyngentaPLC.Station1.ItemOnConveyor"
+            itcstate=client.get_node(itcpath)
+            return itcstate.get_value()
+        #If type is head end sensor
+        if type=="he":
+            irpath="ns=2;s=SyngentaPLC.Station1.ItemRemoved"
+            irstate=client.get_node(irpath)
+            return irstate.get_value()
+        #If type is ready to receive
+        if type=="rtr":
+            rtrplcpath="ns=2;s=SyngentaPLC.Station1.ReadyToReceive"
+            rtrplcstate=client.get_node(rtrplcpath)
+            return rtrplcstate.get_value()
 
 def readTags():
     while True:

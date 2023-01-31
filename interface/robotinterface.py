@@ -22,12 +22,13 @@ taskid=0
 lastgoal=''
 os.environ['convcomplete'] = 'False'
 os.environ['reached'] = 'False'
+aligncomplete=False
 
 def connect():
     print('<RI>Connecting to ROS robot')
     try:
         
-        client.run(timeout=1)
+        client.run(timeout=5)
         dbinterface.updateRbtStatus(True,1)
         print('<RI>Connection suceeded')
         
@@ -82,6 +83,8 @@ def get_info():
             battlisterner.subscribe(batt_cb)
             convlistener=roslibpy.Topic(client,'/convcomplete','std_msgs/String')
             convlistener.subscribe(convcb)
+            alignlistener=roslibpy.Topic(client,'/aligncomplete','std_msgs/String')
+            alignlistener.subscribe(aligncb)
 
             #statlisterner=roslibpy.Topic(client,'/stat','htbot/stat')
             #statlisterner.subscribe(stat_callback)
@@ -92,6 +95,11 @@ def get_info():
     except:
         print('No connection to ROS Robot')
 
+#Alignment complete callback
+def aligncb(message):
+    global aligncomplete
+    if(message['data'=='align-complete']):
+        aligncomplete=True
 
 #Conveyor complete callback
 def convcb(message):
@@ -197,7 +205,7 @@ def receive_item():
         
         
         result=cmdsrv.call(cmdreq)
-        print(result)
+        #print(result)
         print('<RI>Robot conveyor receive start')
         return True
     except:
@@ -217,12 +225,35 @@ def reset_conv():
         
         result=cmdsrv.call(cmdreq)
         #print(result)
-        print('<RI>Robot conveyor receive start')
+        print('<RI>Robot conveyor reset')
         return True
     except:
         print("<ERR>Fail to connect to robot")
         return False
 
+#Toggle alignment
+def align_qr():
+    global aligncomplete
+    try:
+        #client = roslibpy.Ros(host=ip, port=8080)
+        #client.run(timeout=1)
+        cmdsrv = roslibpy.Service(client,'/web_cmd','htbot/mqueue')
+        
+        
+        cmdreq=roslibpy.ServiceRequest(dict(cmd=1090))
+        
+        aligncomplete=False
+        result=cmdsrv.call(cmdreq)
+        #print(result)
+        print('<RI>Robot start alignment with QR')
+        while aligncomplete!= True:
+            pass
+        print('<RI>Alignment complete!')
+        
+        return True
+    except:
+        print("<ERR>Fail to connect to robot")
+        return False
 #Toggle conveyor send
 def send_item():
     try:
