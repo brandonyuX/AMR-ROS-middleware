@@ -39,7 +39,7 @@ def tskpolling():
     currIndex=0
     while(loop):
         #print('=====Start Async task get=====')
-        time.sleep(1)
+        time.sleep(3)
         tsklist=dbinterface.getTaskListTop()
         
 
@@ -203,7 +203,7 @@ def tskpolling():
                                 if(currentloc=="Stn1"):
                                     #Send request to send to plc
                                     dbinterface.writeLog('ms','<MS>Send request to send to PLC',True)
-                                    plcinterface.writePLC("rts",True)
+                                    plcinterface.writePLC("rts",True,"Stn1")
                                     #Check if PLC is ready to receive
                                     dbinterface.writeLog('ms','<MS>Wait for ready to receive from PLC',True)
                                     while(plcinterface.readPLC("rtr","Stn1")!=True):
@@ -212,6 +212,20 @@ def tskpolling():
                                     robotinterface.send_item()
                                     print('<MS> Wait for station 1 to detect item on tail end sensor.')
                                     while(plcinterface.readPLC("te","Stn1")!=True):
+                                        pass
+                                    print('<MS> Item detected on station 1')
+                                elif currentloc=="WH":
+                                    #Send request to send to plc
+                                    dbinterface.writeLog('ms','<MS>Send request to send to PLC',True)
+                                    plcinterface.writePLC("rts",True,"WH")
+                                    #Check if PLC is ready to receive
+                                    dbinterface.writeLog('ms','<MS>Wait for ready to receive from PLC',True)
+                                    while(plcinterface.readPLC("rtr","WH")!=True):
+                                        pass
+                                    print('<MS> Received ready to receive from PLC. Start rolling conveyor.')
+                                    robotinterface.send_item()
+                                    print('<MS> Wait for station 1 to detect item on tail end sensor.')
+                                    while(plcinterface.readPLC("te","WH")!=True):
                                         pass
                                     print('<MS> Item detected on station 1')
                                 else:
@@ -241,10 +255,21 @@ def tskpolling():
                                     robotinterface.receive_item()
                                     #Send ready to receive to plc
                                     time.sleep(0.5)
-                                    plcinterface.writePLC("rtr",True)
+                                    plcinterface.writePLC("rtr",True,'Stn1')
                                     time.sleep(1)
                                     dbinterface.writeLog('ms','<MS>Wait for Station 1 Head End sensor to clear',True)
                                     while(plcinterface.readPLC("he","Stn1")==True):
+                                        pass
+                                    dbinterface.writeLog('ms','<MS>Sensor cleared on station 1',True)
+                                elif(currentloc=="WH"):
+                                    dbinterface.writeLog('ms','<MS>Start rolling conveyor and send ready to receive',True)
+                                    robotinterface.receive_item()
+                                    #Send ready to receive to plc
+                                    time.sleep(0.5)
+                                    plcinterface.writePLC("rtr",True,'WH')
+                                    time.sleep(1)
+                                    dbinterface.writeLog('ms','<MS>Wait for Station 1 Head End sensor to clear',True)
+                                    while(plcinterface.readPLC("he","WH")==True):
                                         pass
                                     dbinterface.writeLog('ms','<MS>Sensor cleared on station 1',True)
                                 else:

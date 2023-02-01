@@ -167,15 +167,25 @@ def getNextWO(station):
     else:
         return queue[woindex+1]
 
-def writePLC(type,value):
-    if type=="rts":
-        rtspath="ns=2;s=SyngentaPLC.Station1.RequestToSend"
-        rtsstate=client.get_node(rtspath)
-        rtsstate.set_value(ua.DataValue(ua.Variant(value,ua.VariantType.Boolean)))
-    if type=="rtr":
-        rtrpath="ns=2;s=SyngentaPLC.Station1.RequestToReceive"
-        rtrstate=client.get_node(rtrpath)
-        rtrstate.set_value(ua.DataValue(ua.Variant(value,ua.VariantType.Boolean)))
+def writePLC(type,value,loc):
+    if(loc=="Stn1"):
+        if type=="rts":
+            rtspath="ns=2;s=SyngentaPLC.Station1.RequestToSend"
+            rtsstate=client.get_node(rtspath)
+            rtsstate.set_value(ua.DataValue(ua.Variant(value,ua.VariantType.Boolean)))
+        if type=="rtr":
+            rtrpath="ns=2;s=SyngentaPLC.Station1.RequestToReceive"
+            rtrstate=client.get_node(rtrpath)
+            rtrstate.set_value(ua.DataValue(ua.Variant(value,ua.VariantType.Boolean)))
+    if(loc=="WH"):
+        if type=="rts":
+            rtspath="ns=2;s=SyngentaPLC.Warehouse.RequestToSend"
+            rtsstate=client.get_node(rtspath)
+            rtsstate.set_value(ua.DataValue(ua.Variant(value,ua.VariantType.Boolean)))
+        if type=="rtr":
+            rtrpath="ns=2;s=SyngentaPLC.Warehouse.RequestToReceive"
+            rtrstate=client.get_node(rtrpath)
+            rtrstate.set_value(ua.DataValue(ua.Variant(value,ua.VariantType.Boolean)))
 
 #Read plc tag
 def readPLC(type,loc):
@@ -193,6 +203,22 @@ def readPLC(type,loc):
         #If type is ready to receive
         if type=="rtr":
             rtrplcpath="ns=2;s=SyngentaPLC.Station1.ReadyToReceive"
+            rtrplcstate=client.get_node(rtrplcpath)
+            return rtrplcstate.get_value()
+    if(loc=="WH"):
+        #If type is tail end sensor
+        if type=="te":
+            itcpath="ns=2;s=SyngentaPLC.Warehouse.ItemOnConveyor"
+            itcstate=client.get_node(itcpath)
+            return itcstate.get_value()
+        #If type is head end sensor
+        if type=="he":
+            irpath="ns=2;s=SyngentaPLC.Warehouse.ItemRemoved"
+            irstate=client.get_node(irpath)
+            return irstate.get_value()
+        #If type is ready to receive
+        if type=="rtr":
+            rtrplcpath="ns=2;s=SyngentaPLC.Warehouse.ReadyToReceive"
             rtrplcstate=client.get_node(rtrplcpath)
             return rtrplcstate.get_value()
 

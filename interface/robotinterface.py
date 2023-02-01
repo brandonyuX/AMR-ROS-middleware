@@ -16,7 +16,7 @@ import interface.dbinterface as dbinterface
 import interface.chrinterface as chrinterface
 
 #Define ros connection
-client = roslibpy.Ros(host="192.168.0.242", port=8080)
+client = roslibpy.Ros(host="192.168.0.251", port=8080)
 
 taskid=0
 lastgoal=''
@@ -246,8 +246,7 @@ def align_qr():
         result=cmdsrv.call(cmdreq)
         #print(result)
         print('<RI>Robot start alignment with QR')
-        while aligncomplete!= True:
-            pass
+        time.sleep(5)
         print('<RI>Alignment complete!')
         
         return True
