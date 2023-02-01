@@ -261,6 +261,7 @@ def tskpolling():
                                     while(plcinterface.readPLC("he","Stn1")==True):
                                         pass
                                     dbinterface.writeLog('ms','<MS>Sensor cleared on station 1',True)
+                                #Interface when robot reach warehouse
                                 elif(currentloc=="WH"):
                                     dbinterface.writeLog('ms','<MS>Start rolling conveyor and send ready to receive',True)
                                     robotinterface.receive_item()
