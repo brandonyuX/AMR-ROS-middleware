@@ -15,7 +15,7 @@ from flask import Blueprint, render_template, flash
 from flask_simplelogin import SimpleLogin
 from flask_login import login_required, current_user,LoginManager,login_user,logout_user,UserMixin
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField, validators
 from flask_sqlalchemy import SQLAlchemy
 import schedulers.rbtscheduler as masterscheduler
 from wtforms.validators import InputRequired, Length, ValidationError
@@ -98,11 +98,15 @@ def load_user(user_id):
 
 
 class RegisterForm(FlaskForm):
-    username = StringField(validators=[
-                           InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
+    username = StringField('Username', validators=[
+                           InputRequired(message='Input a username.'), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
 
-    password = PasswordField(validators=[
-                             InputRequired(), Length(min=1, max=20)], render_kw={"placeholder": "Password"})
+    password = PasswordField("Password", validators=[validators.DataRequired(),
+                            validators.EqualTo("confirm_password", message='Passwords must match'),
+                            InputRequired(), Length(min=1, max=20)], render_kw={"placeholder": "New Password"})
+
+    confirm_password = PasswordField("Confirm Password", validators=[
+                             InputRequired(), Length(min=1, max=20)], render_kw={"placeholder": "Confirm Password"})
 
     submit = SubmitField('Register')
 
@@ -110,8 +114,10 @@ class RegisterForm(FlaskForm):
         existing_user_username = User.query.filter_by(
             username=username.data).first()
         if existing_user_username:
-            raise ValidationError(
-                'That username already exists. Please choose a different one.')
+            # raise ValidationError(
+            #     'That username already exists. Please choose a different one.')
+            return False
+        return True
 
 
 class LoginForm(FlaskForm):
@@ -136,16 +142,36 @@ def login():
 
 @ app.route('/register', methods=['GET', 'POST'])
 def register():
+    
     form = RegisterForm()
 
-    if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data)
-        new_user = User(username=form.username.data, password=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for('login'))
+    if request.method == 'GET':
+        print('I receive get request')
+        return render_template('register-new.html', form=form)
 
-    return render_template('register-new.html', form=form)
+    if request.method == 'POST':
+        print('I receive post request')
+        if form.validate_on_submit():
+            hashed_password = bcrypt.generate_password_hash(form.password.data)
+            new_user = User(username=form.username.data, password=hashed_password)
+            db.session.add(new_user)
+            db.session.commit()
+            return redirect(url_for('login'))
+        
+        # if form.validate_username(form.username) == False:
+        #     error_message = 'Username already exist. Please change to another username.'
+        #     print(error_message)
+        #     return render_template('register-new.html', error=error_message)
+
+        # error_message = 'There is error in information provided'
+        # print(error_message)
+        # return render_template('register-new.html', error=error_message)
+
+        # else:
+        #     error = 'Username or password not match!'
+        #     return 
+        # print('I am outside')
+    
 
 @app.route('/logout', methods=['GET', 'POST'])
 @login_required
