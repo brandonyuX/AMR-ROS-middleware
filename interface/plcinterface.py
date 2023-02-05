@@ -170,90 +170,145 @@ def getNextWO(station):
 def writePLC(type,value,loc):
     if(loc=="Stn1"):
         if type=="rts":
-            rtspath="ns=2;s=SyngentaPLC.Station1.RequestToSend"
+            rtspath="ns=2;s=SyngentaPLC.Station1.AMR.RequestToSend"
             rtsstate=client.get_node(rtspath)
             rtsstate.set_value(ua.DataValue(ua.Variant(value,ua.VariantType.Boolean)))
         if type=="rtr":
-            rtrpath="ns=2;s=SyngentaPLC.Station1.RequestToReceive"
+            rtrpath="ns=2;s=SyngentaPLC.Station1.AMR.RequestToReceive"
             rtrstate=client.get_node(rtrpath)
             rtrstate.set_value(ua.DataValue(ua.Variant(value,ua.VariantType.Boolean)))
     if(loc=="WH"):
         if type=="rts":
-            rtspath="ns=2;s=SyngentaPLC.Warehouse.RequestToSend"
+            rtspath="ns=2;s=SyngentaPLC.Warehouse.AMR.RequestToSend"
             rtsstate=client.get_node(rtspath)
             rtsstate.set_value(ua.DataValue(ua.Variant(value,ua.VariantType.Boolean)))
         if type=="rtr":
-            rtrpath="ns=2;s=SyngentaPLC.Warehouse.RequestToReceive"
+            rtrpath="ns=2;s=SyngentaPLC.Warehouse.AMR.RequestToReceive"
             rtrstate=client.get_node(rtrpath)
             rtrstate.set_value(ua.DataValue(ua.Variant(value,ua.VariantType.Boolean)))
+        if type=="resetwmsoutrdy":
+            wmsoutpath="ns=2;s=SyngentaPLC.Warehouse.ItemReadyToOut"
+            wmsoutstate=client.get_node(wmsoutpath)
+            wmsoutstate.set_value(ua.DataValue(ua.Variant(0,ua.VariantType.UInt16)))
 
 #Read plc tag
 def readPLC(type,loc):
     if(loc=="Stn1"):
         #If type is tail end sensor
         if type=="te":
-            itcpath="ns=2;s=SyngentaPLC.Station1.ItemOnConveyor"
+            itcpath="ns=2;s=SyngentaPLC.Station1.AMR.ItemOnConveyor"
             itcstate=client.get_node(itcpath)
             return itcstate.get_value()
         #If type is head end sensor
         if type=="he":
-            irpath="ns=2;s=SyngentaPLC.Station1.ItemRemoved"
+            irpath="ns=2;s=SyngentaPLC.Station1.AMR.ItemRemoved"
             irstate=client.get_node(irpath)
             return irstate.get_value()
         #If type is ready to receive
         if type=="rtr":
-            rtrplcpath="ns=2;s=SyngentaPLC.Station1.ReadyToReceive"
+            rtrplcpath="ns=2;s=SyngentaPLC.Station1.AMR.ReadyToReceive"
             rtrplcstate=client.get_node(rtrplcpath)
             return rtrplcstate.get_value()
     if(loc=="WH"):
         #If type is tail end sensor
         if type=="te":
-            itcpath="ns=2;s=SyngentaPLC.Warehouse.ItemOnConveyor"
+            itcpath="ns=2;s=SyngentaPLC.Warehouse.AMR.ItemOnConveyor"
             itcstate=client.get_node(itcpath)
             return itcstate.get_value()
         #If type is head end sensor
         if type=="he":
-            irpath="ns=2;s=SyngentaPLC.Warehouse.ItemRemoved"
+            irpath="ns=2;s=SyngentaPLC.Warehouse.AMR.ItemRemoved"
             irstate=client.get_node(irpath)
             return irstate.get_value()
         #If type is ready to receive
         if type=="rtr":
-            rtrplcpath="ns=2;s=SyngentaPLC.Warehouse.ReadyToReceive"
+            rtrplcpath="ns=2;s=SyngentaPLC.Warehouse.AMR.ReadyToReceive"
             rtrplcstate=client.get_node(rtrplcpath)
             return rtrplcstate.get_value()
+        if type=="wmsoutrdy":
+            wmsoutpath="ns=2;s=SyngentaPLC.Warehouse.ItemReadyToOut"
+            wmsoutstate=client.get_node(wmsoutpath)
+            return wmsoutstate.get_value()
+        if type=="wmsinrdy":
+            wmsinpath="ns=2;s=SyngentaPLC.Warehouse.ItemReadyToOut"
+            wmsinstate=client.get_node(wmsinpath)
+            return wmsinstate.get_value()
+
+def checkStnDone(stn):
+    reqqtypath="ns=2;s=SyngentaPLC.Station{}.RequiredQty".format(stn)
+    procqtypath="ns=2;s=SyngentaPLC.Station{}.ProcessedQty".format(stn)
+    procqtystate=client.get_node(procqtypath)
+    reqqtystate=client.get_node(reqqtypath)
+    
+    
+    return procqtystate.get_value()==reqqtystate.get_value()
+
+def sendWO2PLC(stn,wo):
+    
+    uint16_wonum = [c.to_bytes(2, byteorder='big') for c in map(ord, wo[2])]  
+    procqtypath="ns=2;s=SyngentaPLC.Station{}.ProcessedQty".format(stn)
+    reqqtypath="ns=2;s=SyngentaPLC.Station{}.RequiredQty".format(stn)
+    wonumpath="ns=2;s=SyngentaPLC.Station{}.WorkOrderNumber".format(stn)
+    
+    procqtystate=client.get_node(procqtypath)
+    reqqtystate=client.get_node(reqqtypath)
+    wonumstate=client.get_node(wonumpath)
+    
+    reqqtystate.set_value(ua.DataValue(ua.Variant(5,ua.VariantType.UInt16)))
+    procqtystate.set_value(ua.DataValue(ua.Variant(0,ua.VariantType.UInt16)))
+    #wonumstate.set_value(ua.DataValue(ua.Variant(uint16_wonum,ua.VariantType.UInt16)))
+    
+    
+    print('Sending {} to PLC'.format(wo[2]))
+    
+    
+    
+    
 
 def readTags():
     while True:
 
-        reqbotpath="ns=2;s=Syngenta.SmartLab.FNP.Info.Station1.RequestBottle"
-        rettotpath="ns=2;s=Syngenta.SmartLab.FNP.Info.Station1.ReturnToteBox"
+        #Station 1 tote request and store
+        reqbotpath="ns=2;s=SyngentaPLC.Station1.AMR.RequestBottle"
+        rettotpath="ns=2;s=SyngentaPLC.Station1.AMR.ReturnToteBox"
+        
         cp2path="ns=2;s=Syngenta.SmartLab.FNP.Info.Station6.CartonPresent2"
         ccpath="ns=2;s=Syngenta.SmartLab.FNP.CL.CustomComplete"
+        
+        #Station 6 tote retrieval and store
+        rtbpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station6.RetrieveToteBox"
+        stbpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station6.StoreToteBox"
 
 
         reqbotstate=client.get_node(reqbotpath)
         rettotstate=client.get_node(rettotpath)
         cp2state=client.get_node(cp2path)
         ccstate=client.get_node(ccpath)
+        rtbstate=client.get_node(rtbpath)
+        stbstate=client.get_node(stbpath)
 
 
         reqbot=reqbotstate.get_value()
         rettot=rettotstate.get_value()
         cp2=cp2state.get_value()
         cc=ccstate.get_value()
+        rtb=rtbstate.get_value()
+        stb=stbstate.get_value()
 
         #Procedure to request bottles
         if(reqbot):
+            #Call WMS to retrieve bottles bottles
             #wmsinterface.reqEb()
             
-            pathinfo=pathcalculate.generate_path('WH','Stn1')
+            #Generate robot path and insert as a robot task
+            pathinfo=pathcalculate.generate_path('WH','Stn1','')
             dbinterface.insertRbtTask(pathinfo,1)
             reqbotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
 
         #Procedure to return tote box
         if(rettot):
             #wmsinterface.reqstb()
-            pathinfo=pathcalculate.generate_path('Stn1','WH')
+            pathinfo=pathcalculate.generate_path('Stn1','WH','')
             dbinterface.insertRbtTask(pathinfo,1)
             rettotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
 
@@ -264,7 +319,13 @@ def readTags():
 
         if(cc):
             os.environ['waitcomplete'] = 'True'
-
+        
+        #Fetch empty tote box from WH and go to Stn 6
+        # if(rtb):
+        #      #Generate robot path and insert as a robot task
+        #     pathinfo=pathcalculate.generate_path('WH','Stn6','WH')
+        #     dbinterface.insertRbtTask(pathinfo,6)
+        #     reqbotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
 
 
 

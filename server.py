@@ -1,6 +1,7 @@
 from cgi import test
 from flask import Flask, render_template,request,session,make_response,redirect,url_for,jsonify
 import interface.dbinterface as dbinterface
+import schedulers.woscheduler as woscheduler
 import main
 import test_wo
 from mwclass.workorder import WO
@@ -364,8 +365,9 @@ def createWOTask():
     for item in parsedJSON:
         msg='Batch ID:{}\nInit SN:{}\nManufacture Date:{}\nFill and Pack Date:{}ml\nFill Volume:{}\nTarget Torque:{}\nWork Orders:{}\n'.format(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'][0])
         print(msg)
-        wo=WO(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'][0])
-        wolist.append(wo)
+        for i in range(len(item['Work Orders'])):
+            wo=WO(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'][i])
+            wolist.append(wo)
 
 
     #Write to Work Order Table in database
@@ -445,9 +447,11 @@ def createManualTask():
 
 #Initialize all interfaces
 dbinterface.startup()
-masterscheduler.startup()
+
 robotinterface.startup()
 plcinterface.startup()
+#woscheduler.startup()
+masterscheduler.startup()
 
 app.run()
 

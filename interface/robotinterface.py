@@ -75,7 +75,7 @@ def get_info():
             #Throttle pose received to 1 per sec
             listener2 = roslibpy.Topic(client, '/rosout','rosgraph_msgs/Log',throttle_rate=2000)
             listener2.subscribe(store_rosout)
-            listener = roslibpy.Topic(client, '/robot_pose', 'geometry_msgs/Pose',throttle_rate=3000)
+            listener = roslibpy.Topic(client, '/robot_pose', 'geometry_msgs/Pose',throttle_rate=5000)
             listener.subscribe(store_pose)
             listener3=roslibpy.Topic(client,'/move_base/result','move_base_msgs/MoveBaseActionResult')
             listener3.subscribe(move_complete)
@@ -133,7 +133,7 @@ def move_complete(message):
     #)
     status=message['status']['text']
     if status=='Goal reached.':
-        dbinterface.updateRbtLoc(1,lastgoal)
+        #dbinterface.updateRbtLoc(1,lastgoal)
         os.environ['reached'] = 'True'
         #dbinterface.setExecute(0,tsklist[0].tid)
         print('<RI>Move Completed')
@@ -246,7 +246,7 @@ def align_qr():
         result=cmdsrv.call(cmdreq)
         #print(result)
         print('<RI>Robot start alignment with QR')
-        time.sleep(5)
+        time.sleep(3)
         print('<RI>Alignment complete!')
         
         return True

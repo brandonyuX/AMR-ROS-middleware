@@ -16,19 +16,21 @@ def reqEb():
     try:
         print('<WI>Request bottle from WMS')
         #res = requests.post('http://'+wmsip+'/syngenta/mc/production/requesteb',timeout=5)
-        res = requests.post('https://63bcd5b8fa38d30d85d2459d.mockapi.io/requesteb',timeout=5)
+        res = requests.post('http://'+wmsip+':3000/syngenta/mc/production/requesteb',timeout=5)
+        print('reponse code from server: {}'.format(res.status_code))
         print ('response from server:'+res.text)
-    except:
-        print('WMS Connection timeout!')
+    except Exception as e:
+        print(e)
 
 #Send empty tote box from unscrambling station to warehouse
 
 def reqstb():
     try:
-        res = requests.post('http://'+wmsip+'/syngenta/mc/production/storeetb',timeout=5)
+        res = requests.post('http://'+wmsip+':3000/syngenta/mc/production/storeetb',timeout=5)
+        print('reponse code from server: {}'.format(res.status_code))
         print ('response from server:'+res.text)
-    except:
-        print('WMS Connection timeout!')
+    except Exception as e:
+        print(e)
     
 #Send empty tote box from warehouse to case packing station
 
@@ -86,4 +88,3 @@ def reqrcc():
         print ('response from server:'+res.text)
     except:
         print('WNS Connection timeout')
-

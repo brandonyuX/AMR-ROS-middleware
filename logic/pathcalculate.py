@@ -75,14 +75,17 @@ def calculate_shortest(src,dest):
     return (find_path(graph, graphdict[src], graphdict[dest], cost_func=cost_func).total_cost)
 
 #Generate path based on graph
-def generate_path(src,dest):
+def generate_path(src,dest,dest2):
     strlist=[]
     currentloc=dbinterface.getRbtLoc(1)
 
-
+    #Find path from current location to source
     curr2src=find_path(graph, graphdict[currentloc], graphdict[src], cost_func=cost_func)
 
+    #Find path from source to destination
     src2dest=(find_path(graph, graphdict[src], graphdict[dest], cost_func=cost_func))
+    
+    
     
     
     for i in range(len(curr2src[0])):
@@ -94,6 +97,16 @@ def generate_path(src,dest):
         val=src2dest[0][i+1]
         strlist.append(get_key(val))
     strlist.append('DEST')
+
+    if(dest2!=''):
+            #Find path from dest to dest 2
+            dest2dest2=(find_path(graph, graphdict[dest], graphdict[dest2], cost_func=cost_func))
+            for i in range(len(dest2dest2[0])-1):
+                val=dest2dest2[0][i+1]
+                strlist.append(get_key(val))
+            strlist.append('DEST2')
+       
+        
     
     ret_str=";".join(strlist)
     return (ret_str)
