@@ -430,4 +430,14 @@ def getUserName(userid):
         print(row[0])
         return row[0]
     
+def getAccount(username):
+    # Check if account exists using SQL
+    cursor.execute("SELECT * FROM UserTable WHERE username=?", username)
+    account = cursor.fetchone()
+    if account:
+        print("Account exist in database with id = {0} and username = {1}".format(account[0], account[1]))  #print user id
+        return account
+    
+    
+    
 
