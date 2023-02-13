@@ -188,6 +188,7 @@ def getTaskList():
 
 #Write move chain step
 def writeMCStep(tid):
+    print(tid)
     cursor.execute("SELECT TaskCode FROM RbtTask WHERE TaskID=?",tid) 
     row = cursor.fetchone() 
     newstep=row[0]+1
@@ -233,8 +234,8 @@ def insertReq(plcid,reqid,destloc,priority,reqtime,tskmodno):
     cursor.commit()
 
 
-def insertRbtTask(destloc,tskmod):
-    cursor.execute("INSERT INTO RbtTask(RobotID,Completed,TaskCode,CurrStep,EndStep,DestLoc,Executing,TaskModelID,ReqID) VALUES (?,?,?,?,?,?,?,?,?)",1,0,0,1,4,destloc,0,tskmod,100)
+def insertRbtTask(destloc,tskmod,es):
+    cursor.execute("INSERT INTO RbtTask(RobotID,Completed,TaskCode,CurrStep,EndStep,DestLoc,Executing,TaskModelID,ReqID) VALUES (?,?,?,?,?,?,?,?,?)",1,0,0,1,es,destloc,0,tskmod,100)
     cursor.commit()
     print('<DB> Write to robot task destination {}'.format(destloc))
 
@@ -339,7 +340,7 @@ def findWO(stn):
 
 #Set work order start
 def setWOStart(stn,wonum):
-    statement="UPDATE wo_stn{} SET status='ORDERED' WHERE wo_number='{}'".format(stn,wonum)   
+    statement="UPDATE wo_stn{} SET status='STARTED' WHERE wo_number='{}'".format(stn,wonum)   
     cursor.execute(statement) 
     cursor.commit()
     

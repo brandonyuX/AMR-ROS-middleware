@@ -18,7 +18,7 @@ from flask_login import login_required, current_user,LoginManager,login_user,log
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from flask_sqlalchemy import SQLAlchemy
-import schedulers.rbtscheduler as masterscheduler
+import schedulers.rbtscheduler as rbtscheduler
 from wtforms.validators import InputRequired, Length, ValidationError
 import threading
 from flask_bcrypt import Bcrypt
@@ -451,7 +451,7 @@ dbinterface.startup()
 robotinterface.startup()
 plcinterface.startup()
 #woscheduler.startup()
-masterscheduler.startup()
+rbtscheduler.startup()
 
 app.run()
 
