@@ -16,7 +16,7 @@ import interface.dbinterface as dbinterface
 import interface.chrinterface as chrinterface
 
 #Define ros connection
-client = roslibpy.Ros(host="192.168.0.251", port=8080)
+client = roslibpy.Ros(host="192.168.0.250", port=8080)  #Suppose is 192.168.0.251, Alvin temporary change it to prevent interrupt the original system.
 
 taskid=0
 lastgoal=''

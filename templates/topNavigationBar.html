@@ -1,0 +1,18 @@
+<nav class="navbar navbar-expand navbar-dark sticky-top px-2 py-0"
+    style="background-color: #001A8C; justify-content: space-between;">
+    <a id="sideToggle" href="#" class="sidebar-toggler flex-shrink-0" style="background-color: #001A8C;">
+        <i class="fa fa-bars" style="color: #FFFFFF;"></i>
+    </a>
+
+    <div id="msmsgblock" class="nav-item" style="color: #FFFFFF; justify-content: center;"></div>
+
+    <div id="userLogout" class="nav-link dropdown m-0 p-1">
+        <a href="#" class="nav-link dropdown-toggle m-0 p-1" data-bs-toggle="dropdown" style="color: #FFFFFF;">
+            Username: <span class="h6 mb-0 fw-bold">{{username}}</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-end border-0 rounded-0 rounded-bottom m-0"
+            style="background-color: #001A8C;">
+            <a href="/logout" class="dropdown-item">Log Out</a>
+        </div>
+    </div>
+</nav>

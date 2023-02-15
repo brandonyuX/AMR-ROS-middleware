@@ -16,7 +16,7 @@ PORT=65432
 
 
 decdata=''
-client = Client("opc.tcp://192.168.0.253:49321")
+client = Client("opc.tcp://192.168.0.250:49321")    #Suppose is opc.tcp://192.168.0.253:49321", Alvin temporary change it to prevent interrupt the original system.
 
 graphdict={"CHR":1,
             "Stn1":2,

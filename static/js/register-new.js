@@ -3,7 +3,7 @@
 document.getElementById('registration_form').addEventListener('submit', function (event) {
     event.preventDefault();
     //Code to handle the form submission
-    console.log('Registration Event Listener Triggered');
+    // console.log('Registration Event Listener Triggered');
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
     const confirmPassword = document.getElementById("confirmPassword").value;
@@ -15,9 +15,21 @@ document.getElementById('registration_form').addEventListener('submit', function
             // console.log(this.getAllResponseHeaders());
             // console.log(this.responseURL);
             console.log(this.status);
-            if (this.responseText == 'Account successfully registered!'){
+            if (this.responseText == 'Account successfully registered!') {
                 addNotification(this.responseText, "success");
-                window.location = "http://127.0.0.1:5000/login";
+                window.location = "http://127.0.0.1:5000/login?msg=sc";
+                // var form = document.createElement("form");
+                // form.method = "POST";
+                // form.action = "http://127.0.0.1:5000/login";
+
+                // var input = document.createElement("input");
+                // input.type = "hidden";
+                // input.name = "msg";
+                // input.value = "sc";
+
+                // form.appendChild(input);
+                // document.body.appendChild(form);
+                // form.submit();
             } else {
                 addNotification(this.responseText, "warning");
             }

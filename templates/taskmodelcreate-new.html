@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+
+
+
+  <!-- CSS only -->
+  <link rel="stylesheet" href="/static/css/bootstrap.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+  <script type="text/javascript" src="/static/js/easeljs-NEXT.js"></script>
+  <script type="text/javascript" src="/static/js/eventemitter2.js"></script>
+  <script type="text/javascript" src="/static/js/roslib.js"></script>
+  <script type="text/javascript" src="/static/js/ros2d.js"></script>
+  <script type="text/javascript" src="/static/js/nav2d.js"></script>
+
+  <!-- Online Downloaded Stylesheet -->
+  <link href="/static/css/style.css" rel="stylesheet">
+
+  <title>M8M Resource Management</title>
+</head>
+
+<body>
+  <div class="container-fluid position-relative d-flex p-0">
+    <div id="spinner"
+      class="show bg-dark position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+      <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+    <!-- Side navigation bar: Start -->
+    {% include "sideNavigationBar.html" %}
+    <!-- Side navigation bar: End -->
+
+    <!-- Top navigation bar: Start -->
+    <div class="content">
+      <!-- Top navigation bar: Start -->
+      {% include "TopNavigationBar.html" %}
+      <!-- Top navigation bar: End -->
+
+      <!-- Title Start -->
+      <div class="container-fluid pt-4 px-4">
+        <div class="bg-content-card text-center rounded p-4">
+          <div class="row col-sm-12 align-items-center justify-content-center">
+            <h2 class="text-white text-center">Welcome to M8M RMS Task Model Creation Center</h2>
+          </div>
+        </div>
+      </div>
+      <!-- Title End -->
+
+      <!-- Task Model Creation Form Start -->
+      <div class="container-fluid pt-4 px-4">
+        <div class="row">
+
+          <!-- Task Model Creation Form Start -->
+          <div class="col-sm-6 bg-content-card rounded p-4">
+            <div class="row mb-4">
+              <h4 class="mb-0 text-white">Task Model Creation</h4>
+            </div>
+            <div class="row">
+              <form id="tskModelCreate" method="POST" action="">
+                <div class="row mb-4">
+                  <label for="tskmodno" class="col-sm-6 col-form-label text-white">Task Model Number: </label>
+                  <div class="col-sm-6">
+                    <input type="text" id="tskmodno" name="tskmodno" placeholder="Enter Task Model Number" class="form-control"
+                      title='Enter a task number' required/>
+                  </div>
+                </div>
+
+                <fieldset class="row mb-4 text-white">
+                  <legend class="col-form-label col-sm-6 pt-0">Action</legend>
+                  <div class="col-sm-6">
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios1" value="Move" checked>
+                      <label class="form-check-label" for="gridRadios1">
+                        Move
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios2" value="Unload">
+                      <label class="form-check-label" for="gridRadios2">
+                        Unload
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios3" value="Load">
+                      <label class="form-check-label" for="gridRadios3">
+                        Load
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios4" value="Custom Command">
+                      <label class="form-check-label" for="gridRadios4">
+                        Custom Command
+                      </label>
+                    </div>
+                  </div>
+              </fieldset>
+
+                <div class="row mb-4">
+                  <label for="custCmd" class="col-sm-6 col-form-label text-white">Custom Command</label>
+                  <div class="col-sm-6">
+                    <input type="text" id="custCmd" name="custCmd" placeholder="Custom Command" class="form-control"
+                      title='Enter a valid custom command' disabled/>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-sm-4 d-flex justify-content-center px-2">
+                    <button type="submit" name="type" value="clear" id="clear" class="btn btn-primary w-100"
+                      form="tskModelCreate">Clear Sub Task</button>
+                  </div>
+                  <div class="col-sm-4 d-flex justify-content-center px-2">
+                    <button type="submit" name="type" value="createtm" id="createtm" class="btn btn-primary w-100"
+                      form="tskModelCreate">Create Task Model</button>
+                  </div>
+                  <div class="col-sm-4 d-flex justify-content-center px-2">
+                    <button type="submit" name="type" value="addstep" id="addstep" class="btn btn-primary w-100"
+                      form="tskModelCreate">Add Step</button>
+                  </div>
+                </div>
+
+                <!-- <div class="row">
+                  <div class="col-sm-3"></div>
+                  <div class="col-sm-6 d-flex justify-content-center">
+                    <button type="submit" name="type" value="createtm" id="createtm" class="btn btn-primary w-100"
+                      form="tsk_creation_form">Create Task Model</button>
+                  </div>
+                  <div class="col-sm-3"></div>
+                </div>
+
+                <div class="row">
+                  <div class="col-sm-3"></div>
+                  <div class="col-sm-6 d-flex justify-content-center">
+                    <button type="submit" name="type" value="clear" id="clear" class="btn btn-primary w-100"
+                      form="tsk_creation_form">Clear Sub Task</button>
+                  </div>
+                  <div class="col-sm-3"></div>
+                </div> -->
+              </form>
+            </div>
+          </div>
+          <!-- Task Model Creation Form End -->
+
+          <!-- Table Start -->
+          <div class="col-sm-6">
+            <div class="bg-content-card text-center rounded p-4">
+              <div class="row g-4">
+                <div class="table-responsive">
+                  <table class="table text-start align-middle table-bordered table-hover mb-0">
+                    <thead>
+                      <tr class="text-white">
+                        <th scope="col">Action Type</th>
+                        <th scope="col">Step</th>
+                        <th scope="col">Command</th>
+                      </tr>
+                    </thead>
+                    <tbody id="queryTskModel">
+                      {% for subtsk in subtsklist %}
+                      <tr>
+                        <td>{{ subtsk.at }}</td>
+                        <td>{{ subtsk.currstep }}</td>
+                        <td>{{ subtsk.cmd }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Table End -->
+
+        </div>
+      </div>
+      <!-- Task Model Creation Form End -->
+      
+      <!-- JavaScript Bundle with Popper -->
+      <script src="/static/js/jquery-3.6.0.min.js"></script>
+      <script src="/static/js/socket.io.js"></script>
+      <script src="/static/js/popper.min.js"></script>
+      <script src="/static/js/bootstrap.js"></script>
+      <!-- This Template Javascript -->
+      <script src="/static/js/navSpinnerToggler.js"></script>
+      <script src="/static/js/taskModelCreate-new.js"></script>
+</body>
+
+<!-- <script type="text/javascript" charset="utf-8">
+  $(document).ready(function () {
+    //Validate json, return true if valid json
+    function isJsonString(str) {
+      try {
+        JSON.parse(str);
+      } catch (e) {
+        return false;
+      }
+      return true;
+    }
+
+    function createAutoClosingAlert(selector, delay) {
+      var alert = $(selector).alert();
+      window.setTimeout(function () { alert.alert('close') }, delay);
+    }
+  });
+</script> -->
+
+</html>

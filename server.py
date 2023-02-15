@@ -133,24 +133,28 @@ class RegisterForm(FlaskForm):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == "POST" and 'username' in request.form and 'password' in request.form:
-        username = request.form["username"]
-        password = request.form["password"]
-        account = dbinterface.getAccount(username)
-        if account:
-            if bcrypt.check_password_hash(account.password, password):
-                session['loggedin'] = True
-                session['id'] = account[0]  #account[0] referring to first column of user table which is "id"
-                session['username'] = account[1]    #account[0] referring to first column of user table which is "username"
-                # Redirect to home page
-                print('{0} (id:{1}) successfully login to M8M RMS!'.format(account[1], account[0]))
-                return redirect(url_for('index'))
+        if len(request.form.get("username", "")) != 0 and len(request.form.get("password", "")) != 0:
+            username = request.form["username"]
+            password = request.form["password"]
+            account = dbinterface.getAccount(username)
+            if account:
+                if bcrypt.check_password_hash(account.password, password):
+                    session['loggedin'] = True
+                    session['id'] = account[0]  #account[0] referring to first column of user table which is "id"
+                    session['username'] = account[1]    #account[0] referring to first column of user table which is "username"
+                    # Redirect to home page
+                    print('{0} (id:{1}) successfully login to M8M RMS!'.format(account[1], account[0]))
+                    return redirect(url_for('index'))
+                else:
+                    # Account doesnt exist or username/password incorrect
+                    return 'Incorrect username or password!'
             else:
-                # Account doesnt exist or username/password incorrect
-                return 'Incorrect username or password!'
-        else:
-            return 'Username not found!'
+                return 'Username not found!'
+        else: 
+            return 'Kindly fill up your username and password!'
     else:
-        return render_template('login-new.html')
+        msg = request.args.get('msg')
+        return render_template('login-new.html', msg=msg)
     # form = LoginForm()
     # if form.validate_on_submit():
     #     user = User.query.filter_by(username=form.username.data).first()
@@ -162,26 +166,27 @@ def login():
 
 @ app.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == "POST" and 'username' in request.form and 'password' in request.form:
-        username = request.form['username']
-        password = request.form['password']
-        confirmPassword = request.form['confirmPassword']
-        # Check if account exists using MySQL
-        userExist = dbinterface.userExist(username)
-        # If account exists show error and validation checks
-        if userExist:
-            return 'Account already exists!'
-        elif not re.match(r'[A-Za-z0-9]+', username):
-            return 'Username must contain only characters and numbers!'
-        elif password != confirmPassword:
-            return 'Confirm password not match with Password'
-        elif not username or not password or not confirmPassword:
-            return 'Please fill out the form!'
+    if request.method == "POST" and 'username' in request.form and 'password' in request.form and 'confirmPassword' in request.form:
+        if len(request.form.get("username", "")) != 0 and len(request.form.get("password", "")) != 0 and len(request.form.get("confirmPassword", "")) != 0:
+            username = request.form['username']
+            password = request.form['password']
+            confirmPassword = request.form['confirmPassword']
+            # Check if account exists using MySQL
+            userExist = dbinterface.userExist(username)
+            # If account exists show error and validation checks
+            if userExist:
+                return 'Account already exists!'
+            elif not re.match(r'^[a-zA-Z0-9]{4,20}$', username):
+                return 'Invalid username. Please enter a username consisting of only alphabets and numbers with a length between 4 and 20 characters.'
+            elif password != confirmPassword:
+                return 'Confirm password not match with Password'
+            else:
+                # Account doesnt exists and the form data is valid, now insert new account into accounts table
+                hashed_password = bcrypt.generate_password_hash(password)
+                dbinterface.addUser(username,hashed_password)            
+                return 'Account successfully registered!'
         else:
-            # Account doesnt exists and the form data is valid, now insert new account into accounts table
-            hashed_password = bcrypt.generate_password_hash(password)
-            dbinterface.addUser(username,hashed_password)            
-            return 'Account successfully registered!'
+            return 'Kindly fill up all the field!'
     else:
         return render_template('register-new.html')
 
@@ -218,9 +223,11 @@ def register():
 @app.route('/logout', methods=['GET', 'POST'])
 # @login_required
 def logout():
-    session.pop('loggedin', None)
-    session.pop('id', None)
-    session.pop('username', None)
+    if 'loggedin' in session:
+        session.pop('loggedin', None)
+        session.pop('id', None)
+        session.pop('username', None)
+        
     # Redirect to login page
     return redirect(url_for('login'))
     
@@ -236,6 +243,18 @@ def nav():
 
  
 #Define homepage 
+# @app.route('/')
+# # @login_required
+# def index():
+#     # Check if user is loggedin
+#     if 'loggedin' in session:
+#         # User is loggedin show them the home page
+#         tsklist=dbinterface.getTaskList()
+#         rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
+#         return render_template('index.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, async_mode=async_mode)
+#     # User is not loggedin redirect to login page
+#     return redirect(url_for('login'))
+
 @app.route('/')
 # @login_required
 def index():
@@ -244,7 +263,7 @@ def index():
         # User is loggedin show them the home page
         tsklist=dbinterface.getTaskList()
         rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
-        return render_template('index.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, async_mode=async_mode)
+        return render_template('index-new.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, username=session['username'], async_mode=async_mode)
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
 
@@ -277,42 +296,48 @@ def indexpost():
             
         tsklist=dbinterface.getTaskList()
         rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
-        return render_template('index-test.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, async_mode=async_mode)
+        return render_template('index-new.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, async_mode=async_mode)
     
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))   
 
 #Define configuration page
-@app.route('/configuration')
+@app.route('/configuration', methods=['GET', 'POST'])
 # @login_required
 def config():
     # Check if user is loggedin
     if 'loggedin' in session:
-        rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
-        return render_template('configuration.html',rbtlist=rc_list)
+        if request.method == "POST" and len(request.form.get("rip", "")) != 0 and len(request.form.get("rid", "")) != 0:
+            print("POST request triggered")
+            dbinterface.updateRip(request.form['rip'], request.form['rid'])
+            return "Robot IP updated successfully"
+        else:
+            print("GET request triggered")
+            rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
+            return render_template('configuration-new.html',rbtlist=rc_list, username=session['username'])
 
 @app.route('/taskmodelquery')
 # @login_required
 def taskmodelconfig():
     # Check if user is loggedin
     if 'loggedin' in session:
-        return render_template('taskmodelquery.html')
+        return render_template('taskmodelquery-new.html', username=session['username'])
 
 @app.route('/taskmodelquery', methods=['POST'])
 # @login_required
 def taskmodelconfigget():
     # Check if user is loggedin
     if 'loggedin' in session:
-        text = request.form['text']
+        text = request.form['queryID']
         subtsklist=dbinterface.getSubTaskListByID(text)
-        return render_template('taskmodelquery.html',subtsklist=subtsklist,subtsklen=len(subtsklist))
+        return render_template('taskmodelquery-new.html',subtsklist=subtsklist,subtsklen=len(subtsklist), username=session['username'])
 
 @app.route('/taskmodelcreate')
 # @login_required
 def taskmodelcreate():
     # Check if user is loggedin
     if 'loggedin' in session:
-        return render_template('taskmodelcreate.html')
+        return render_template('taskmodelcreate-new.html', username=session['username'])
 
 @app.route('/amr-control')
 # @login_required
@@ -417,19 +442,19 @@ def taskmodelcreatepost():
                 print('Task Model created!')
             else:
                 print('Task Model already exist, please delete old task model to create new task model')
-            return render_template('taskmodelcreate.html')
+            return render_template('taskmodelcreate-new.html', username=session['username'])
 
         elif(posttype=="clear"):
             print('Run clear routine')
             subtasklist.clear()
-            return render_template('taskmodelcreate.html')
+            return render_template('taskmodelcreate-new.html', username=session['username'])
         elif (posttype=="addstep"):
             print('enter add step')
             tskmodno=request.form['tskmodno']
             sel=request.form['gridRadios']
             print(tskmodno+' '+sel)
-            if(sel=='CustomCommand'):
-                cmd=request.form['custcmd']
+            if(sel=='Custom Command'):
+                cmd=request.form['custCmd']
                 print(cmd)
                 print(len(subtasklist))
                 st=SubTask(1,tskmodno,sel,str(len(subtasklist)+1),len(subtasklist),cmd)
@@ -441,7 +466,7 @@ def taskmodelcreatepost():
                 st=SubTask(1,tskmodno,sel,str(len(subtasklist)+1),len(subtasklist),'')
                 subtasklist.append(st)
 
-            return render_template('taskmodelcreate.html',subtsklist=subtasklist,tskmod=tskmodno)
+            return render_template('taskmodelcreate-new.html',subtsklist=subtasklist,tskmod=tskmodno, username=session['username'])
 
 
 #API Section
@@ -545,8 +570,8 @@ def createManualTask():
 #Initialize all interfaces
 dbinterface.startup()
 masterscheduler.startup()
-robotinterface.startup()
-plcinterface.startup()
+# robotinterface.startup()  #Temporary commented out
+# plcinterface.startup()    #Temporary commented out
 
 app.run()
 

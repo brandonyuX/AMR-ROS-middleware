@@ -17,7 +17,7 @@
     <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
 </head>
 
-<body class="bg-gradient-primary d-flex align-items-center justify-content-center" style="height: 100vh;">
+<body class="bg-gradient-primary d-flex align-items-center justify-content-center" style="height: 100vh;" data-msg = "{{msg}}">
     <div id="notificationContainer" style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999;"></div>
     <div class="container">
         <div class="card o-hidden border-0 shadow-lg p-4">
@@ -33,12 +33,12 @@
                         <div class="form-outline mb-4">
                             <label for = "username">Username: </label><br /> 
                             <input type = "text" id = "username" name = "username" title='Enter your username' 
-                            class="form-control" placeholder="Enter your username" required/>
+                            class="form-control" placeholder="Enter your username"/>
                         </div>
                         <div class="form-outline mb-4">
                             <label for = "password">Password: </label><br /> 
                             <input type="password" id = "password" name = "password" title='Enter your password' class="form-control" 
-                            minlength="4" maxlength="20" placeholder="Enter your password" required/>
+                            minlength="4" maxlength="20" placeholder="Enter your password"/>
                         </div>
                         <div class="row align-items-end justify-content-between"
                             style="margin-left:0.2rem; margin-right: 0.2rem;">
@@ -56,8 +56,6 @@
     </div>
 
     <!-- Bootstrap core JavaScript-->
-    <script src="/static/js/login.js"></script>
-    <script src="/static/js/notificationContainer.js"></script>
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/sbadmin/bootstrap.bundle.min.js"></script>
 
@@ -66,5 +64,9 @@
 
     <!-- Custom scripts for all pages-->
     <script src="/static/js/sb-admin-2.min.js"></script>
+
+    <!-- Custom scripts for this page-->
+    <script src="/static/js/notificationContainer.js"></script>
+    <script src="/static/js/login-new.js"></script>
 </body>
 </html>

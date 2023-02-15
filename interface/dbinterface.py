@@ -438,6 +438,7 @@ def getAccount(username):
         print("Account exist in database with id = {0} and username = {1}".format(account[0], account[1]))  #print user id
         return account
     
+def updateRip(rip, rid):
+    cursor.execute("UPDATE Configuration SET RobotIP = ? WHERE RobotID = ?",rip,rid)
+    cursor.commit()
     
-    
-

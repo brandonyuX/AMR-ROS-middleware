@@ -1,7 +1,7 @@
 document.getElementById('login_form').addEventListener('submit', function (event) {
     event.preventDefault();
     //Code to handle the form submission
-    console.log('Submit Event Listener Triggered');
+    // console.log('Submit Event Listener Triggered');
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
     const xhr = new XMLHttpRequest();
@@ -22,3 +22,9 @@ document.getElementById('login_form').addEventListener('submit', function (event
     xhr.send(`username=${username}&password=${password}`);
     // console.log('Loaded login.js.');
 });
+
+
+var msg = document.body.getAttribute("data-msg");
+if (msg == 'sc') {
+    addNotification("Account successfully registered!", "warning");
+}
