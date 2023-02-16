@@ -2,22 +2,29 @@
 #Will use opcua in this example
 import socket,datetime,sys,signal
 import time,os
-import threading
+import threading,yaml
 
 
 sys.path.append('../Middleware Development')
 import interface.dbinterface as dbinterface
 import interface.wmsinterface as wmsinterface
 import logic.pathcalculate as pathcalculate
-from opcua import Client,ua
+from opcua import ua,Client
 HOST='127.0.0.1'
 PORT=65432
+with open('server-config.yaml', 'r') as f:
+    doc = yaml.safe_load(f)
+
+production=doc['SERVER']['PRODUCTION']
 
 
 
 decdata=''
-client = Client("opc.tcp://192.168.0.253:49321")
-
+try:
+    client = Client("opc.tcp://192.168.0.253:49321",timeout=60*8)
+except KeyboardInterrupt:
+            print("Interrupted by user")
+            
 graphdict={"CHR":1,
             "Stn1":2,
             "TPUp":3,
@@ -32,12 +39,16 @@ graphdict={"CHR":1,
 
 def startup():
     try:
-        client.connect()
-        print('Connection to OPC Server successful!')
+        #client.connect()
+        #print('Connection to OPC Server successful!')
         t1=threading.Thread(target=readTags,daemon=True)
         t1.start()
-    except:
-        print("Problems connecting to OPC Server")
+    except KeyboardInterrupt:
+        client.close_session()
+        print("Interrupted by user")
+    except Exception as e:
+        print(e)
+    
 
  
 
@@ -358,80 +369,110 @@ def checkStartAck(station):
     else:
         return False
     
-    
+#Check station is empty
+def checkEmpty(stn):
+      
+    if not readPLC('he',stn) and not readPLC('te',stn):
+        return True
+    else:
+        return False
 
 def readTags():
+    client.connect()
     while True:
-        time.sleep(0.1)
-        #Station 1 tote request and store
-        reqbotpath="ns=2;s=SyngentaPLC.Station1.AMR.RequestBottle"
-        rettotpath="ns=2;s=SyngentaPLC.Station1.AMR.ReturnToteBox"
-        
-        cp2path="ns=2;s=Syngenta.SmartLab.FNP.Info.Station6.CartonPresent2"
-        ccpath="ns=2;s=Syngenta.SmartLab.FNP.CL.CustomComplete"
-        
-        #Station 6 tote retrieval and store
-        rtbpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station6.RetrieveToteBox"
-        stbpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station6.StoreToteBox"
-
-
-        reqbotstate=client.get_node(reqbotpath)
-        rettotstate=client.get_node(rettotpath)
-        cp2state=client.get_node(cp2path)
-        ccstate=client.get_node(ccpath)
-        rtbstate=client.get_node(rtbpath)
-        stbstate=client.get_node(stbpath)
-
-
-        reqbot=reqbotstate.get_value()
-        rettot=rettotstate.get_value()
-        cp2=cp2state.get_value()
-        cc=ccstate.get_value()
-        rtb=rtbstate.get_value()
-        stb=stbstate.get_value()
-
-        #Procedure to request bottles
-        if(reqbot):
-            #Call WMS to retrieve bottles bottles
-            #wmsinterface.reqEb()
+        try:
+            time.sleep(0.1)
             
-            #Generate robot path and insert as a robot task
-            pathinfo=pathcalculate.generate_path('WH','Stn1','')
-            dbinterface.insertRbtTask(pathinfo,1,4)
-            reqbotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+            #print('Connection to OPC Server successful!')
+            
+            #Station 1 tote request and store
+            reqbotpath="ns=2;s=SyngentaPLC.Station1.AMR.RequestBottle"
+            rettotpath="ns=2;s=SyngentaPLC.Station1.AMR.ReturnToteBox"
+            
+            cp2path="ns=2;s=Syngenta.SmartLab.FNP.Info.Station6.CartonPresent2"
+            ccpath="ns=2;s=Syngenta.SmartLab.FNP.CL.CustomComplete"
+            
+            #Station 6 tote retrieval and store
+            rtbpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station6.RetrieveToteBox"
+            stbpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station6.StoreToteBox"
 
-        #Procedure to return tote box
-        if(rettot):
-            #wmsinterface.reqstb()
-            pathinfo=pathcalculate.generate_path('Stn1','WH','')
-            dbinterface.insertRbtTask(pathinfo,1,4)
-            rettotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
 
-        if(cp2):
-            wmsinterface.reqsfc()
-            dbinterface.insertRbtTask('Station6;Warehouse')
-            cp2state.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+            reqbotstate=client.get_node(reqbotpath)
+            rettotstate=client.get_node(rettotpath)
+            cp2state=client.get_node(cp2path)
+            ccstate=client.get_node(ccpath)
+            rtbstate=client.get_node(rtbpath)
+            stbstate=client.get_node(stbpath)
 
-        if(cc):
-            #os.environ['waitcomplete'] = 'True'
-            pass
+
+            reqbot=reqbotstate.get_value()
+            rettot=rettotstate.get_value()
+            cp2=cp2state.get_value()
+            cc=ccstate.get_value()
+            rtb=rtbstate.get_value()
+            stb=stbstate.get_value()
         
-        #Fetch empty tote box from WH and go to Stn 6
-        if(rtb):
-            #Call WMS to retrieve empty tote
-            #wmsinterface.reqsfc()
+            #Procedure to request bottles
+            if(reqbot):
+                #Call WMS to retrieve bottles bottles
+                if production:
+                    print('<PLC> Call WMS interface to request empty bottle')
+                    wmsinterface.reqEb()
+                
+                #Generate robot path and insert as a robot task
+                pathinfo=pathcalculate.generate_path('WH','Stn1','')
+                dbinterface.insertRbtTask(pathinfo,1,4)
+                reqbotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+
+            #Procedure to return tote box
+            if(rettot):
+                
+                #Call WMS to store tote box
+                if production:
+                    wmsinterface.reqstb()
+                pathinfo=pathcalculate.generate_path('Stn1','WH','')
+                dbinterface.insertRbtTask(pathinfo,1,4)
+                rettotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+
+            if(cp2):
+                if production:
+                    wmsinterface.reqsfc()
+                dbinterface.insertRbtTask('Station6;Warehouse')
+                cp2state.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+
+            if(cc):
+                print('carton complete')
+                #os.environ['waitcomplete'] = 'True'
+                
             
-             #Generate robot path and insert as a robot task
-            pathinfo=pathcalculate.generate_path('WH','Stn6','')
-            #Insert robot task to fetch empty tote
-            dbinterface.insertRbtTask(pathinfo,6,4)
-            #Write second task to move back to Warehouse after complete
-            dbinterface.insertRbtTask('WH',2,2)
-            rtbstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
-            
-        if(stb):
-             os.environ['waitcomplete'] = 'True'
-             stbstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+            #Fetch empty tote box from WH and go to Stn 6
+            if(rtb):
+                #Call WMS to retrieve empty tote
+                if production:
+                    wmsinterface.reqetb()
+                
+                #Generate robot path and insert as a robot task
+                pathinfo=pathcalculate.generate_path('WH','Stn6','')
+                #Insert robot task to fetch empty tote
+                dbinterface.insertRbtTask(pathinfo,6,3)
+                #Write second task to move back to Warehouse after complete
+                dbinterface.insertRbtTask('WH',2,2)
+                rtbstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+                
+            if(stb):
+                
+                os.environ['waitcomplete'] = 'True'
+                 
+                #Call WMS to receive item
+                if production:
+                    wmsinterface.reqsfc("123456")
+                stbstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+            #client.disconnect()
+        except KeyboardInterrupt:
+            print("Interrupted by user")
+        except Exception as e:
+            continue
+        
 
 
 

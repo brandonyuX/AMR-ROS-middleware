@@ -5,7 +5,7 @@ from pymodbus.client import ModbusTcpClient
 from pymodbus.payload import BinaryPayloadDecoder,Endian
 
 
-chargerip='192.168.1.105'
+chargerip='192.168.0.91'
 chargerport=502
 
 client = ModbusTcpClient(chargerip,chargerport)
@@ -62,6 +62,4 @@ def reset():
 #         case '4':
 #             stop()
 #         case '5':
-#             read()
-#         case '6':
 #             reset()

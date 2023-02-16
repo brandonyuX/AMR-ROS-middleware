@@ -10,6 +10,7 @@ import interface.robotinterface as robotinterface
 import interface.chrinterface as chrinterface
 import interface.plcinterface as plcinterface
 import interface.wmsinterface as wmsinterface
+import logic.pathcalculate as pathcalculate
 
 
 
@@ -25,6 +26,30 @@ mapdict={"STN1":0,
             "STN5":4,
             "Charging Station":5
             }
+coflag=False
+
+#Method to determine whether to get custom operation task
+def getCO(priority):
+    global coflag
+    #Get request id and push it to custom operation
+    os.environ['CUSTORDERSTATUS']='QUERY'
+    #Decide on task id based on priority
+    if priority:
+        ctid=dbinterface.getCustomTaskID()
+    else:
+        ctid=dbinterface.getCustomNTaskID()
+    wmsinterface.customop(ctid)
+    #Wait for query to be completed
+    while os.environ['CUSTORDERSTATUS']=='QUERY':
+        pass
+    costat=os.environ['CUSTORDERSTATUS']
+    #Set custom order flag to 1 if MES is able to generate task
+    if costat=='OK':
+        dbinterface.setCRStatus(ctid)
+        coflag=True
+    else:
+        pass
+
 def tskpolling():
     #Initialize database connection
     #dbinterface.startup()
@@ -35,8 +60,8 @@ def tskpolling():
     #     print(item)
     #Initialze robot interface
     #robotinterface.startup()
-    time.sleep(5)
-    print('<MS> Start master scheduler')
+    time.sleep(1)
+    print('<MS> Start robot scheduler')
     loop=True
     currIndex=0
     while(loop):
@@ -44,7 +69,13 @@ def tskpolling():
         try:
             #time.sleep(1)
             tsklist=[]
-            tsklist=dbinterface.getTaskListTop()
+            
+           #Get from different action database based on custom order flag
+            if(coflag):
+               tsklist=dbinterface.getCustomListTop()
+            else:
+                tsklist=dbinterface.getTaskListTop()
+            
             
 
 
@@ -58,6 +89,7 @@ def tskpolling():
                     for loc in splitloc:
                         #print(tsk.rid)
                         tskq.append(loc)
+            
             
                 
                 #If there are active tasks in tasklist, loop through task list to assign job to robot
@@ -88,20 +120,26 @@ def tskpolling():
                         #print('Sending Command to Robot {}.\n Current Step: {} End Step: {}'.format(tsk.rid,tsk.currstep,tsk.endstep))
                         if(tsk.currstep>tsk.endstep):
                             #print('End of execution for task {}'.format(tsk.tid))
+                            global coflag
                             dbinterface.writeLog('ms','End of execution for task {}'.format(tsk.tid),True)
                             dbinterface.incStep(tsk.tid,tsk.endstep,True)
                             tskq.clear()
                             tsklist.clear()
                             dbinterface.setExecute(0,tsk.tid)
                             currIndex=0
-                            dbinterface.updateReqStatus('REQUEST COMPLETED',tsk.reqid)
+                            #dbinterface.updateReqStatus('REQUEST COMPLETED',tsk.reqid)
+                            if(dbinterface.checkPriorityTask()):
+                                getCO(True)
+                            
+                            
+                                
                         
 
                     
                         
                         if(tsk.currstep<=tsk.endstep):
                             print('<MS> Current step is {}'.format(tsk.currstep))
-                            print('Processing step {} out of step {}'.format(tsk.currstep,tsk.endstep))
+                            print('Processing master step {} out of step {}'.format(tsk.currstep,tsk.endstep))
                             dbinterface.updateReqStatus('PROCESSING REQUEST',tsk.reqid)
                             subtsk=dbinterface.getSubTaskListByStepID(tsk.tskmodno,tsk.currstep)
                             
@@ -117,54 +155,108 @@ def tskpolling():
                                 #     for i in range(len(tskq)):
                                 #         if tskq[i]=='SRC':
                                 #             currIndex=i+1
-                                currmcstep=dbinterface.readMCStep(tsk.tid)
+                                
                                 #print(currmcstep)
-                                if tskq[currmcstep]=='SRC':
-                                    currmcstep=currmcstep+1
-                                for i in range(currmcstep,len(tskq)):
-                                    if tskq[i]=='END' or tskq[i]=='SRC' or tskq[i]=='DEST' or tskq[i]=='DEST2':
+                                
+                                #New movement planning
+                                #Get movestep to decide which movement is the robot at (SRC or DEST)
+                                movestep=dbinterface.getMoveStep()
+                                
+                                dest=''
+                                #Create path using path calculate
+                                print('<MS> Generating path from current location')
+                                
+                                if(movestep==0):
+                                    pathlist=pathcalculate.generate_path_simple(tskq[0])
+                                    robotinterface.publish_sound(tskq[0])
+                                    dest=tskq[0]
+                                else:
+                                    pathlist=pathcalculate.generate_path_simple(tskq[1])
+                                    robotinterface.publish_sound(tskq[1])
+                                    dest=tskq[1]
+                                    
+                                #Get previous movechain step
+                                mcstep=dbinterface.getMCStep()
+                                
+                                for i in range(mcstep,len(pathlist)):
+                                    print('<MS>Sending move command to robot {} bound for {}'.format(tsk.rid,pathlist[i]))
+                                    os.environ['reached'] = 'False'
+                                    
+                                    print('Moving robot to {}'.format(pathlist[i]))
+                                    print('<MS>Processing move chain {} out of {}'.format(i,len(pathlist)))
+                                    robotinterface.publish_cmd(tsk.rid,pathlist[i])
+                                    
+                                    dbinterface.setExecute(1,tsk.tid)
+                                    
+                                    while  os.environ['reached'] != 'True':
+                                        pass
+                                    print('<MS> Robot reached signal received')
+                                    
+                                    #Write mcstep based on current index and update robot location
+                                    dbinterface.updateRbtLoc(1,pathlist[i])
+                                    dbinterface.writeMCStep(tsk.tid,i)
+                                    
+                                print('<MS> Robot reached destination')
+                                robotinterface.publish_sound('reach')
+                                #End of loop means completed
+                                if(dest=="Stn1" or dest=="WH"):
+                                        time.sleep(1)
+                                        robotinterface.align_qr()
+                                
+                                dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
+                                dbinterface.setExecute(0,tsk.tid)
+                                
+                                
+                                
+                                #Legacy movement planning
+                                # currmcstep=dbinterface.readMCStep(tsk.tid)
+                                # if tskq[currmcstep]=='SRC':
+                                #     currmcstep=currmcstep+1
+                                # for i in range(currmcstep,len(tskq)):
+                                #     if tskq[i]=='END' or tskq[i]=='SRC' or tskq[i]=='DEST' or tskq[i]=='DEST2':
                                         
-                                        global lastloc
-                                        if(tskq[i-1]=="Stn1" or tskq[i-1]=="WH"):
-                                            robotinterface.align_qr()
-                                        dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
-                                        dbinterface.setExecute(0,tsk.tid)
-                                        dbinterface.updateRbtLoc(1,tskq[i-1])
+                                #         global lastloc
+                                #         if(tskq[i-1]=="Stn1" or tskq[i-1]=="WH"):
+                                #             time.sleep(1)
+                                #             robotinterface.align_qr()
+                                #         dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
+                                #         dbinterface.setExecute(0,tsk.tid)
+                                #         dbinterface.updateRbtLoc(1,tskq[i-1])
                                         
-                                        lastloc=tskq[i-1]
-                                        robotinterface.publish_sound('reach')
-                                        currIndex=i+1
-                                        #dbinterface.writeLog('ms','<MS>Detect temporal end of movement',True)
-                                        #Break out of loop when a temporal stop is detected to move on to next action
-                                        break
-                                    else:
-                                        print('<MS>Sending move command to robot {} bound for {}'.format(tsk.rid,tskq[i]))
-                                        #Publish sound for final destination based on pointer location
-                                        if(i==0 or i==currIndex):
-                                            for j in range(i,len(tskq)):
+                                #         lastloc=tskq[i-1]
+                                #         robotinterface.publish_sound('reach')
+                                #         currIndex=i+1
+                                #         #dbinterface.writeLog('ms','<MS>Detect temporal end of movement',True)
+                                #         #Break out of loop when a temporal stop is detected to move on to next action
+                                #         break
+                                #     else:
+                                #         print('<MS>Sending move command to robot {} bound for {}'.format(tsk.rid,tskq[i]))
+                                #         #Publish sound for final destination based on pointer location
+                                #         if(i==0 or i==currIndex):
+                                #             for j in range(i,len(tskq)):
                                                 
-                                                if tskq[i]=='END' or tskq[i]=='SRC' or tskq[i]=='DEST' or tskq[i]=='DEST2':
-                                                    print('Publish sound for {}'.format(tskq[j-1]))
-                                                    robotinterface.publish_sound(tskq[j-1])
-                                                    time.sleep(1)
-                                                    break
+                                #                 if tskq[i]=='END' or tskq[i]=='SRC' or tskq[i]=='DEST' or tskq[i]=='DEST2':
+                                #                     print('Publish sound for {}'.format(tskq[j-1]))
+                                #                     robotinterface.publish_sound(tskq[j-1])
+                                #                     time.sleep(1)
+                                #                     break
                                         
-                                        os.environ['reached'] = 'False'
+                                #         os.environ['reached'] = 'False'
                                         
-                                        print('Moving robot to {}'.format(tskq[i]))
-                                        print('<MS>Processing move chain {} out of {}'.format(i,len(tskq)))
-                                        robotinterface.publish_cmd(tsk.rid,tskq[i])
+                                #         print('Moving robot to {}'.format(tskq[i]))
+                                #         print('<MS>Processing move chain {} out of {}'.format(i,len(tskq)))
+                                #         robotinterface.publish_cmd(tsk.rid,tskq[i])
                                         
-                                        dbinterface.setExecute(1,tsk.tid)
+                                #         dbinterface.setExecute(1,tsk.tid)
                                         
-                                        while  os.environ['reached'] != 'True':
-                                            pass
-                                        print('<MS> Robot reached signal received')
+                                #         while  os.environ['reached'] != 'True':
+                                #             pass
+                                #         print('<MS> Robot reached signal received')
                                         
-                                        #Increase mcstep
+                                #         #Increase mcstep
                                         
-                                        dbinterface.writeMCStep(tsk.tid)
-                                        #time.sleep(1)
+                                #         dbinterface.writeMCStep(tsk.tid)
+                                time.sleep(0.1)
 
 
                             #Define multiple request task
@@ -183,10 +275,13 @@ def tskpolling():
                                 if production:
                                     
                                     dbinterface.setExecute(1,tsk.tid)
+                                    print('Publish sound for {}'.format(sname))
+                                    robotinterface.publish_sound(sname)
                                     robotinterface.publish_cmd(tsk.rid,sname)
                                     while  os.environ['reached'] != 'True':
                                         pass
                                     if( sname=="Stn1" or  sname=="WH"):
+                                        time.sleep(1)
                                         robotinterface.align_qr()
                                     dbinterface.updateRbtLoc(1,tskq[0])
                                     dbinterface.setExecute(0,tsk.tid)
@@ -240,7 +335,8 @@ def tskpolling():
                                         while(plcinterface.readPLC("te","Stn1")!=True):
                                             pass
                                         print('<MS> Item detected on station 1')
-                                        plcinterface.setWOStart(1)
+                                        #Write PLC processed quantity to start WO
+                                        #plcinterface.setWOStart(1)
                                     elif currentloc=="WH":
                                         #Send request to send to plc
                                         dbinterface.writeLog('ms','<MS>Send request to send to PLC',True)
@@ -255,9 +351,9 @@ def tskpolling():
                                         while(plcinterface.readPLC("te","WH")!=True):
                                             pass
                                         print('<MS> Item detected on Warehouse')
-                                        #Call WMS to receive item
-                                        dbinterface.writeLog('ms','<MS>Call WMS to receive item',True)
-                                        wmsinterface.reqstb()
+                                        #Signal WMS ready bin
+                                        wmsinterface.signalBinAtWH()
+                                       
                                         
                                     else:
                                         robotinterface.send_item()
@@ -287,7 +383,7 @@ def tskpolling():
                                         #Send ready to receive to plc
                                         time.sleep(0.5)
                                         plcinterface.writePLC("rtr",True,'Stn1')
-                                        time.sleep(1)
+                                        time.sleep(0.5)
                                         dbinterface.writeLog('ms','<MS>Wait for Station 1 Head End sensor to clear',True)
                                         while(plcinterface.readPLC("he","Stn1")==True):
                                             pass
@@ -296,16 +392,19 @@ def tskpolling():
                                     elif(currentloc=="WH"):
                                         dbinterface.writeLog('ms','<MS>Check if WMS has ready item',True)
                                         #Check if wms is ready
-                                        while(plcinterface.readPLC("wmsoutrdy","WH")==0):
+                                        # while(plcinterface.readPLC("wmsoutrdy","WH")==0):
+                                        #     pass
+                                        # #Reset wms ready bit
+                                        # plcinterface.writePLC("resetwmsoutrdy",0,"WH")
+                                        os.environ['wmsrdy'] = 'False'
+                                        while os.environ['wmsrdy']=='False':
                                             pass
-                                        #Reset wms ready bit
-                                        plcinterface.writePLC("resetwmsoutrdy",0,"WH")
                                         dbinterface.writeLog('ms','<MS>Start rolling conveyor and send ready to receive',True)
                                         robotinterface.receive_item()
                                         #Send ready to receive to plc
                                         time.sleep(0.5)
                                         plcinterface.writePLC("rtr",True,'WH')
-                                        time.sleep(1)
+                                        time.sleep(0.5)
                                         dbinterface.writeLog('ms','<MS>Wait for Station 1 Head End sensor to clear',True)
                                         while(plcinterface.readPLC("he","WH")==True):
                                             pass
@@ -352,14 +451,23 @@ def tskpolling():
                                 dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
                             #Wait for complete signal from end user
                             if(subtsk[0].at=="WaitComplete"):
-                                os.environ['waitcomplete'] = 'False'
-                                dbinterface.writeLog('ms','<MS>Wait for user to signal complete',True)
-                                robotinterface.publish_sound('wait-carton')
-                                while(os.environ.get('waitcomplete')=='False'):
+                                if tsk.hsmsg=='CUSTOM':
+                                    os.environ['waitcustom'] = 'False'
+                                    dbinterface.writeLog('ms','<MS>Wait for next action from WMS',True)
+                                    
+                                    while(os.environ.get('waitcustom')=='False'):
+                                        pass
+                                    
                                     pass
-                                dbinterface.writeLog('ms','<MS>Complete command received!',True)
-                                dbinterface.setExecute(0,tsk.tid)
-                                dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
+                                else:
+                                    os.environ['waitcomplete'] = 'False'
+                                    dbinterface.writeLog('ms','<MS>Wait for user to signal complete',True)
+                                    robotinterface.publish_sound('wait-carton')
+                                    while(os.environ.get('waitcomplete')=='False'):
+                                        pass
+                                    dbinterface.writeLog('ms','<MS>Complete command received!',True)
+                                    dbinterface.setExecute(0,tsk.tid)
+                                    dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
                             
 
                     #time.sleep(2)
@@ -368,11 +476,21 @@ def tskpolling():
             else:
                 #print('=====No task found yet. Polling...')
                 #dbinterface.writeLog('ms','No Task Found',False)
-                #time.sleep(1)
+                #Reset custom order flag if coflag is True and no task is detected in the custom order list
+                if(coflag):
+                    coflag=False
+                if(dbinterface.checkPriorityTask()):
+                    getCO(True)
+                else:
+                    if(dbinterface.checkNormalTask()):
+                        getCO(False)
+                    
+                        
+                time.sleep(0.1)
                 pass
         except Exception as e:
             print(e)
-        time.sleep(1.5)
+        #time.sleep(1.5)
 
 
 def startup():

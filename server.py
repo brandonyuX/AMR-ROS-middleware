@@ -7,6 +7,7 @@ import test_wo
 from mwclass.workorder import WO
 from mwclass.robotconfig import RobotConfig
 import interface.robotinterface as robotinterface
+import interface.wmsinterface as wmsinterface
 from mwclass.subtask import SubTask
 import interface.plcinterface as plcinterface
 from flask_socketio import SocketIO, emit
@@ -361,28 +362,121 @@ def createWOTask():
     #Parse to json object from string
     parsedJSON= json.loads(recv)
     #Send information to database
-    wolist=[]
-    for item in parsedJSON:
-        msg='Batch ID:{}\nInit SN:{}\nManufacture Date:{}\nFill and Pack Date:{}ml\nFill Volume:{}\nTarget Torque:{}\nWork Orders:{}\n'.format(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'][0])
-        print(msg)
-        for i in range(len(item['Work Orders'])):
-            wo=WO(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'][i])
-            wolist.append(wo)
+    print(parsedJSON)
+    # wolist=[]
+    # for item in parsedJSON:
+    #     msg='Batch ID:{}\nInit SN:{}\nManufacture Date:{}\nFill and Pack Date:{}ml\nFill Volume:{}\nTarget Torque:{}\nWork Orders:{}\n'.format(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'][0])
+    #     print(msg)
+    #     for i in range(len(item['Work Orders'])):
+    #         wo=WO(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'][i])
+    #         wolist.append(wo)
 
 
     #Write to Work Order Table in database
-    dbinterface.writeWO(wolist)
-    response = make_response("Work Order Generated", 200)
+    # dbinterface.writeWO(wolist)
+    response = make_response("Work Order Received", 200)
     response.mimetype = "text/plain"
     return response
 
 #Route for information carton completion status
 @app.route('/syngenta/rm/production/cartonready',methods=['POST'])
 def cartonReady():
-   
+    #Call WMS to receive item
+    wmsinterface.reqsfc("123456")
+    #Signal wait complete
+    os.environ['waitcomplete'] = 'True'
+    #print('print carton ready')
     response = make_response("Carton Ready Received", 200)
     response.mimetype = "text/plain"
     return response
+
+#Signal from wms to indicate that bin is ready and scanned
+@app.route('/syngenta/rm/wms/stationoutready',methods=['POST'])
+def binReady():
+    
+    #Signal wait complete
+    os.environ['wmsrdy'] = 'True'
+    
+    #print('print carton ready')
+    response = make_response("Bin ready acknowledged", 200)
+    response.mimetype = "text/plain"
+    return response
+
+#Custom request from wms
+@app.route('/syngenta/rm/wms/customrequest',methods=['POST'])
+def createCReq():
+    #Receive body information
+    recv=request.get_data()
+    #Parse to json object from string
+    parsedJSON= json.loads(recv)
+    #Send information to database
+    wolist=[]
+    for item in parsedJSON:
+        reqid=item['WMS Request ID']
+        dest=item['Destination']
+        priority=item['Priority']
+    dbinterface.writeCustomReq(reqid,dest,priority)
+    response = make_response("Custom Request Received", 200)
+    response.mimetype = "text/plain"
+    return response
+        
+
+ #WMS task for custom request from WMS
+@app.route('/syngenta/rm/wms/taskcreated',methods=['POST'])
+def createWMSTask():
+    #Receive body information
+    recv=request.get_data()
+    #Parse to json object from string
+    parsedJSON= json.loads(recv)
+    #Send information to database
+    wolist=[]
+    for item in parsedJSON:
+        reqid=item['WMS Request ID']
+        tskid=item['WMSTaskID']
+        action=item['Action']
+        dest=item['Destination']
+        balance=item['Balance']
+    #Determine action
+    # 1. Retrieve
+    # 2. Store
+    # 3. Custom
+    # 4. Manual
+    
+    match action:
+        case '1':
+            print('<SVR> Write retrieval action to custom task table')
+            
+            pass
+        case '2':
+            print('<SVR> Write store action to custom task table')
+            pass
+        case '3':
+            pass
+        case '4':
+            pass
+        
+              
+    response = make_response("Task Accepted", 200)
+    response.mimetype = "text/plain"
+    return response
+        
+#Item ready for custom location
+@app.route('/syngenta/mc/amr/custom/ItemReady',methods=['POST'])
+def informItemRdy():
+    
+    
+    response = make_response("Acknowledged Item Ready", 200)
+    response.mimetype = "text/plain"
+    return response
+ 
+#Item removed for custom location
+@app.route('/syngenta/mc/amr/custom/ItemRemoved',methods=['POST'])
+def informItemRemoved():
+    
+    response = make_response("Acknowledged Item Removed", 200)
+    response.mimetype = "text/plain"
+    return response     
+
 
 #Egress
 
@@ -413,7 +507,7 @@ def createCustomReq():
     return response
 
 @app.route('/syngenta/rm/wms/taskcreated',methods=['POST'])
-def createWMSTask():
+def createTask():
    
     response = make_response("WMS Creation", 200)
     response.mimetype = "text/plain"
@@ -429,7 +523,17 @@ def createManualTask():
     return response
 
 
-
+#Query if station is empty (Detect head and tail sensor)
+@app.route('/syngenta/rm/wms/stationempty',methods=['POST'])
+def checkEmpty():
+    
+    if plcinterface.checkEmpty("WH"):
+        dictToSend = {'Status':'Empty'}
+    else:
+        dictToSend = {'Status':'Occupied'}
+    response = make_response(dictToSend, 200)
+    response.mimetype = "application/json"
+    return response
 
     
 # @socketio.event
@@ -451,9 +555,9 @@ dbinterface.startup()
 robotinterface.startup()
 plcinterface.startup()
 #woscheduler.startup()
-rbtscheduler.startup()
+#rbtscheduler.startup()
 
-app.run()
+app.run(host='0.0.0.0',debug=False)
 
 
 # t1=threading.Thread(target=app.run(),daemon=True)

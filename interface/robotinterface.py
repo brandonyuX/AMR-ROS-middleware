@@ -73,14 +73,14 @@ def get_info():
 
         def start_receive_info():
             #Throttle pose received to 1 per sec
-            listener2 = roslibpy.Topic(client, '/rosout','rosgraph_msgs/Log',throttle_rate=2000)
-            listener2.subscribe(store_rosout)
-            listener = roslibpy.Topic(client, '/robot_pose', 'geometry_msgs/Pose',throttle_rate=5000)
-            listener.subscribe(store_pose)
+            # listener2 = roslibpy.Topic(client, '/rosout','rosgraph_msgs/Log',throttle_rate=2000)
+            # listener2.subscribe(store_rosout)
+            #listener = roslibpy.Topic(client, '/robot_pose', 'geometry_msgs/Pose',throttle_rate=5000)
+            #listener.subscribe(store_pose)
             listener3=roslibpy.Topic(client,'/move_base/result','move_base_msgs/MoveBaseActionResult')
             listener3.subscribe(move_complete)
-            battlisterner=roslibpy.Topic(client,'/batt_charge','std_msgs/String',throttle_rate=5000)
-            battlisterner.subscribe(batt_cb)
+            # battlisterner=roslibpy.Topic(client,'/batt_charge','std_msgs/String',throttle_rate=5000)
+            # battlisterner.subscribe(batt_cb)
             convlistener=roslibpy.Topic(client,'/convcomplete','std_msgs/String')
             convlistener.subscribe(convcb)
             alignlistener=roslibpy.Topic(client,'/aligncomplete','std_msgs/String')
@@ -99,7 +99,7 @@ def get_info():
 def aligncb(message):
     global aligncomplete
     print('align-complete received')
-    if(message['data'=='align-complete']):
+    if(message['data']=='align-complete'):
         print('align-complete received')
         aligncomplete=True
 
