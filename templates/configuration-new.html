@@ -58,13 +58,12 @@
                   <th scope="col">Robot IP</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="rbtListTBody">
                 {% for rbt in rbtlist %}
                 <tr>
                   <td class="rid">{{ rbt.rid }}</td>
                   <td>{{ rbt.alias }}</td>
                   <td>{{ rbt.battthres }}%</td>
-                  <!-- <td><input type="text" name="rip" id="rip" value="{{rbt.rip}}" style="all: inherit;" /></td> -->
                   <td contenteditable="true" class="rip">{{ rbt.rip }}</td>
                 </tr>
                 {% endfor %}
@@ -84,67 +83,80 @@
               <h4 class="mb-0 text-white">Robot Creation</h4>
             </div>
             <div class="row">
-              <form id="rbt_creation_form" method="POST" action="">
+              <form id="regRbtForm" method="POST" action="/configuration">
+                <input type="hidden" name="regRbtForm" value="regRbtForm">
                 <div class="row mb-4">
-                  <label for="rbt_ip" class="col-sm-6 col-form-label text-white">Robot IP: </label>
+                  <label for="rbtID" class="col-sm-6 col-form-label text-white">Robot ID: </label>
                   <div class="col-sm-6">
-                    <input type="text" id="rbt_ip" name="rbt_ip" placeholder="Robot IP" class="form-control"
-                      title='Input your robot IP address' required />
+                    <input type="text" id="rbtID" name="rbtID" title='Input your robot ID' 
+                      placeholder="Robot ID" class="form-control" required />
                   </div>
                 </div>
 
                 <div class="row mb-4">
-                  <label for="rbt_alias" class="col-sm-6 col-form-label text-white">Robot Alias: </label>
+                  <label for="rbtAlias" class="col-sm-6 col-form-label text-white">Robot Alias: </label>
                   <div class="col-sm-6">
-                    <input type="text" id="rbt_alias" name="rbt_alias" placeholder="Robot Alias" class="form-control"
-                      title='Input your robot Alias' required />
+                    <input type="text" id="rbtAlias" name="rbtAlias" title='Input your robot alias'
+                      placeholder="Robot Alias" class="form-control" required />
                   </div>
                 </div>
 
                 <div class="row mb-4">
-                  <label for="rbt_type" class="col-sm-6 col-form-label text-white">Robot Type: </label>
+                  <label for="defLoc" class="col-sm-6 col-form-label text-white">Default Location: </label>
                   <div class="col-sm-6">
-                    <select id="rbt_type" class="form-select" name="rbt_type">
-                      <option selected>Select your robot type</option>
-                      <option value="1">A</option>
-                      <option value="2">B</option>
-                      <option value="3">C</option>
-                      <option value="4">D</option>
+                    <select id="defLoc" class="form-select" name="defLoc">
+                      <option selected>Select your robot default location</option>
+                      <option value="Station 1">Station 1</option>
+                      <option value="Station 2">Station 2</option>
+                      <option value="Station 3">Station 3</option>
+                      <option value="Station 4">Station 4</option>
+                      <option value="Station 5">Station 5</option>
+                      <option value="Station 6">Station 6</option>
+                      <option value="Charging Station">Charging Station</option>
+                      <option value="Warehouse">Warehouse</option>
                     </select>
                   </div>
                 </div>
 
                 <div class="row mb-4">
-                  <label for="new_btry_thres" class="col-sm-6 col-form-label text-white">New Job Battery Threshold (%):
+                  <label for="tskAccpThres" class="col-sm-6 col-form-label text-white">Task Acceptance Threshold:
                   </label>
                   <div class="col-sm-6">
-                    <input type="number" id="new_btry_thres" class="form-control" name="new_btry_thres" min="0"
+                    <input type="number" id="tskAccpThres" class="form-control" name="tskAccpThres" min="0"
                       max="100" value="1">
                   </div>
                 </div>
 
                 <div class="row mb-4">
-                  <label for="chrg_btry_thres" class="col-sm-6 col-form-label text-white">Charge Battery Threshold (%):
+                  <label for="chrgThres" class="col-sm-6 col-form-label text-white">Charge Battery Threshold (%):
                   </label>
                   <div class="col-sm-6">
-                    <input type="number" id="chrg_btry_thres" class="form-control" name="chrg_btry_thres" min="0"
+                    <input type="number" id="chrgThres" class="form-control" name="chrgThres" min="0"
                       max="100" value="1">
                   </div>
                 </div>
 
                 <div class="row mb-4">
-                  <label for="chrg_btry_thres" class="col-sm-6 col-form-label text-white">Idle Dock Time (min): </label>
+                  <label for="idleTime" class="col-sm-6 col-form-label text-white">Idle Dock Time (min): </label>
                   <div class="col-sm-6">
-                    <input type="number" id="idle_dock_time" class="form-control" name="idle_dock_time" min="0"
+                    <input type="number" id="idleTime" class="form-control" name="idleTime" min="0"
                       max="100" value="1">
+                  </div>
+                </div>
+
+                <div class="row mb-4">
+                  <label for="rbtIP" class="col-sm-6 col-form-label text-white">Robot IP Address: </label>
+                  <div class="col-sm-6">
+                    <input type="text" id="rbtIP" name="rbtIP" title='Input your robot IP address'
+                      placeholder="Robot IP" class="form-control" required />
                   </div>
                 </div>
 
                 <div class="row">
                   <div class="col-sm-3"></div>
                   <div class="col-sm-6 d-flex justify-content-center">
-                    <button type="button" value="addrbt" id="create_rbt_btn" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#exampleModal"
-                      form="rbt_creation_form">Register Robot</button>
+                    <button type="button" name= "regRbtBtn" value="regRbtBtn" id="regRbtBtn" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                      form="regRbtForm">Register Robot</button>
                   </div>
                   <div class="col-sm-3"></div>
                 </div>
@@ -161,16 +173,16 @@
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="exampleModalLabel">Add Robot</h5>
+              <h5 class="modal-title" id="exampleModalLabel">Register Robot</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-
               <p>Are you sure you want to register the robot?</p>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
-              <button type="submit" class="btn btn-primary" form="rbt_creation_form">Yes</button>
+              <button type="submit" id="regRbtYesBtn" name="regRbtYesBtn" value="regRbtYesBtn" 
+                class="btn btn-primary" data-bs-dismiss="modal" form="regRbtForm">Yes</button>
             </div>
           </div>
         </div>

@@ -6,10 +6,10 @@ document.getElementById("msmsgblock").style.left = dif + "px";
 //Set sideCfgBtn active
 document.getElementById("sideCfgBtn").classList.add("active");
 
+
 // const tds_rip = document.querySelectorAll('td:nth-child(4)');
 const tds = document.getElementsByClassName("rip");
 const tdArray=Array.from(tds);
-
 tdArray.forEach(function (td_rip) {
   td_rip.addEventListener("blur", function (event) {
     var target = event.target;
@@ -46,10 +46,54 @@ tdArray.forEach(function (td_rip) {
       throw new Error("Network response was not ok.");
     }).then(function(text) {
       console.log("Response from server:", text);
-      addNotification(text, "warning");
+      if (text == "Robot IP updated successfully"){
+        addNotification(text, "success");
+      }
+      else {
+        addNotification(text, "warning");
+      }
     }).catch(function(error) {
       console.error("Error sending request:", error);
       addNotification("Update unsuccessful! Error sending request!", "warning");
     });
+
   });
 });
+
+
+
+//register robot form listener
+const regRbtForm = document.querySelector('#regRbtForm');
+regRbtForm.addEventListener('submit', (event) => {
+    event.preventDefault(); // Disable default form submission behavior
+    fetch(regRbtForm.action, {
+      method: regRbtForm.method,
+      body: new FormData(regRbtForm)
+    })
+    .then(response => response.json())
+    .then(function(data) {
+      //console show response
+      console.log("Response from server:", data.message);
+      
+      //show notification
+      if (data.message == "Robot successfully registered!") {
+        //reset form
+        regRbtForm.reset();
+        addNotification(data.message, "success");
+        //update table
+        tableBody = document.getElementById("rbtListTBody");
+        const newRow =
+          `<tr>
+            <td class="rid">${data.rbtInfo.rbtID}</td>
+            <td>${data.rbtInfo.rbtAlias}</td>
+            <td>${data.rbtInfo.chrgThres}%</td>
+            <td contenteditable="true" class="rip">${data.rbtInfo.rbtIP}</td>
+          </tr>`;
+        tableBody.insertAdjacentHTML('beforeend', newRow);
+      } else {
+        addNotification(data.message, "warning");
+      }
+
+      
+    })
+  });

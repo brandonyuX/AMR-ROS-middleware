@@ -1,11 +1,12 @@
 #Main class for task 
+import json 
 
 class Task:
-    def __init__(self,tid,rid,reqid,comp,taskcode,currstep,endstep,destloc,hsmsg,lastupd,exec,tskmodno,processing) -> None:
+    def __init__(self,tid,rid,reqid,completed,taskcode,currstep,endstep,destloc,hsmsg,lastupd,exec,tskmodno,processing) -> None:
         self.tid=tid
         self.rid=rid
         self.reqid=reqid
-        self.comp=comp
+        self.completed=completed
         self.taskcode=taskcode
         self.currstep = currstep
         self.destloc=destloc
@@ -17,6 +18,10 @@ class Task:
         self.processing=processing
 
     def __str__(self) -> str:
-        text="{} {} {} {} {} {} {}".format(self.tid,self.rid,self.reqid,self.comp,self.taskcode,self.currstep,self.endstep)
+        text="{} {} {} {} {} {} {}".format(self.tid,self.rid,self.reqid,self.completed,self.taskcode,self.currstep,self.endstep)
         return text
         
+    def to_dict(self):
+        self_dict = self.__dict__
+        self_dict['completed'] = 'Completed Task' if self_dict['completed'] else 'Active Task'
+        return self_dict

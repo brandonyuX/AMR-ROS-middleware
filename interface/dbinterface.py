@@ -239,7 +239,7 @@ def writeTask(finalrid,reqid,rbt_list,req_list):
 def writeSubTask(tsklist):
     
     for tsk in tsklist:
-        cursor.execute("INSERT INTO SubTask (TaskModelID,ActionType,Step,EndStep,Command) VALUES (?,?,?,?,?)",tsk.tskmodno,tsk.action,tsk.step,len(tsklist),tsk.cmd)
+        cursor.execute("INSERT INTO SubTask (TaskModelID,ActionType,Step,EndStep,Command) VALUES (?,?,?,?,?)",tsk.tmid,tsk.cmd,tsk.currstep,len(tsklist),tsk.cmd)
         cursor.commit()
 
 def updateReqStatus(status,reqid):
@@ -442,3 +442,15 @@ def updateRip(rip, rid):
     cursor.execute("UPDATE Configuration SET RobotIP = ? WHERE RobotID = ?",rip,rid)
     cursor.commit()
     
+
+
+def registerRbt(RobotID, Alias,TaskAcceptanceThres,DefaultLoc,RobotIP, ChargeThres, IdleTime):
+    cursor.execute("SELECT * FROM Configuration WHERE RobotID=?", RobotID)
+    row = cursor.fetchone()
+    if row:
+        return "Register unsuccessful! Robot(ID: {0}) already exist in database!".format(RobotID)
+    else:
+        cursor.execute("INSERT INTO Configuration (RobotID, Alias,TaskAcceptanceThres,DefaultLoc,RobotIP, ChargeThres, IdleTime) VALUES (?,?,?,?,?,?,?)", RobotID, Alias,TaskAcceptanceThres,DefaultLoc,RobotIP, ChargeThres, IdleTime)
+        cursor.commit()
+        return "Robot successfully registered!"
+    # 

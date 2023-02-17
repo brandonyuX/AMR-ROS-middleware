@@ -307,12 +307,19 @@ def indexpost():
 def config():
     # Check if user is loggedin
     if 'loggedin' in session:
-        if request.method == "POST" and len(request.form.get("rip", "")) != 0 and len(request.form.get("rid", "")) != 0:
-            print("POST request triggered")
-            dbinterface.updateRip(request.form['rip'], request.form['rid'])
-            return "Robot IP updated successfully"
+        if request.method == "POST":
+            if len(request.form.get("rip", "")) != 0 and len(request.form.get("rid", "")) != 0:
+                dbinterface.updateRip(request.form['rip'], request.form['rid'])
+                return "Robot IP updated successfully"
+            elif "regRbtForm"in request.form:
+                status=dbinterface.registerRbt(request.form['rbtID'],request.form['rbtAlias'],request.form['tskAccpThres'],
+                request.form['defLoc'],request.form['rbtIP'],request.form['chrgThres'],request.form['idleTime'])
+                response_data = {
+                    'rbtInfo': request.form.to_dict(),
+                    'message': status
+                }
+                return jsonify(response_data)
         else:
-            print("GET request triggered")
             rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
             return render_template('configuration-new.html',rbtlist=rc_list, username=session['username'])
 
@@ -366,49 +373,47 @@ def get_list():
         result['rbtinfo']=[]
         #Convert python object to json
         for rbt in rbt_list:
-            rbt_info={}
-            rbt_info['x']=rbt.x
-            rbt_info['y']=rbt.y
-            rbt_info['r']=rbt.r
-            rbt_info['msg']=rbt.msg
-            rbt_info['rid']=rbt.rid
-            rbt_info['avail']=rbt.avail
-            rbt_info['currloc']=rbt.currloc
-            result['rbtinfo'].append(rbt_info)
+            # rbt_info={}
+            # rbt_info['x']=rbt.x
+            # rbt_info['y']=rbt.y
+            # rbt_info['r']=rbt.r
+            # rbt_info['msg']=rbt.msg
+            # rbt_info['rid']=rbt.rid
+            # rbt_info['avail']=rbt.avail
+            # rbt_info['currloc']=rbt.currloc
+            result['rbtinfo'].append(rbt.__dict__)
         
         #Convert task table information to json
         result2={}
         result2['taskinfo']=[]
         #Convert python object to json
         for tsk in tsk_list:
-            tsk_info={}
-            tsk_info['tid']=tsk.tid
-            tsk_info['rid']=tsk.rid
-            tsk_info['reqid']=tsk.reqid
-            tsk_info['currstep']=tsk.currstep
-            tsk_info['endstep']=tsk.endstep
-            if tsk.comp==1: 
-                tsk_info['completed']='Completed Task' 
-            else:
-                tsk_info['completed']='Active Task'
-        
-            result2['taskinfo'].append(tsk_info)
+            # tsk_info={}
+            # tsk_info['tid']=tsk.tid
+            # tsk_info['rid']=tsk.rid
+            # tsk_info['reqid']=tsk.reqid
+            # tsk_info['currstep']=tsk.currstep
+            # tsk_info['endstep']=tsk.endstep
+            # if tsk.comp==1: 
+            #     tsk_info['completed']='Completed Task' 
+            # else:
+            #     tsk_info['completed']='Active Task'
+
+            result2['taskinfo'].append(tsk.to_dict())
 
         #Convert plc request table information to json
         result3={}
         result3['reqinfo']=[]
         #Convert python object to json
         for req in req_list:
-            req_info={}
-            req_info['plcid']=req.plcid
-            req_info['reqid']=req.reqid
-            req_info['destloc']=req.destloc
-            req_info['tskmodno']=req.tskmodno
-            req_info['status']=req.status
+            # req_info={}
+            # req_info['plcid']=req.plcid
+            # req_info['reqid']=req.reqid
+            # req_info['destloc']=req.destloc
+            # req_info['tskmodno']=req.tskmodno
+            # req_info['status']=req.status
 
-            
-        
-            result3['reqinfo'].append(req_info)
+            result3['reqinfo'].append(req.__dict__)
         
         msinfo=dbinterface.readLog('ms')
         #print(msinfo)
@@ -427,32 +432,14 @@ def taskmodelcreatepost():
     # Check if user is loggedin
     if 'loggedin' in session:
         #Read the type of request and process
-        posttype=request.form['type']
-        print(posttype)
+        posttype=request.form['actionTrigger']
+        print("Button Listener: " + posttype + " (Triggered)")
         
-        if(posttype=='createtm'):
-            print('Create task model')
-            tskmodno=request.form['tskmodno']
-            print(tskmodno)
-            querysublist=dbinterface.getSubTaskListByID(int(tskmodno))
-            print(len(querysublist))
-            #Check if task model id exist
-            if(len(querysublist)==0):
-                dbinterface.writeSubTask(subtasklist)
-                print('Task Model created!')
-            else:
-                print('Task Model already exist, please delete old task model to create new task model')
-            return render_template('taskmodelcreate-new.html', username=session['username'])
-
-        elif(posttype=="clear"):
-            print('Run clear routine')
-            subtasklist.clear()
-            return render_template('taskmodelcreate-new.html', username=session['username'])
-        elif (posttype=="addstep"):
-            print('enter add step')
+        if (posttype == "defineST"):
+            print('Start defining Sub Task')
             tskmodno=request.form['tskmodno']
             sel=request.form['gridRadios']
-            print(tskmodno+' '+sel)
+            print("Task Model (ID:" + tskmodno + ') Action: '+sel)
             if(sel=='Custom Command'):
                 cmd=request.form['custCmd']
                 print(cmd)
@@ -467,6 +454,25 @@ def taskmodelcreatepost():
                 subtasklist.append(st)
 
             return render_template('taskmodelcreate-new.html',subtsklist=subtasklist,tskmod=tskmodno, username=session['username'])
+        
+        elif (posttype == "clearST"):
+            print('Run clear routine')
+            subtasklist.clear()
+            return render_template('taskmodelcreate-new.html', username=session['username'])
+        
+        elif (posttype=='registerTM'):
+            print('Create task model')
+            tskmodno=request.form['tskmodno']
+            print(tskmodno)
+            querysublist=dbinterface.getSubTaskListByID(int(tskmodno))
+            print(len(querysublist))
+            #Check if task model id exist
+            if(len(querysublist)==0):
+                dbinterface.writeSubTask(subtasklist)
+                print('Task Model created!')
+            else:
+                print('Task Model already exist, please delete old task model to create new task model')
+            return render_template('taskmodelcreate-new.html', username=session['username'])
 
 
 #API Section

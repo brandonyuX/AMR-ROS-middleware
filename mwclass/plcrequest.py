@@ -7,7 +7,7 @@ class PLCReq:
         self.pickup=pickup
         self.destloc=destloc
         self.priority=priority
-        self.reqtime=reqtime
+        self.reqtime=reqtime.isoformat()
         self.srcloc=srcloc
         self.tskmodno=tskmodno
         self.tranid=tranid

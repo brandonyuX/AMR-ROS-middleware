@@ -9,6 +9,7 @@ document.getElementById("sideDbBtn").classList.add("active");
 var get_table = function getInfo() {
   let myRequest = new Request('/get_list');
   fetch(myRequest).then(response => response.json()).then(function (data) {
+    // console.log(data);
     var availno = 0;
 
     //Build robot information table from array
