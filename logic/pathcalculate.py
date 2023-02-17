@@ -24,7 +24,10 @@ graph.add_edge(3,5,(100,'TPUp'))
 graph.add_edge(5,3,(100,"TPLeft"))
 
 graph.add_edge(4,9,(100,'TPDown'))
-graph.add_edge(9,4,(100,"CL2"))
+graph.add_edge(9,4,(100,"MR"))
+
+graph.add_edge(4,10,(100,'TPDown'))
+graph.add_edge(10,4,(100,"PL"))
 
 graph.add_edge(5,6,(100,'TPLeft'))
 graph.add_edge(6,5,(100,"WH"))
@@ -36,7 +39,7 @@ graph.add_edge(5,7,(100,'TPLeft'))
 graph.add_edge(7,5,(100,"Stn 6"))
 
 graph.add_edge(7,8,(100,'Stn 6'))
-graph.add_edge(8,7,(100,"CL2"))
+graph.add_edge(8,7,(100,"FL"))
 
 graphdict={"CHR":1,
             "Stn1":2,
@@ -45,8 +48,9 @@ graphdict={"CHR":1,
             "TPLeft":5,
             "WH":6,
             "Stn6":7,
-            "CL1":8,
-            "CL2":9
+            "FL":8,
+            "MR":9,
+            "PL":10
             }
 
 
@@ -74,15 +78,30 @@ def calculate_shortest(src,dest):
     print('<P>From Path Calculate Module : {}\n'.format(tempstr))
     return (find_path(graph, graphdict[src], graphdict[dest], cost_func=cost_func).total_cost)
 
+def generate_path_simple(dest):
+    strlist=[]
+    currentloc=dbinterface.getRbtLoc(1)
+    #Find path from current location to source
+    curr2src=find_path(graph, graphdict[currentloc], graphdict[dest], cost_func=cost_func)
+    for i in range(len(curr2src[0])):
+        val=curr2src[0][i]
+        strlist.append(get_key(val))
+    
+    
+    return (strlist)
+    
 #Generate path based on graph
-def generate_path(src,dest):
+def generate_path(src,dest,dest2):
     strlist=[]
     currentloc=dbinterface.getRbtLoc(1)
 
-
+    #Find path from current location to source
     curr2src=find_path(graph, graphdict[currentloc], graphdict[src], cost_func=cost_func)
 
+    #Find path from source to destination
     src2dest=(find_path(graph, graphdict[src], graphdict[dest], cost_func=cost_func))
+    
+    
     
     
     for i in range(len(curr2src[0])):
@@ -94,6 +113,16 @@ def generate_path(src,dest):
         val=src2dest[0][i+1]
         strlist.append(get_key(val))
     strlist.append('DEST')
+
+    if(dest2!=''):
+            #Find path from dest to dest 2
+            dest2dest2=(find_path(graph, graphdict[dest], graphdict[dest2], cost_func=cost_func))
+            for i in range(len(dest2dest2[0])-1):
+                val=dest2dest2[0][i+1]
+                strlist.append(get_key(val))
+            strlist.append('DEST2')
+       
+        
     
     ret_str=";".join(strlist)
     return (ret_str)
@@ -108,8 +137,9 @@ def test():
         key = next(key for key, value in graphdict.items() if value == path)
         print(key+'-->')
 
-#dbinterface.startup()
+dbinterface.startup()
 #print(generate_path('WH','Stn1'))
 # # for i in range(len(pathinfo[0])):
 
 # #     print(pathinfo[0][i])
+print(generate_path_simple('Stn1'))

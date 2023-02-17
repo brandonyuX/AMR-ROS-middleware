@@ -1,5 +1,5 @@
 #Interface for WMS
-import sys,yaml
+import sys,yaml,os
 sys.path.append('../Middleware Development')
 
 
@@ -16,23 +16,25 @@ def reqEb():
     try:
         print('<WI>Request bottle from WMS')
         #res = requests.post('http://'+wmsip+'/syngenta/mc/production/requesteb',timeout=5)
-        res = requests.post('https://63bcd5b8fa38d30d85d2459d.mockapi.io/requesteb',timeout=5)
+        res = requests.post('http://'+wmsip+':3000/syngenta/mc/production/requesteb',timeout=5)
+        print('reponse code from server: {}'.format(res.status_code))
         print ('response from server:'+res.text)
-    except:
-        print('WMS Connection timeout!')
+    except Exception as e:
+        print(e)
 
 #Send empty tote box from unscrambling station to warehouse
 
 def reqstb():
     try:
-        res = requests.post('http://'+wmsip+'/syngenta/mc/production/storeetb',timeout=5)
+        res = requests.post('http://'+wmsip+':3000/syngenta/mc/production/storeetb',timeout=5)
+        print('reponse code from server: {}'.format(res.status_code))
         print ('response from server:'+res.text)
-    except:
-        print('WMS Connection timeout!')
+    except Exception as e:
+        print(e)
     
 #Send empty tote box from warehouse to case packing station
 
-def reqsfc():
+def reqetb():
     try:
         res = requests.post('http://'+wmsip+'/syngenta/mc/production/requestetb',timeout=5)
         print ('response from server:'+res.text)
@@ -50,11 +52,17 @@ def reqwmsrdy():
 
 #Inform WMS to start the custom operation. WMS subsequently create the tasks required for the custom operation. E.g. Retrieve multiple Tote Box
 
-def customop():
-    dictToSend = {'WMS Request ID':'12345'}
+def customop(reqid):
+    dictToSend = {'WMS Request ID':reqid}
     try:
         res = requests.post('http://'+wmsip+'/syngenta/mc/wms/startcustomop',json=dictToSend,timeout=5)
-        print ('response from server:'+res.text)
+        print ('<WMS> response from server:'+res.text)
+        if(res.status_code==401):
+            print('<WMS> WMS unable to generate task')
+            os.environ['CUSTORDERSTATUS']='ERROR'
+        elif res.status_code==200:
+            os.environ['CUSTORDERSTATUS']='OK'
+            print('<WMS>Task response from MES:'+res.text)
     except:
         print('WNS Connection timeout')
 #AMR to retrieve tote box with WMS task ID
@@ -87,3 +95,34 @@ def reqrcc():
     except:
         print('WNS Connection timeout')
 
+#AMR to store filled carton to WMS
+
+def reqsfc(batchid):
+    dictToSend = {"BatchID":batchid,"ItemType":"Y01"}
+    try:
+        res = requests.post('http://'+wmsip+'/syngenta/mc/production/storefc',json=dictToSend,timeout=5)
+        print('reponse code from server: {}'.format(res.status_code))
+        print ('response from server:'+res.text)
+    except:
+        print('WNS Connection timeout')
+        
+#Inform WMS ready for manual task
+def informManualTask(tid):
+    
+    dictToSend = {"WMS Task ID":tid}
+    try:
+        res = requests.post('http://'+wmsip+'/syngenta/mc/wms/manualtask',json=dictToSend,timeout=5)
+        print('reponse code from server: {}'.format(res.status_code))
+        print ('response from server:'+res.text)
+    except:
+        print('WNS Connection timeout')  
+        
+#Signal WMS bin is at tail sensor of warehouse
+def signalBinAtWH(tid):
+    
+    try:
+        res = requests.post('http://'+wmsip+'/syngenta/mc/wms/binatstation',timeout=5)
+        print('reponse code from server: {}'.format(res.status_code))
+        print ('response from server:'+res.text)
+    except:
+        print('WNS Connection timeout')  

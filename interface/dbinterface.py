@@ -55,6 +55,7 @@ def startup():
     
     
     cnxn = pyodbc.connect('Driver=SQL Server;Server='+server+';Database='+database+';Trusted_Connection=yes;')
+    cnxn.autocommit=True
     cursor = cnxn.cursor()
     print('<DB>Database connected')
 
@@ -188,19 +189,44 @@ def getTaskList():
 
     return tsk_list
 
-
+#Write move chain step
+def writeMCStep(tid,step):
+    #print(tid)
+    # cursor.execute("SELECT TaskCode FROM RbtTask WHERE TaskID=?",tid) 
+    # row = cursor.fetchone() 
+    # newstep=row[0]+1
+    #print(newstep)
+    cursor.execute("UPDATE RbtTask SET TaskCode=? WHERE TaskID=?",step,tid) 
+    cursor.commit()
+    
+def getMCStep(tid):
+    cursor.execute("SELECT TaskCode FROM RbtTask WHERE TaskID=?",tid) 
+    row = cursor.fetchone() 
+    #print (row)
+    return row[0]
 #Get the latest task that is not completed
 def getTaskListTop():
      #Fetch Robot task list
     tsk_list.clear()
-    cursor.execute("SELECT * FROM RbtTask WHERE Completed=0") 
+    cursor.execute("SELECT TOP 1 * FROM RbtTask WHERE Completed=0") 
     row = cursor.fetchone() 
     if row:
         tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12])  
         tsk_list.append(tsk)
-
+    
     return tsk_list
 
+#Get the latest custom task that is not completed
+def getCustomListTop():
+     #Fetch Robot task list
+    tsk_list.clear()
+    cursor.execute("SELECT TOP 1 * FROM CustomTask WHERE Completed=0") 
+    row = cursor.fetchone() 
+    if row:
+        tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12])  
+        tsk_list.append(tsk)
+    
+    return tsk_list
 def getIPList():
     iplist=[]
     cursor.execute("SELECT RobotIP FROM Configuration") 
@@ -222,10 +248,27 @@ def insertReq(plcid,reqid,destloc,priority,reqtime,tskmodno):
     cursor.commit()
 
 
-def insertRbtTask(destloc,tskmod):
-    cursor.execute("INSERT INTO RbtTask(RobotID,Completed,TaskCode,CurrStep,EndStep,DestLoc,Executing,TaskModelID,ReqID) VALUES (?,?,?,?,?,?,?,?,?)",1,0,0,1,4,destloc,0,tskmod,100)
+def insertRbtTask(destloc,tskmod,es):
+    cursor.execute("INSERT INTO RbtTask(RobotID,Completed,TaskCode,CurrStep,EndStep,DestLoc,Executing,TaskModelID,ReqID,MoveStep) VALUES (?,?,?,?,?,?,?,?,?,?)",1,0,0,1,es,destloc,0,tskmod,100,0)
     cursor.commit()
     print('<DB> Write to robot task destination {}'.format(destloc))
+
+#Insert custom task from WMS
+def insertCustomTask(destloc,tskmod,es,wmsreq,wmstsk):
+    cursor.execute("INSERT INTO CustomTask(RobotID,Completed,TaskCode,CurrStep,EndStep,DestLoc,Executing,TaskModelID,ReqID,WMSTaskID,HSMsg) VALUES (?,?,?,?,?,?,?,?,?,?,?)",1,0,0,1,es,destloc,0,tskmod,wmsreq,wmstsk,'CUSTOM')
+    cursor.commit()
+    print('<DB> Write to robot task destination {}'.format(destloc))
+
+#Write movestep
+def writeMoveStep(step,reqid):
+    cursor.execute("UPDATE RbtTask SET MoveStep = ? WHERE ReqID=?",step,reqid) 
+    cursor.commit()
+
+#Read movestep
+def getMoveStep(reqid):
+    cursor.execute("SELECT MoveStep FROM EbtTask WHERE ReqID=?",reqid) 
+    row=cursor.fetchone()
+    return row[0]
 
 
 def writeTask(finalrid,reqid,rbt_list,req_list):
@@ -318,22 +361,53 @@ def readLog(type):
         cursor.execute("SELECT MSMsg FROM MessageTable WHERE MsgID=1") 
         row = cursor.fetchone() 
         return row[0]
-    
 
+#Find available work order in each station
+def findWO(stn):
+    statement="SELECT TOP 1 * FROM wo_stn{} WHERE processed_qty=0 AND status='NEW'".format(stn)
+    cursor.execute(statement)
+    row=cursor.fetchone()
+    return row
+
+#Set work order start
+def setWOStart(stn,wonum):
+    statement="UPDATE wo_stn{} SET status='STARTED' WHERE wo_number='{}'".format(stn,wonum)   
+    cursor.execute(statement) 
+    cursor.commit()
+    
+#Get work order
+def writeWO(wolist):
+    reqqty=5
+    
+    for wo in wolist:
+        cursor.execute("INSERT INTO wo_stn1 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,reqqty,0,'','','NEW',wo.fillvol,wo.torque)
+        cursor.commit()
+        cursor.execute("INSERT INTO wo_stn2 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,reqqty,0,'','','NEW',wo.fillvol,wo.torque)
+        cursor.commit()
+        cursor.execute("INSERT INTO wo_stn3 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,reqqty,0,'','','NEW',wo.fillvol,wo.torque)
+        cursor.commit()
+        cursor.execute("INSERT INTO wo_stn4 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,reqqty,0,'','','NEW',wo.fillvol,wo.torque)
+        cursor.commit()
+        cursor.execute("INSERT INTO wo_stn5 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,reqqty,0,'','','NEW',wo.fillvol,wo.torque)
+        cursor.commit()
+        cursor.execute("INSERT INTO wo_stn6 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,reqqty,0,'','','NEW',wo.fillvol,wo.torque)
+        cursor.commit()
 #Write into Work Order
 def writeWO(wolist):
+    reqqty=12
+    
     for wo in wolist:
-        cursor.execute("INSERT INTO wo_stn1 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,20,0,'','','NEW',wo.fillvol,wo.torque)
+        cursor.execute("INSERT INTO wo_stn1 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,reqqty,0,'','','NEW',wo.fillvol,wo.torque)
         cursor.commit()
-        cursor.execute("INSERT INTO wo_stn2 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,20,0,'','','NEW',wo.fillvol,wo.torque)
+        cursor.execute("INSERT INTO wo_stn2 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,reqqty,0,'','','NEW',wo.fillvol,wo.torque)
         cursor.commit()
-        cursor.execute("INSERT INTO wo_stn3 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,20,0,'','','NEW',wo.fillvol,wo.torque)
+        cursor.execute("INSERT INTO wo_stn3 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,reqqty,0,'','','NEW',wo.fillvol,wo.torque)
         cursor.commit()
-        cursor.execute("INSERT INTO wo_stn4 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,20,0,'','','NEW',wo.fillvol,wo.torque)
+        cursor.execute("INSERT INTO wo_stn4 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,reqqty,0,'','','NEW',wo.fillvol,wo.torque)
         cursor.commit()
-        cursor.execute("INSERT INTO wo_stn5 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,20,0,'','','NEW',wo.fillvol,wo.torque)
+        cursor.execute("INSERT INTO wo_stn5 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,reqqty,0,'','','NEW',wo.fillvol,wo.torque)
         cursor.commit()
-        cursor.execute("INSERT INTO wo_stn6 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,20,0,'','','NEW',wo.fillvol,wo.torque)
+        cursor.execute("INSERT INTO wo_stn6 (batch_number,wo_number,manufacture_date,fnp_date,init_serial_number,required_qty,processed_qty,start_time,end_time,status,fill_volume,target_torque) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",wo.batchid,wo.wolist,wo.mfgdate,wo.fnpdate,wo.sn,reqqty,0,'','','NEW',wo.fillvol,wo.torque)
         cursor.commit()
 
     print('<DB> Write Work Order to all stations')
@@ -374,6 +448,47 @@ def getWOQ(stn):
                 return row[1]
             row = cursor.fetchone()
 
+#Create custom request queue
+def writeCustomReq(reqid,dest,priority):
+    cursor.execute("INSERT INTO CustomRequest (reqid,dest,priority,status) VALUES (?,?,?)",reqid,dest,priority,'NEW')
+    cursor.commit()
+ #Get priority task id
+def getCustomTaskID():
+    cursor.execute("SELECT TOP 1 * FROM CustomRequest WHERE priority=1 AND status='NEW'") 
+    row = cursor.fetchone() 
+    return row[1]
+
+ #Get normal task id
+def getCustomNTaskID():
+    cursor.execute("SELECT TOP 1 * FROM CustomRequest WHERE priority=0 AND status='NEW'") 
+    row = cursor.fetchone() 
+    return row[1]
+
+#Check if priority task is active   
+def checkPriorityTask():
+    cursor.execute("SELECT * FROM CustomRequest WHERE priority=1 AND status='NEW'") 
+    row = cursor.fetchone() 
+    if row:
+        return True
+    else:
+        
+        return False
+    
+#Check if there is any normal custom request
+def checkNormalTask():
+    cursor.execute("SELECT * FROM CustomRequest WHERE priority=0 AND status='NEW'") 
+    row = cursor.fetchone() 
+    if row:
+        return True
+    else:
+        return False
+
+#Change Custom Request status
+def setCRStatus(reqid):
+    cursor.execute("UPDATE CustomRequest SET status='PROCESSING' WHERE reqid = ?",reqid)
+    cursor.commit()
+    
+    
 #Set work order, station number and status (a-available,p-in progress, c-completed, f-fault)
 def updateWO(wo_id,stn,stat):
    

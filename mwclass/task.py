@@ -2,12 +2,12 @@
 import json 
 
 class Task:
-    def __init__(self,tid,rid,reqid,completed,taskcode,currstep,endstep,destloc,hsmsg,lastupd,exec,tskmodno,processing) -> None:
+    def __init__(self,tid,rid,reqid,completed,mcstep,currstep,endstep,destloc,hsmsg,lastupd,exec,tskmodno,processing) -> None:
         self.tid=tid
         self.rid=rid
         self.reqid=reqid
         self.completed=completed
-        self.taskcode=taskcode
+        self.mcstep=mcstep
         self.currstep = currstep
         self.destloc=destloc
         self.endstep=endstep
@@ -18,7 +18,7 @@ class Task:
         self.processing=processing
 
     def __str__(self) -> str:
-        text="{} {} {} {} {} {} {}".format(self.tid,self.rid,self.reqid,self.completed,self.taskcode,self.currstep,self.endstep)
+        text="{} {} {} {} {} {} {}".format(self.tid,self.rid,self.reqid,self.completed,self.mcstep,self.currstep,self.endstep)
         return text
         
     def to_dict(self):
