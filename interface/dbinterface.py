@@ -137,7 +137,10 @@ def delSubTaskByID(tskmodno):
 #Retrieve Subtask information by task model id
 def getSubTaskListByID(tskmodno):
     subtsk_list.clear()
-    cursor.execute("SELECT * FROM SubTask WHERE TaskModelID = ?",tskmodno) 
+    if tskmodno == "":
+        cursor.execute("SELECT * FROM SubTask")
+    else: 
+        cursor.execute("SELECT * FROM SubTask WHERE TaskModelID = ?",tskmodno) 
     row = cursor.fetchone() 
     while row: 
         #print(row[0])

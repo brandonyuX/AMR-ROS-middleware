@@ -50,7 +50,7 @@
                 <div class="col-sm-2"></div>
                 <div class="col-sm-8" style="display: inline-flex;">
                   <input type="text" id="queryID" name="queryID" placeholder="Enter Task Model ID" class="form-control"
-                  title='Enter Task Model ID' required />
+                  title='Enter Task Model ID! Blank = Request All!'/>
                   <input type="submit" id="queryBtn" class="btn btn-primary" form="tskQueryForm" style="width: 35%;">Query</input>
                 </div>
                 <div class="col-sm-2"></div>
@@ -65,9 +65,11 @@
         <div class="bg-content-card text-center rounded p-4">
           <div class="row g-4">
             <div class="table-responsive">
-              <table class="table text-start align-middle table-bordered table-hover mb-0">
+              <table class="table text-center align-middle table-bordered table-hover mb-0">
                 <thead>
                   <tr class="text-white">
+                    <th scope="col">Task Model ID</th>
+                    <th scope="col">Sub Task ID</th>
                     <th scope="col">Action Type</th>
                     <th scope="col">Step</th>
                     <th scope="col">End Step</th>
@@ -77,6 +79,8 @@
                 <tbody id="queryTskModel">
                   {% for subtsk in subtsklist %}
                   <tr>
+                    <td>{{ subtsk.tmid }}</td>
+                    <td>{{ subtsk.stid }}</td>
                     <td>{{ subtsk.at }}</td>
                     <td>{{ subtsk.currstep }}</td>
                     <td>{{ subtsklen }}</td>
