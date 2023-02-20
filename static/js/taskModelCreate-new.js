@@ -17,3 +17,5 @@ var radios = document.querySelectorAll('[name=gridRadios]');
         cmdtxt.setAttribute('disabled', 'disabled');
     });
   });
+
+  

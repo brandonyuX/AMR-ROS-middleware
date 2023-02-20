@@ -6,11 +6,7 @@ document.getElementById("msmsgblock").style.left = dif + "px";
 //Set sideCfgBtn active
 document.getElementById("sideCfgBtn").classList.add("active");
 
-
-// const tds_rip = document.querySelectorAll('td:nth-child(4)');
-const tds = document.getElementsByClassName("rip");
-const tdArray=Array.from(tds);
-tdArray.forEach(function (td_rip) {
+function rip_listener(td_rip) {
   td_rip.addEventListener("blur", function (event) {
     var target = event.target;
     const row = event.target.parentNode;
@@ -58,7 +54,12 @@ tdArray.forEach(function (td_rip) {
     });
 
   });
-});
+}
+
+// const tds_rip = document.querySelectorAll('td:nth-child(4)');
+const tds = document.getElementsByClassName("rip");
+const tdArray=Array.from(tds);
+tdArray.forEach(rip_listener);
 
 
 
@@ -90,6 +91,7 @@ regRbtForm.addEventListener('submit', (event) => {
             <td contenteditable="true" class="rip">${data.rbtInfo.rbtIP}</td>
           </tr>`;
         tableBody.insertAdjacentHTML('beforeend', newRow);
+        rip_listener(document.querySelectorAll(".rip")[document.querySelectorAll(".rip").length-1])
       } else {
         addNotification(data.message, "warning");
       }

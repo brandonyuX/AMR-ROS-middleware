@@ -1,7 +1,7 @@
 from cgi import test
 from flask import Flask, render_template,request,session,make_response,redirect,url_for,jsonify
 import interface.dbinterface as dbinterface
-import schedulers.woscheduler as woscheduler
+# import schedulers.woscheduler as woscheduler
 import main
 import test_wo
 from mwclass.workorder import WO
@@ -19,7 +19,7 @@ from flask_login import login_required, current_user,LoginManager,login_user,log
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, validators
 from flask_sqlalchemy import SQLAlchemy
-import schedulers.rbtscheduler as rbtscheduler
+# import schedulers.rbtscheduler as rbtscheduler
 from wtforms.validators import InputRequired, Length, ValidationError
 import threading
 from flask_bcrypt import Bcrypt
@@ -323,23 +323,25 @@ def config():
                 return jsonify(response_data)
         else:
             rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
-            return render_template('configuration-new.html',rbtlist=rc_list, username=session['username'])
+            return render_template('configuration-new.html',rbtlist=rc_list, username=session['username'])        
 
-@app.route('/taskmodelquery')
+@app.route('/taskmodelquery', methods=['POST','GET'])
 # @login_required
 def taskmodelconfig():
     # Check if user is loggedin
     if 'loggedin' in session:
-        return render_template('taskmodelquery-new.html', username=session['username'])
-
-@app.route('/taskmodelquery', methods=['POST'])
-# @login_required
-def taskmodelconfigget():
-    # Check if user is loggedin
-    if 'loggedin' in session:
-        text = request.form['queryID']
-        subtsklist=dbinterface.getSubTaskListByID(text)
-        return render_template('taskmodelquery-new.html',subtsklist=subtsklist,subtsklen=len(subtsklist), username=session['username'])
+        if request.method == 'POST':
+            queryID = request.form['queryID']
+            subtsklist=dbinterface.getSubTaskListByID(queryID)
+            sbList={}
+            sbList['sbList']=[]
+            for st in subtsklist:
+                sbList['sbList'].append(st.__dict__)
+            jsonString = json.dumps(sbList)
+            return jsonify(jsonString)
+            # return render_template('taskmodelquery-new.html',subtsklist=subtsklist,subtsklen=len(subtsklist), username=session['username'])
+        else:
+            return render_template('taskmodelquery-new.html', username=session['username'])
 
 @app.route('/taskmodelcreate')
 # @login_required
@@ -572,18 +574,18 @@ def createWMSTask():
     # 3. Custom
     # 4. Manual
     
-    match action:
-        case '1':
-            print('<SVR> Write retrieval action to custom task table')
+    # match action:
+    #     case '1':
+    #         print('<SVR> Write retrieval action to custom task table')
             
-            pass
-        case '2':
-            print('<SVR> Write store action to custom task table')
-            pass
-        case '3':
-            pass
-        case '4':
-            pass
+    #         pass
+    #     case '2':
+    #         print('<SVR> Write store action to custom task table')
+    #         pass
+    #     case '3':
+    #         pass
+    #     case '4':
+    #         pass
         
               
     response = make_response("Task Accepted", 200)
@@ -682,10 +684,11 @@ def checkEmpty():
 #Initialize all interfaces
 dbinterface.startup()
 
-robotinterface.startup()
-plcinterface.startup()
-#woscheduler.startup()
-#rbtscheduler.startup()
+
+# robotinterface.startup()
+# plcinterface.startup()
+# woscheduler.startup()
+# rbtscheduler.startup()
 
 app.run(host='0.0.0.0',debug=False)
 
