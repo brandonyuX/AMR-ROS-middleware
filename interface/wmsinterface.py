@@ -1,5 +1,5 @@
 #Interface for WMS
-import sys,yaml,os
+import sys,yaml,os,json
 sys.path.append('../Middleware Development')
 
 
@@ -31,7 +31,8 @@ def reqstb():
         print ('response from server:'+res.text)
     except Exception as e:
         print(e)
-    
+
+
 #Send empty tote box from warehouse to case packing station
 
 def reqetb():
@@ -63,6 +64,15 @@ def customop(reqid):
         elif res.status_code==200:
             os.environ['CUSTORDERSTATUS']='OK'
             print('<WMS>Task response from MES:'+res.text)
+            data = json.loads(res.text)
+            for item in data:
+                print("WMSRequestID:", item["WMSRequestID"])
+                print("WMSTaskID:", item["WMSTaskID"])
+                print("Action:", item["Action"])
+                print("Destination:", item["Destination"])
+                
+                
+            
     except:
         print('WNS Connection timeout')
 #AMR to retrieve tote box with WMS task ID
@@ -118,11 +128,10 @@ def informManualTask(tid):
         print('WNS Connection timeout')  
         
 #Signal WMS bin is at tail sensor of warehouse
-def signalBinAtWH(tid):
+def signalBinAtWH():
     
-    try:
-        res = requests.post('http://'+wmsip+'/syngenta/mc/wms/binatstation',timeout=5)
-        print('reponse code from server: {}'.format(res.status_code))
-        print ('response from server:'+res.text)
-    except:
-        print('WNS Connection timeout')  
+    
+    res = requests.post('http://'+wmsip+'/syngenta/mc/wms/binatstation',timeout=5)
+    print('reponse code from server: {}'.format(res.status_code))
+    print ('response from server:'+res.text)
+    

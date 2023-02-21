@@ -45,7 +45,7 @@ async_mode = None
 
 app = Flask("RMS-Server")
 log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+log.setLevel(logging.INFO)
 app.debug=False
 
 socketio = SocketIO(app, async_mode=async_mode)
@@ -363,17 +363,17 @@ def createWOTask():
     parsedJSON= json.loads(recv)
     #Send information to database
     print(parsedJSON)
-    # wolist=[]
-    # for item in parsedJSON:
-    #     msg='Batch ID:{}\nInit SN:{}\nManufacture Date:{}\nFill and Pack Date:{}ml\nFill Volume:{}\nTarget Torque:{}\nWork Orders:{}\n'.format(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'][0])
-    #     print(msg)
-    #     for i in range(len(item['Work Orders'])):
-    #         wo=WO(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'][i])
-    #         wolist.append(wo)
+    wolist=[]
+    for item in parsedJSON:
+        # msg='Batch ID:{}\nInit SN:{}\nManufacture Date:{}\nFill and Pack Date:{}ml\nFill Volume:{}\nTarget Torque:{}\nWork Orders:{}\n'.format(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'][0])
+        # print(msg)
+        for i in range(len(item['Work Orders'])):
+            wo=WO(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'][i])
+            wolist.append(wo)
 
 
     #Write to Work Order Table in database
-    # dbinterface.writeWO(wolist)
+    dbinterface.writeWO(wolist)
     response = make_response("Work Order Received", 200)
     response.mimetype = "text/plain"
     return response
@@ -429,31 +429,37 @@ def createWMSTask():
     #Parse to json object from string
     parsedJSON= json.loads(recv)
     #Send information to database
+    print(parsedJSON)
     wolist=[]
     for item in parsedJSON:
-        reqid=item['WMS Request ID']
+        reqid=item['WMSRequestID']
         tskid=item['WMSTaskID']
         action=item['Action']
         dest=item['Destination']
-        balance=item['Balance']
+        
+        match action:
+            case '1':
+                print('<SVR> Write retrieval action to custom task table')
+                dbinterface.insertCustomTask('WH;{}'.format(dest),7,reqid,tskid)
+                pass
+            case '2':
+                print('<SVR> Write store action to custom task table')
+                dbinterface.insertCustomTask('{};WH'.format(dest),8,reqid,tskid)
+                pass
+            case '3':
+                print('<SVR> Write custom action to db')
+                dbinterface.insertCustomTask(dest,9,reqid,tskid)
+                pass
+            case '4':
+                print('<SVR> Write manual task to db')
+                pass
     #Determine action
     # 1. Retrieve
     # 2. Store
     # 3. Custom
     # 4. Manual
     
-    match action:
-        case '1':
-            print('<SVR> Write retrieval action to custom task table')
-            
-            pass
-        case '2':
-            print('<SVR> Write store action to custom task table')
-            pass
-        case '3':
-            pass
-        case '4':
-            pass
+    
         
               
     response = make_response("Task Accepted", 200)
@@ -555,7 +561,7 @@ dbinterface.startup()
 robotinterface.startup()
 plcinterface.startup()
 #woscheduler.startup()
-#rbtscheduler.startup()
+rbtscheduler.startup()
 
 app.run(host='0.0.0.0',debug=False)
 

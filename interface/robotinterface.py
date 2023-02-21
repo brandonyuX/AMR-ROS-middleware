@@ -4,7 +4,7 @@ import roslibpy
 import pyodbc
 import sys,os
 import threading
-import time
+import time,yaml
 
 
 from sqlalchemy import true
@@ -15,8 +15,16 @@ sys.path.append('../Middleware Development')
 import interface.dbinterface as dbinterface
 import interface.chrinterface as chrinterface
 
+with open('server-config.yaml', 'r') as f:
+    doc = yaml.safe_load(f)
+
+production=doc['ROBOT']['PRODUCTION']
+# production=True
 #Define ros connection
-client = roslibpy.Ros(host="192.168.0.251", port=8080)
+if production:
+    client = roslibpy.Ros(host="192.168.0.251", port=8080)
+else:
+    client = roslibpy.Ros(host="0.0.0.0", port=8080)
 
 taskid=0
 lastgoal=''
@@ -45,7 +53,7 @@ def connect():
 def publish_sound(msg):
     
     talker = roslibpy.Topic(client, '/sound_mode', 'std_msgs/String')
-    print(msg)
+    #print(msg)
     message = {'data': msg}
 
     # Publish the message
@@ -85,6 +93,14 @@ def get_info():
             convlistener.subscribe(convcb)
             alignlistener=roslibpy.Topic(client,'/aligncomplete','std_msgs/String')
             alignlistener.subscribe(aligncb)
+            
+            helistener=roslibpy.Topic(client,'/he','std_msgs/String')
+            helistener.subscribe(he)
+            telistener=roslibpy.Topic(client,'/te','std_msgs/String')
+            telistener.subscribe(te)
+            
+            
+            
 
             #statlisterner=roslibpy.Topic(client,'/stat','htbot/stat')
             #statlisterner.subscribe(stat_callback)
@@ -95,6 +111,26 @@ def get_info():
     except:
         print('No connection to ROS Robot')
 
+#Read head end sensor and write into system variable
+def he(message):
+    os.environ['he']=message['data']
+    
+#Read tail end sensor and write into system variable
+def te(message):
+    os.environ['te']=message['data']
+
+
+def itemOnConveyor():
+    #Item is properly on conveyor
+    if os.environ['te']=='0' and os.environ['he']=='1':
+        return 'OK'
+    #Item detected on head end but not pushed in fully (MUST RETRACT)
+    elif os.environ['te']=='1' and os.environ['he']=='0':
+        return 'BLOCKED'
+    #No item on conveyor
+    elif os.environ['te']=='1' and os.environ['he']=='1':
+        return 'EMPTY'
+    
 #Alignment complete callback
 def aligncb(message):
     global aligncomplete
@@ -352,3 +388,22 @@ def movetoloc(stn):
     print('<RI> Moving to {}'.format(stn))
     time.sleep(5)
     return True
+
+
+def testProgram():
+    dbinterface.startup()
+    startup()
+    time.sleep(5)
+    
+    if itemOnConveyor()=="BLOCKED":
+        os.environ['convcomplete'] = 'False'
+        receive_item()
+        while os.environ['convcomplete'] == 'False':
+            pass
+        reset_conv()
+    elif itemOnConveyor()=="OK":
+        print('item in position')
+    elif itemOnConveyor()=='EMPTY':
+        print('no item!')
+        
+# testProgram()

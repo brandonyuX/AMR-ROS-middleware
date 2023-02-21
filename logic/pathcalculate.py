@@ -142,4 +142,7 @@ dbinterface.startup()
 # # for i in range(len(pathinfo[0])):
 
 # #     print(pathinfo[0][i])
-print(generate_path_simple('Stn1'))
+# print(generate_path_simple('Stn1'))
+# tstring='Stn1'
+# sstring=tstring.split(';')
+# print(sstring)

@@ -54,6 +54,7 @@ def startWOS():
                 case 3:
                     if plcinterface.checkCMPAck(i):
                         print("<WOS>Complete acknowledgement for station {} received. Find next order.".format(i))
+                        
                         #Restart process
                         wostate[i]=0               
             #If new WO exist and plc has completed order
