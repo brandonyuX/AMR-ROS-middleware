@@ -405,22 +405,29 @@ def binReady():
 #Custom request from wms
 @app.route('/syngenta/rm/wms/customrequest',methods=['POST'])
 def createCReq():
+    os.environ['creqack']='False'
     #Receive body information
     recv=request.get_data()
+    print('Message custom request:{}'.format(recv))
     #Parse to json object from string
     parsedJSON= json.loads(recv)
     #Send information to database
-    wolist=[]
-    for item in parsedJSON:
-        reqid=item['WMS Request ID']
-        dest=item['Destination']
-        priority=item['Priority']
-    dbinterface.writeCustomReq(reqid,dest,priority)
+    # for item in parsedJSON:
+    reqid=parsedJSON['WMSRequestID']
+    priority=parsedJSON['Priority']
+    dbinterface.writeCustomReq(reqid,priority)
     response = make_response("Custom Request Received", 200)
     response.mimetype = "text/plain"
     return response
-        
-
+ 
+       
+#Acknowledgement from WMS that the custom request is received
+@app.route('/syngenta/rm/wms/customreqack',methods=['POST'])
+def CreqACK():
+    os.environ['creqack']='True'
+    response = make_response("Custom Request ACK Received", 200)
+    response.mimetype = "text/plain"
+    return response
  #WMS task for custom request from WMS
 @app.route('/syngenta/rm/wms/taskcreated',methods=['POST'])
 def createWMSTask():
@@ -465,7 +472,23 @@ def createWMSTask():
     response = make_response("Task Accepted", 200)
     response.mimetype = "text/plain"
     return response
-        
+
+#Next action from WMS
+@app.route('/syngenta/rm/wms/nextaction',methods=['POST'])
+def nextAction():
+    
+    #Receive body information
+    recv=request.get_data()
+    #Parse to json object from string
+    parsedJSON= json.loads(recv)
+    #Send information to database
+    
+    os.environ['waitcustom'] = parsedJSON['NextAction']
+    print('<SVR> Next action from WMS: {}'.format(parsedJSON['NextAction']))
+    
+    response = make_response("Acknowledged Next Action", 200)
+    response.mimetype = "text/plain"
+    return response      
 #Item ready for custom location
 @app.route('/syngenta/mc/amr/custom/ItemReady',methods=['POST'])
 def informItemRdy():

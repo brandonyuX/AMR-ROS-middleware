@@ -15,6 +15,8 @@ class Task:
         self.exec=exec
         self.tskmodno=tskmodno
         self.processing=processing
+        
+    
 
     def __str__(self) -> str:
         text="{} {} {} {} {} {} {}".format(self.tid,self.rid,self.reqid,self.comp,self.mcstep,self.currstep,self.endstep)

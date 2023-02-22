@@ -35,13 +35,35 @@ with open('server-config.yaml', 'r') as f:
 
 production=doc['ROBOT']['PRODUCTION']
 
+#Default custom request ack to true
+os.environ['creqack']='True'
 # log = open('rms-rbt-scheduler','a')
 # sys.stdout=log
 
-#Method to determine whether to get custom operation task
+class Logger(object):
+    def __init__(self):
+        self.terminal = sys.stdout
+        self.log = open("rms-message.log", "a")
+   
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)  
+
+    def flush(self):
+        # this flush method is needed for python 3 compatibility.
+        # this handles the flush command by doing nothing.
+        # you might want to specify some extra behavior here.
+        pass    
+
+sys.stdout = Logger()
+
+#Method to determine whether to get custom operation task based on priority
 def getCO(priority):
     global coflag
     #Get request id and push it to custom operation
+    print('<MS> Ready to start custom operation. Wait for custom request acknowledgement')
+    while os.environ['creqack']=='False':
+        pass
     os.environ['CUSTORDERSTATUS']='QUERY'
     #Decide on task id based on priority
     if priority:
@@ -83,12 +105,14 @@ def tskpolling():
             global table
             table='production'
             # global coflag
-            #Check if uncompleted task exist in Custom Table
+            #Check if uncompleted task exist in Custom Action Table
             CTExist=dbinterface.checkCTExist()
            #Get from different action database based on custom order flag
+            # print(CTExist)
             if(CTExist):
                tsklist=dbinterface.getCustomListTop()
                table='custom'
+               
             else:
                 tsklist=dbinterface.getTaskListTop()
                 table='production'
@@ -170,6 +194,18 @@ def tskpolling():
                             print('<MS>Processing master step {} out of step {}'.format(tsk.currstep,tsk.endstep))
                             # dbinterface.updateReqStatus('PROCESSING REQUEST',tsk.reqid)
                             subtsk=dbinterface.getSubTaskListByStepID(tsk.tskmodno,tsk.currstep)
+                            
+                            #Handle wms custom request call here
+                            if table=='custom' and tsk.currstep==1:
+                                wmstid=dbinterface.getWMSTID(tsk.tid)
+                                match tsk.hsmsg:
+                                    case 'Retrieve':
+                                        wmsinterface.reqrtb(wmstid)
+                                        pass
+                                    case 'Store':
+                                        wmsinterface.reqstbwid(wmstid)
+                                        pass
+                                
                             
                             #Special move sequence
                             if(subtsk[0].at=='MoveC'):
@@ -497,12 +533,14 @@ def tskpolling():
                                 dbinterface.incStep(tsk.tid,tsk.currstep+1,False,table)
                             #Wait for complete signal from end user
                             if(subtsk[0].at=="WaitComplete"):
-                                if tsk.hsmsg=='CUSTOM':
+                                if table=='custom':
                                     os.environ['waitcustom'] = 'False'
                                     dbinterface.writeLog('ms','<MS>Wait for next action from WMS',True)
                                     
                                     while(os.environ.get('waitcustom')=='False'):
                                         pass
+                                    if os.environ.get('waitcustom')=='Cancel':
+                                        dbinterface.setNxtComp(tsk.tid)
                                     
                                     pass
                                 else:
@@ -512,9 +550,9 @@ def tskpolling():
                                     # pp=True
                                     while(os.environ.get('waitcomplete')=='False'):
                                         pass
-                                    dbinterface.writeLog('ms','<MS>Complete command received!',True)
-                                    dbinterface.setExecute(0,tsk.tid,table)
-                                    dbinterface.incStep(tsk.tid,tsk.currstep+1,False,table)
+                                dbinterface.writeLog('ms','<MS>Complete command received!',True)
+                                dbinterface.setExecute(0,tsk.tid,table)
+                                dbinterface.incStep(tsk.tid,tsk.currstep+1,False,table)
                             
 
                     #time.sleep(2)
@@ -524,12 +562,12 @@ def tskpolling():
                 #print('=====No task found yet. Polling...')
                 #dbinterface.writeLog('ms','No Task Found',False)
                 
-                #Check for priority task first before checking for non priority task
+                #Check for priority task REQUEST first before checking for non priority task
                 if(dbinterface.checkPriorityTask()):
                     getCO(True)
-                # else:
-                #     if(dbinterface.checkNormalTask()):
-                #         getCO(False)
+                else:
+                    if(dbinterface.checkNormalTask()):
+                        getCO(False)
                     
                         
                 time.sleep(0.1)

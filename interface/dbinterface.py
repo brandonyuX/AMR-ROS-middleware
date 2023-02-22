@@ -228,6 +228,17 @@ def getCustomListTop():
     
     return tsk_list
 
+#Return WMS Task ID
+def getWMSTID(tid):
+    cursor.execute("SELECT WMSTID FROM CustomTask WHERE TaskID=?",tid) 
+    row = cursor.fetchone() 
+    if row:
+        return row[0]
+    
+#Set next task complete
+def setNxtComp(tid):
+    cursor.execute("UPDATE CustomTask SET Completed=1 WHERE TaskID=?",tid+1) 
+    cursor.commit()
 #Check if uncompleted task exists in Custom Task table
 def checkCTExist():
      
@@ -238,7 +249,6 @@ def checkCTExist():
     else:
         return False
     
-    return tsk_list
 def getIPList():
     iplist=[]
     cursor.execute("SELECT RobotIP FROM Configuration") 
@@ -269,11 +279,11 @@ def insertRbtTask(destloc,tskmod):
     print('<DB> Write to robot task destination {}'.format(destloc))
 
 #Insert custom task from WMS
-def insertCustomTask(destloc,tskmod,wmsreq,wmstsk):
+def insertCustomTask(destloc,tskmod,wmsreq,wmstsk,action):
     cursor.execute("SELECT EndStep FROM SubTask WHERE TaskModelID=?",tskmod) 
     row=cursor.fetchone()
     es=row[0]
-    cursor.execute("INSERT INTO CustomTask(RobotID,Completed,TaskCode,CurrStep,EndStep,DestLoc,Executing,TaskModelID,WMSReqID,WMSTID,HSMsg,MoveStep) VALUES (?,?,?,?,?,?,?,?,?,?,?)",1,0,0,1,es,destloc,0,tskmod,wmsreq,wmstsk,'CUSTOM',0)
+    cursor.execute("INSERT INTO CustomTask(RobotID,Completed,TaskCode,CurrStep,EndStep,DestLoc,Executing,TaskModelID,WMSReqID,WMSTID,HSMsg,MoveStep) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",1,0,0,1,es,destloc,0,tskmod,wmsreq,wmstsk,action,0)
     cursor.commit()
     print('<DB> Write to robot task destination {}'.format(destloc))
 
@@ -503,18 +513,19 @@ def getWOQ(stn):
             row = cursor.fetchone()
 
 #Create custom request queue
-def writeCustomReq(reqid,dest,priority):
-    cursor.execute("INSERT INTO CustomRequest (reqid,dest,priority,status) VALUES (?,?,?)",reqid,dest,priority,'NEW')
+def writeCustomReq(reqid,priority):
+    cursor.execute("INSERT INTO CustomRequest (reqid,priority,status) VALUES (?,?,?)",reqid,priority,'NEW')
     cursor.commit()
+    pass
  #Get priority task id
 def getCustomTaskID(priority):
-    cursor.execute("SELECT TOP 1 * FROM CustomRequest WHERE priority=? AND status='NEW'",priority) 
+    cursor.execute("SELECT TOP 1 * FROM CustomRequest WHERE priority=? AND status='NEW' ORDER BY cid DESC",priority) 
     row = cursor.fetchone() 
     return row[1]
 
  #Get normal task id
 def getCustomNTaskID():
-    cursor.execute("SELECT TOP 1 * FROM CustomRequest WHERE priority=0 AND status='NEW'") 
+    cursor.execute("SELECT TOP 1 * FROM CustomRequest WHERE priority=0 AND status='NEW'ORDER BY cid DESC") 
     row = cursor.fetchone() 
     return row[1]
 
