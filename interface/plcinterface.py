@@ -445,8 +445,8 @@ def readTags():
                 cp2state.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
 
             if(cc):
-                print('carton complete')
-                #os.environ['waitcomplete'] = 'True'
+                print('<PLC>carton complete')
+                os.environ['waitcomplete'] = 'True'
                 
             
             #Fetch empty tote box from WH and go to Stn 6

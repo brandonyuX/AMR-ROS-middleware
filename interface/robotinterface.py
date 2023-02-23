@@ -22,7 +22,7 @@ production=doc['ROBOT']['PRODUCTION']
 # production=True
 #Define ros connection
 if production:
-    client = roslibpy.Ros(host="192.168.0.251", port=8080)
+    client = roslibpy.Ros(host="192.168.0.237", port=8080)
 else:
     client = roslibpy.Ros(host="0.0.0.0", port=8080)
 

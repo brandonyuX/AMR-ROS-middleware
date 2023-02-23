@@ -3,7 +3,7 @@ SERVER:
     PRODUCTION: True
     
 ROBOT:
-    PRODUCTION: False
+    PRODUCTION: True
 
 DATABASE:
     SERVER: NEL-PC\WINCC

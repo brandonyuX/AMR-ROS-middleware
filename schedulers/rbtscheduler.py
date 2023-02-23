@@ -64,6 +64,7 @@ def getCO(priority):
     print('<MS> Ready to start custom operation. Wait for custom request acknowledgement')
     while os.environ['creqack']=='False':
         pass
+    print('<MS> Start custom operation')
     os.environ['CUSTORDERSTATUS']='QUERY'
     #Decide on task id based on priority
     if priority:
@@ -120,7 +121,7 @@ def tskpolling():
                 # if pp:
                 #     pp=False
             
-            
+            #print(table)
 
 
             
@@ -141,13 +142,13 @@ def tskpolling():
                 
 
                     #Do not execute next step when task is still processing
-                    if(int(tsk.exec)==1):
-                        choice=input('<MS> Previous task did not complete. Do you want to retry(1) or cancel(2)?')
-                        match choice:
-                            case '1':
-                                dbinterface.setExecute(0,tsk.tid,table)
-                            case '2':
-                                dbinterface.incStep(tsk.tid,tsk.endstep,True,table)
+                    if(int(tsk.exec)==1 and int(tsk.comp)==0):
+                        # choice=input('<MS> Previous task did not complete. Do you want to retry(1) or cancel(2)?')
+                        # match choice:
+                        #     case '1':
+                        #         dbinterface.setExecute(0,tsk.tid,table)
+                        #     case '2':
+                        #         dbinterface.incStep(tsk.tid,tsk.endstep,True,table)
                         #dbinterface.writeLog('ms','Task {} for robot {} on step {} is executing'.format(tsk.tid,tsk.rid,tsk.currstep-1),False)
                         #print('Task {} for robot {} on step {} still executing'.format(tsk.tid,tsk.rid,tsk.currstep-1))
                         pass
@@ -179,7 +180,7 @@ def tskpolling():
                             
                             #dbinterface.updateReqStatus('REQUEST COMPLETED',tsk.reqid)
                            
-                            
+                            #Only check for priority task everytime task is ended
                             if(dbinterface.checkPriorityTask()):
                                 getCO(True)
                             
@@ -255,6 +256,7 @@ def tskpolling():
                                             pass
                                     else:
                                         time.sleep(5)
+                                        os.environ['reached'] = 'True'
                                     #print('<MS> Robot reached signal received')
                                     
                                     #Write mcstep based on current index and update robot location
@@ -400,6 +402,7 @@ def tskpolling():
                                             pass
                                         print('<MS> Received ready to receive from PLC. Start rolling conveyor.')
                                         if production:
+                                            #Insert WMS start sending command
                                             robotinterface.send_item()
                                             print('<MS> Wait for station 1 to detect item on tail end sensor.')
                                             while(plcinterface.readPLC("te","Stn1")!=True):
@@ -408,6 +411,7 @@ def tskpolling():
                                         #Write PLC processed quantity to start WO
                                         #plcinterface.setWOStart()
                                     elif currentloc=="WH":
+                                        
                                         #Send request to send to plc
                                         dbinterface.writeLog('ms','<MS>Send request to send to PLC',True)
                                         plcinterface.writePLC("rts",True,"WH")
@@ -428,7 +432,8 @@ def tskpolling():
                                        
                                         
                                     else:
-                                        robotinterface.send_item()
+                                        print('<MS> Cannot send item at this location!')
+                                        #robotinterface.send_item()
                                         
                                 if production:
                                     while(os.environ.get('convcomplete')=='False'):
@@ -451,8 +456,9 @@ def tskpolling():
                                 dbinterface.setExecute(1,tsk.tid,table)
                                 #Test set execute to false after 5 seconds
                                 if production:
-                                    dbinterface.writeLog('ms','<MS>Get current location to determine handshake',True)
+                                    
                                     currentloc=dbinterface.getRbtLoc(1)
+                                    dbinterface.writeLog('ms','<MS>Get handshake for {}'.format(currentloc),True)
                                     #Check last location to determine type of handshake
                                     if(currentloc=="Stn1"):
                                         dbinterface.writeLog('ms','<MS>Start rolling conveyor and send ready to receive',True)
@@ -475,7 +481,7 @@ def tskpolling():
                                         #     pass
                                         # #Reset wms ready bit
                                         # plcinterface.writePLC("resetwmsoutrdy",0,"WH")
-                                        
+                                        os.environ['wmsrdy']='False'
                                         while os.environ['wmsrdy']=='False':
                                             pass
                                         dbinterface.writeLog('ms','<MS>Start rolling conveyor and send ready to receive',True)
@@ -537,10 +543,16 @@ def tskpolling():
                                     os.environ['waitcustom'] = 'False'
                                     dbinterface.writeLog('ms','<MS>Wait for next action from WMS',True)
                                     
-                                    while(os.environ.get('waitcustom')=='False'):
-                                        pass
-                                    if os.environ.get('waitcustom')=='Cancel':
-                                        dbinterface.setNxtComp(tsk.tid)
+                                    while(os.environ.get('waitcustom')!='Confirmed'):
+                                        if(os.environ.get('waitcustom')=='Continue-Confirm'):
+                                            os.environ['waitcustom']='Confirmed'
+                                        elif(os.environ.get('waitcustom')=='Cancel-Confirm'):
+                                            dbinterface.setNxtComp(tsk.tid)
+                                            os.environ['waitcustom']='Confirmed'
+                                            
+                                            #os.environ['waitcustom']='Confirmed'
+                                            
+                                   
                                     
                                     pass
                                 else:
@@ -564,13 +576,15 @@ def tskpolling():
                 
                 #Check for priority task REQUEST first before checking for non priority task
                 if(dbinterface.checkPriorityTask()):
+                    print('<MS>Priority task found')
                     getCO(True)
                 else:
                     if(dbinterface.checkNormalTask()):
+                        print('<MS>Non-Priority task found')
                         getCO(False)
                     
                         
-                time.sleep(0.1)
+                time.sleep(0.5)
                 pass
         except Exception as e:
             print(e)

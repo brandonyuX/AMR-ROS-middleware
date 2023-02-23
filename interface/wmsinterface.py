@@ -57,6 +57,7 @@ def reqwmsrdy():
 def customop(reqid):
     reqid=(str(reqid).strip())
     dictToSend = {'WMSRequestID':reqid}
+    print('<WMS> Send custom operation with request id {}'.format(reqid))
     try:
         res = requests.post('http://'+wmsip+':3000/syngenta/mc/wms/startcustomop',json=dictToSend,timeout=5)
         print ('<WMS> response from server:'+res.text)
@@ -89,10 +90,15 @@ def customop(reqid):
                         pass
                     case 'Custom':
                         print('<SVR> Write custom action to db')
+                        
                         dbinterface.insertCustomTask(dest,9,reqid,tskid,action)
+                        
                         pass
                     case 'Manual':
-                        print('<SVR> Write manual task to db')
+                        print('<SVR> Received manual task')
+                        print('<WMS> Detected manual entry, reflect to WMS ready')
+                        os.environ['manualtask']='True'
+                        informManualTask(item["WMSTaskID"])
                         pass
                 
                 
@@ -101,6 +107,9 @@ def customop(reqid):
             
     except Exception as e:
         print(e)
+        
+
+
 #AMR to retrieve tote box with WMS task ID
 
 def reqrtb(wmsid):
@@ -148,7 +157,7 @@ def reqsfc(batchid):
 #Inform WMS ready for manual task
 def informManualTask(tid):
     
-    dictToSend = {"WMS Task ID":tid}
+    dictToSend = {"WMSTaskID":tid}
     try:
         res = requests.post('http://'+wmsip+':3000/syngenta/mc/wms/manualtask',json=dictToSend,timeout=5)
         print('reponse code from server: {}'.format(res.status_code))

@@ -29,7 +29,7 @@ import yaml
 
 import logging
 import os.path
-import json
+import json,os
 
 
 
@@ -474,21 +474,57 @@ def createWMSTask():
     return response
 
 #Next action from WMS
+os.environ['reached'] = 'True'
 @app.route('/syngenta/rm/wms/nextaction',methods=['POST'])
 def nextAction():
-    
+    if os.environ['reached'] != 'True':
+        response = make_response("AMR still in motion!", 400)
+        response.mimetype = "text/plain"
+        return response
+    else:
     #Receive body information
-    recv=request.get_data()
-    #Parse to json object from string
-    parsedJSON= json.loads(recv)
-    #Send information to database
-    
-    os.environ['waitcustom'] = parsedJSON['NextAction']
-    print('<SVR> Next action from WMS: {}'.format(parsedJSON['NextAction']))
-    
-    response = make_response("Acknowledged Next Action", 200)
-    response.mimetype = "text/plain"
-    return response      
+        recv=request.get_data()
+        #Parse to json object from string
+        parsedJSON= json.loads(recv)
+        #Send information to database
+        
+        print(recv)
+        
+        os.environ['waitcustom'] = parsedJSON['NextAction']
+        
+        if(os.environ.get('waitcustom')=='Continue'):
+            ioc=robotinterface.itemOnConveyor()
+            if(ioc=='EMPTY'):
+                print('<MS> Detected no tote when asked to continue')
+                #Tell WMS no tote on AMR
+                response = make_response("Detected no tote when asked to continue", 200)
+                response.mimetype = "text/plain"
+                return response 
+               
+            else:
+                os.environ['waitcustom']='Continue-Confirm'
+                
+        elif(os.environ.get('waitcustom')=='Cancel'):
+            ioc=robotinterface.itemOnConveyor()
+            if ioc=="BLOCKED" or ioc=='OK':
+                #Tell WMS got tote on AMR
+                print('<MS> Detected tote when asked to cancel')
+                response = make_response("Detected tote when asked to cancel", 200)
+                response.mimetype = "text/plain"
+                return response 
+                
+                
+              
+            else:
+                
+                os.environ['waitcustom']='Cancel-Confirm'
+            
+            #os.environ['waitcustom']='Confirmed'
+        #print('<SVR> Next action from WMS: {}'.format(parsedJSON['NextAction']))
+        
+        response = make_response("Ok", 200)
+        response.mimetype = "text/plain"
+        return response      
 #Item ready for custom location
 @app.route('/syngenta/mc/amr/custom/ItemReady',methods=['POST'])
 def informItemRdy():
@@ -521,10 +557,22 @@ def informItemRemoved():
 #Ingress
 @app.route('/syngenta/rm/wms/taskstatus',methods=['POST'])
 def queryTaskStatus():
+    
     #woid=request.values.get('woid')
+    #Receive body information
+    recv=request.get_data()
+    #Parse to json object from string
+    parsedJSON= json.loads(recv)
+    #Send information to database
+    
+    wmstid=parsedJSON['WMSTaskID']
+    tstatus=parsedJSON['TaskStatus']
+    
+    if(tstatus=='Completed'):
+        os.environ['manualtask']='False'
 
     
-    response = make_response("WMS Creation", 200)
+    response = make_response("Completed signal acknowledged", 200)
     response.mimetype = "text/plain"
     return response
 
@@ -542,6 +590,7 @@ def createTask():
     response.mimetype = "text/plain"
     return response
     
+
 @app.route('/syngenta/rm/wms/manualtask',methods=['POST'])
 def createManualTask():
     woid=request.values.get('woid')

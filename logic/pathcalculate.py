@@ -41,6 +41,9 @@ graph.add_edge(7,5,(100,"Stn 6"))
 graph.add_edge(7,8,(100,'Stn 6'))
 graph.add_edge(8,7,(100,"FL"))
 
+graph.add_edge(5,9,(100,'TPLeft'))
+graph.add_edge(9,5,(100,"MR"))
+
 graphdict={"CHR":1,
             "Stn1":2,
             "TPUp":3,
