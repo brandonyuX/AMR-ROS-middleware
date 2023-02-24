@@ -1,6 +1,6 @@
 import sys,os
 import time,yaml
-import datetime
+from datetime import datetime
 import threading
 # setting path
 sys.path.append('../Middleware Development')
@@ -37,6 +37,7 @@ production=doc['ROBOT']['PRODUCTION']
 
 #Default custom request ack to true
 os.environ['creqack']='True'
+os.environ['wmsrdy']='False'
 # log = open('rms-rbt-scheduler','a')
 # sys.stdout=log
 
@@ -47,7 +48,8 @@ class Logger(object):
    
     def write(self, message):
         self.terminal.write(message)
-        self.log.write(message)  
+        
+        self.log.write('{} {}'.format(datetime.now(),message))  
 
     def flush(self):
         # this flush method is needed for python 3 compatibility.
@@ -71,6 +73,7 @@ def getCO(priority):
         ctid=dbinterface.getCustomTaskID(1)
     else:
         ctid=dbinterface.getCustomTaskID(0)
+    #Call WMS to call custom operation
     wmsinterface.customop(ctid)
     #Wait for query to be completed
     while os.environ['CUSTORDERSTATUS']=='QUERY':
@@ -481,7 +484,7 @@ def tskpolling():
                                         #     pass
                                         # #Reset wms ready bit
                                         # plcinterface.writePLC("resetwmsoutrdy",0,"WH")
-                                        os.environ['wmsrdy']='False'
+                                        #os.environ['wmsrdy']='False'
                                         while os.environ['wmsrdy']=='False':
                                             pass
                                         dbinterface.writeLog('ms','<MS>Start rolling conveyor and send ready to receive',True)

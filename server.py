@@ -26,7 +26,8 @@ from flask_bcrypt import Bcrypt
 import time
 import requests
 import yaml
-
+import sys
+from datetime import datetime
 import logging
 import os.path
 import json,os
@@ -68,7 +69,23 @@ bcrypt = Bcrypt(app)
 
 app.config['SECRET_KEY'] = 'thisisasecretkey'
 
+class Logger(object):
+    def __init__(self):
+        self.terminal = sys.stdout
+        self.log = open("rms-message.log", "a")
+   
+    def write(self, message):
+        self.terminal.write(message)
+        
+        self.log.write('{} {}'.format(datetime.now(),message))  
 
+    def flush(self):
+        # this flush method is needed for python 3 compatibility.
+        # this handles the flush command by doing nothing.
+        # you might want to specify some extra behavior here.
+        pass    
+
+sys.stdout = Logger()
 
 
 
@@ -428,38 +445,39 @@ def CreqACK():
     response = make_response("Custom Request ACK Received", 200)
     response.mimetype = "text/plain"
     return response
- #WMS task for custom request from WMS
-@app.route('/syngenta/rm/wms/taskcreated',methods=['POST'])
-def createWMSTask():
-    #Receive body information
-    recv=request.get_data()
-    #Parse to json object from string
-    parsedJSON= json.loads(recv)
-    #Send information to database
-    print(parsedJSON)
-    wolist=[]
-    for item in parsedJSON:
-        reqid=item['WMSRequestID']
-        tskid=item['WMSTaskID']
-        action=item['Action']
-        dest=item['Destination']
+
+ #WMS task for custom request from WMS (Legacy API)
+# @app.route('/syngenta/rm/wms/taskcreated',methods=['POST'])
+# def createWMSTask():
+#     #Receive body information
+#     recv=request.get_data()
+#     #Parse to json object from string
+#     parsedJSON= json.loads(recv)
+#     #Send information to database
+#     print(parsedJSON)
+#     wolist=[]
+#     for item in parsedJSON:
+#         reqid=item['WMSRequestID']
+#         tskid=item['WMSTaskID']
+#         action=item['Action']
+#         dest=item['Destination']
         
-        match action:
-            case '1':
-                print('<SVR> Write retrieval action to custom task table')
-                dbinterface.insertCustomTask('WH;{}'.format(dest),7,reqid,tskid)
-                pass
-            case '2':
-                print('<SVR> Write store action to custom task table')
-                dbinterface.insertCustomTask('{};WH'.format(dest),8,reqid,tskid)
-                pass
-            case '3':
-                print('<SVR> Write custom action to db')
-                dbinterface.insertCustomTask(dest,9,reqid,tskid)
-                pass
-            case '4':
-                print('<SVR> Write manual task to db')
-                pass
+#         match action:
+#             case '1':
+#                 print('<SVR> Write retrieval action to custom task table')
+#                 dbinterface.insertCustomTask('WH;{}'.format(dest),7,reqid,tskid)
+#                 pass
+#             case '2':
+#                 print('<SVR> Write store action to custom task table')
+#                 dbinterface.insertCustomTask('{};WH'.format(dest),8,reqid,tskid)
+#                 pass
+#             case '3':
+#                 print('<SVR> Write custom action to db')
+#                 dbinterface.insertCustomTask(dest,9,reqid,tskid)
+#                 pass
+#             case '4':
+#                 print('<SVR> Write manual task to db')
+#                 pass
     #Determine action
     # 1. Retrieve
     # 2. Store
@@ -469,9 +487,9 @@ def createWMSTask():
     
         
               
-    response = make_response("Task Accepted", 200)
-    response.mimetype = "text/plain"
-    return response
+    # response = make_response("Task Accepted", 200)
+    # response.mimetype = "text/plain"
+    # return response
 
 #Next action from WMS
 os.environ['reached'] = 'True'
@@ -528,7 +546,6 @@ def nextAction():
 #Item ready for custom location
 @app.route('/syngenta/mc/amr/custom/ItemReady',methods=['POST'])
 def informItemRdy():
-    
     
     response = make_response("Acknowledged Item Ready", 200)
     response.mimetype = "text/plain"

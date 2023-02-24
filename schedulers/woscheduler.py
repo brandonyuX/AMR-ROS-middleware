@@ -34,7 +34,7 @@ def startWOS():
                             #Send WO number and wait for ack on next state
                             wostate[i]=1
                     elif stnavail==2:
-                        print("<WOS> Station {} is busy with work order. Jump to waqit for completion".format(i))
+                        print("<WOS> Station {} is busy with work order. Jump to wait for completion".format(i))
                         wostate[i]=2
                 case 1:
                     #Check whether start acknowledge is received
