@@ -22,7 +22,7 @@ production=doc['ROBOT']['PRODUCTION']
 # production=True
 #Define ros connection
 if production:
-    client = roslibpy.Ros(host="192.168.0.237", port=8080)
+    client = roslibpy.Ros(host="192.168.0.101", port=8080)
 else:
     client = roslibpy.Ros(host="0.0.0.0", port=8080)
 
@@ -130,6 +130,8 @@ def itemOnConveyor():
     #No item on conveyor
     elif os.environ['te']=='1' and os.environ['he']=='1':
         return 'EMPTY'
+    elif os.environ['te']=='0' and os.environ['he']=='0':
+        return 'ALL OCCUPIED'
     
 #Alignment complete callback
 def aligncb(message):
@@ -394,16 +396,8 @@ def testProgram():
     dbinterface.startup()
     startup()
     time.sleep(5)
-    
-    if itemOnConveyor()=="BLOCKED":
-        os.environ['convcomplete'] = 'False'
-        receive_item()
-        while os.environ['convcomplete'] == 'False':
-            pass
-        reset_conv()
-    elif itemOnConveyor()=="OK":
-        print('item in position')
-    elif itemOnConveyor()=='EMPTY':
-        print('no item!')
+    while True:
+        print(itemOnConveyor())
+        time.sleep(0.1)
         
 # testProgram()

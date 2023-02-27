@@ -23,8 +23,8 @@ graph.add_edge(5,4,(100,"TPLeft"))
 graph.add_edge(3,5,(100,'TPUp'))
 graph.add_edge(5,3,(100,"TPLeft"))
 
-graph.add_edge(4,9,(100,'TPDown'))
-graph.add_edge(9,4,(100,"MR"))
+# graph.add_edge(4,9,(100,'TPDown'))
+# graph.add_edge(9,4,(100,"MR"))
 
 graph.add_edge(4,10,(100,'TPDown'))
 graph.add_edge(10,4,(100,"PL"))

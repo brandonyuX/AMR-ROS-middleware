@@ -174,3 +174,14 @@ def signalBinAtWH():
         print ('response from server:'+res.text)
     except Exception as e:
         print(e)
+        
+
+#Signal WMS bin to sending into the station
+def signalBinToWH():
+    
+    try:
+        res = requests.post('http://'+wmsip+':3000/syngenta/mc/wms/binentering',timeout=5)
+        print('reponse code from server: {}'.format(res.status_code))
+        print ('response from server:'+res.text)
+    except Exception as e:
+        print(e)

@@ -125,10 +125,7 @@ def tskpolling():
                 #     pp=False
             
             #print(table)
-
-
-            
-            
+ 
             if len(tsklist)>0:
                 tskq.clear()
                 #Populate location list
@@ -271,7 +268,7 @@ def tskpolling():
                                 dbinterface.incMoveStep(tsk.tid,table)
                                 #End of loop means completed
                                 if(dest=="Stn1" or dest=="WH"):
-                                        time.sleep(1)
+                                        #time.sleep(1)
                                         if production:
                                             #robotinterface.align_qr()
                                             pass
@@ -485,6 +482,7 @@ def tskpolling():
                                         # #Reset wms ready bit
                                         # plcinterface.writePLC("resetwmsoutrdy",0,"WH")
                                         #os.environ['wmsrdy']='False'
+                                        os.environ['wmsrdy']='False'
                                         while os.environ['wmsrdy']=='False':
                                             pass
                                         dbinterface.writeLog('ms','<MS>Start rolling conveyor and send ready to receive',True)

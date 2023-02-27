@@ -492,11 +492,12 @@ def CreqACK():
     # return response
 
 #Next action from WMS
+#Default amr not in motion
 os.environ['reached'] = 'True'
 @app.route('/syngenta/rm/wms/nextaction',methods=['POST'])
 def nextAction():
     if os.environ['reached'] != 'True':
-        response = make_response("AMR still in motion!", 400)
+        response = make_response("AMR still in motion!", 200)
         response.mimetype = "text/plain"
         return response
     else:
@@ -512,7 +513,7 @@ def nextAction():
         
         if(os.environ.get('waitcustom')=='Continue'):
             ioc=robotinterface.itemOnConveyor()
-            if(ioc=='EMPTY'):
+            if(ioc=='EMPTY' ):
                 print('<MS> Detected no tote when asked to continue')
                 #Tell WMS no tote on AMR
                 response = make_response("Detected no tote when asked to continue", 200)
@@ -524,7 +525,7 @@ def nextAction():
                 
         elif(os.environ.get('waitcustom')=='Cancel'):
             ioc=robotinterface.itemOnConveyor()
-            if ioc=="BLOCKED" or ioc=='OK':
+            if ioc=="BLOCKED" or ioc=='OK' or ioc=='ALL OCCUPIED':
                 #Tell WMS got tote on AMR
                 print('<MS> Detected tote when asked to cancel')
                 response = make_response("Detected tote when asked to cancel", 200)
@@ -652,7 +653,7 @@ plcinterface.startup()
 #woscheduler.startup()
 rbtscheduler.startup()
 
-app.run(host='0.0.0.0',debug=False)
+app.run(host='192.168.0.187',port=5000,debug=False)
 
 
 # t1=threading.Thread(target=app.run(),daemon=True)
