@@ -23,7 +23,7 @@ def startWOS():
             match wostate[i]:
                 case 0:
                     #Check if station is available
-                    stnavail=plcinterface.checkStnAvail
+                    stnavail=plcinterface.checkStnAvail(i)
                     if stnavail==1:
                         print("<WOS> Station {} is available.".format(i))
                         #If available find next WO in db

@@ -420,6 +420,8 @@ def tskpolling():
                                         while(plcinterface.readPLC("rtr","WH")!=True):
                                             pass
                                         print('<MS> Received ready to receive from PLC. Start rolling conveyor.')
+                                        #Tell WMS that bin is going to send to station
+                                        wmsinterface.signalBinToWH()
                                         if production:
                                             robotinterface.send_item()
                                             print('<MS> Wait for warehouse to detect item on tail end sensor.')

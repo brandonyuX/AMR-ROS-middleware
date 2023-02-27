@@ -653,7 +653,7 @@ plcinterface.startup()
 #woscheduler.startup()
 rbtscheduler.startup()
 
-app.run(host='192.168.0.187',port=5000,debug=False)
+app.run(host='192.168.0.239',debug=False)
 
 
 # t1=threading.Thread(target=app.run(),daemon=True)
