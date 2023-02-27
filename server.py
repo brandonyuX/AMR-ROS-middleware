@@ -667,7 +667,22 @@ def checkEmpty():
     response.mimetype = "application/json"
     return response
 
-    
+
+# @socketio.on('connect')
+# def test_connect():
+#     print('Client connected')
+#     emit('update_table', rows)
+
+# @socketio.on('disconnect')
+# def test_disconnect():
+#     print('Client disconnected')
+
+# @socketio.on('update_database')
+# def update_database(data):
+#     name = data['name']
+#     emit('update_table', rows, broadcast=True)
+
+
 # @socketio.event
 # def connect():
 #     global thread
@@ -690,8 +705,8 @@ dbinterface.startup()
 # woscheduler.startup()
 # rbtscheduler.startup()
 
-app.run(host='0.0.0.0',debug=False)
-
+# app.run(host='0.0.0.0',debug=False)
+socketio.run(app, debug=False)
 
 # t1=threading.Thread(target=app.run(),daemon=True)
 # t1.start()
