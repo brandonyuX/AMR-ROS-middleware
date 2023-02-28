@@ -23,7 +23,7 @@ def startWOS():
             match wostate[i]:
                 case 0:
                     #Check if station is available
-                    stnavail=plcinterface.checkStnAvail
+                    stnavail=plcinterface.checkStnAvail(i)
                     if stnavail==1:
                         print("<WOS> Station {} is available.".format(i))
                         #If available find next WO in db
@@ -34,7 +34,7 @@ def startWOS():
                             #Send WO number and wait for ack on next state
                             wostate[i]=1
                     elif stnavail==2:
-                        print("<WOS> Station {} is busy with work order. Jump to waqit for completion".format(i))
+                        print("<WOS> Station {} is busy with work order. Jump to wait for completion".format(i))
                         wostate[i]=2
                 case 1:
                     #Check whether start acknowledge is received
@@ -54,6 +54,7 @@ def startWOS():
                 case 3:
                     if plcinterface.checkCMPAck(i):
                         print("<WOS>Complete acknowledgement for station {} received. Find next order.".format(i))
+                        
                         #Restart process
                         wostate[i]=0               
             #If new WO exist and plc has completed order

@@ -23,8 +23,8 @@ graph.add_edge(5,4,(100,"TPLeft"))
 graph.add_edge(3,5,(100,'TPUp'))
 graph.add_edge(5,3,(100,"TPLeft"))
 
-graph.add_edge(4,9,(100,'TPDown'))
-graph.add_edge(9,4,(100,"MR"))
+# graph.add_edge(4,9,(100,'TPDown'))
+# graph.add_edge(9,4,(100,"MR"))
 
 graph.add_edge(4,10,(100,'TPDown'))
 graph.add_edge(10,4,(100,"PL"))
@@ -40,6 +40,9 @@ graph.add_edge(7,5,(100,"Stn 6"))
 
 graph.add_edge(7,8,(100,'Stn 6'))
 graph.add_edge(8,7,(100,"FL"))
+
+graph.add_edge(5,9,(100,'TPLeft'))
+graph.add_edge(9,5,(100,"MR"))
 
 graphdict={"CHR":1,
             "Stn1":2,
@@ -143,3 +146,6 @@ def test():
 
 # #     print(pathinfo[0][i])
 # print(generate_path_simple('Stn1'))
+# tstring='Stn1'
+# sstring=tstring.split(';')
+# print(sstring)

@@ -1,0 +1,28 @@
+ERROR:pymodbus.client.tcp:Connection to (192.168.0.91, 502) failed: timed out
+WARNING:opcua.client.client:Requested session timeout to be 3600000ms, got 60000ms instead
+ERROR:pymodbus.client.tcp:Connection to (192.168.0.91, 502) failed: timed out
+ERROR:pymodbus.client.tcp:Connection to (192.168.0.91, 502) failed: timed out
+WARNING:opcua.client.client:Requested session timeout to be 3600000ms, got 60000ms instead
+ERROR:pymodbus.client.tcp:Connection to (192.168.0.91, 502) failed: timed out
+WARNING:opcua.client.client:Requested session timeout to be 3600000ms, got 60000ms instead
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.239:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+ERROR:pymodbus.client.tcp:Connection to (192.168.0.91, 502) failed: timed out
+WARNING:opcua.client.client:Requested session timeout to be 3600000ms, got 60000ms instead
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.239:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug:192.168.0.188 - - [21/Feb/2023 10:44:40] "POST /syngenta/rm/wms/stationempty HTTP/1.1" 200 -
+INFO:werkzeug:192.168.0.188 - - [21/Feb/2023 10:45:03] "POST /syngenta/rm/wms/stationoutready HTTP/1.1" 200 -
+ERROR:pymodbus.client.tcp:Connection to (192.168.0.91, 502) failed: timed out
+WARNING:opcua.client.client:Requested session timeout to be 3600000ms, got 60000ms instead
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.239:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m

@@ -21,7 +21,7 @@ production=doc['SERVER']['PRODUCTION']
 
 decdata=''
 try:
-    client = Client("opc.tcp://192.168.0.253:49321",timeout=60*8)
+    client = Client("opc.tcp://192.168.0.239:49321",timeout=60*8)
 except KeyboardInterrupt:
     print("Interrupted by user")
             
@@ -309,10 +309,11 @@ def sendWO2PLC(stn,wo):
     
     print('<PI>Sending {} to PLC and wait for MES acknowledgement'.format(wo[2]))
     
-def setWOStart(stn):
-    procqtypath="ns=2;s=SyngentaPLC.Station{}.ProcessedQty".format(stn)
-    procqtystate=client.get_node(procqtypath)
-    procqtystate.set_value(ua.DataValue(ua.Variant(0,ua.VariantType.UInt16)))
+def setWOStart():
+    for i in range(1,7):
+        procqtypath="ns=2;s=SyngentaPLC.Station{}.ProcessedQty".format(i)
+        procqtystate=client.get_node(procqtypath)
+        procqtystate.set_value(ua.DataValue(ua.Variant(0,ua.VariantType.UInt16)))
     
         
 def startWO(stn,wo):
@@ -422,8 +423,11 @@ def readTags():
                     wmsinterface.reqEb()
                 
                 #Generate robot path and insert as a robot task
-                pathinfo=pathcalculate.generate_path('WH','Stn1','')
-                dbinterface.insertRbtTask(pathinfo,1,4)
+                # pathinfo=pathcalculate.generate_path('WH','Stn1','')
+                print('<PLC> Inserting robot task')
+                dbinterface.insertRbtTask("WH;Stn1",1)
+                #Set wms ready bit to false
+                os.environ['wmsrdy'] = 'False'
                 reqbotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
 
             #Procedure to return tote box
@@ -432,19 +436,19 @@ def readTags():
                 #Call WMS to store tote box
                 if production:
                     wmsinterface.reqstb()
-                pathinfo=pathcalculate.generate_path('Stn1','WH','')
-                dbinterface.insertRbtTask(pathinfo,1,4)
+                # pathinfo=pathcalculate.generate_path('Stn1','WH','')
+                dbinterface.insertRbtTask('Stn1;WH',1)
                 rettotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
 
             if(cp2):
                 if production:
                     wmsinterface.reqsfc()
-                dbinterface.insertRbtTask('Station6;Warehouse')
+                dbinterface.insertRbtTask('Stn6;WH',1)
                 cp2state.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
 
             if(cc):
-                print('carton complete')
-                #os.environ['waitcomplete'] = 'True'
+                print('<PLC>carton complete')
+                os.environ['waitcomplete'] = 'True'
                 
             
             #Fetch empty tote box from WH and go to Stn 6
@@ -454,11 +458,10 @@ def readTags():
                     wmsinterface.reqetb()
                 
                 #Generate robot path and insert as a robot task
-                pathinfo=pathcalculate.generate_path('WH','Stn6','')
+                # pathinfo=pathcalculate.generate_path('WH','Stn6','')
                 #Insert robot task to fetch empty tote
-                dbinterface.insertRbtTask(pathinfo,6,3)
-                #Write second task to move back to Warehouse after complete
-                dbinterface.insertRbtTask('WH',2,2)
+                dbinterface.insertRbtTask('WH;Stn6;WH',6)
+                
                 rtbstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
                 
             if(stb):

@@ -1,0 +1,127 @@
+<DB>Database stack start up
+<DB>Database connected
+<RI>Robot Interface stack start up
+<RI>Connecting to ROS robot
+<RI>Connection suceeded
+<DB>Database stack start up
+<DB>Database connected
+<RI>Robot Interface stack start up
+<RI>Connecting to ROS robot
+<RI>Connection suceeded
+<MS>Robot Scheduler start up
+ * Serving Flask app 'RMS-Server'
+ * Debug mode: off
+<MS> Start robot scheduler
+<PLC> Call WMS interface to request empty bottle
+<WI>Request bottle from WMS
+reponse code from server: 200
+response from server:{"WMSTaskID":"TC1676980427719"}
+<PLC> Inserting robot task
+<DB> Write to robot task destination WH;Stn1
+<MS>Processing master step 1 out of step 4
+<MS>Processing move chain
+<MS> Generating path from current location
+<MS>Sending move command to robot 1 bound for WH
+<MS>Processing move chain 1 out of 1
+<RI>Move Completed
+<MS> Robot reached destination
+<MS>Processing master step 2 out of step 4
+<MS>Sending load command to robot 1.
+<MS>Get current location to determine handshake
+<MS>Check if WMS has ready item
+<MS>Start rolling conveyor and send ready to receive
+<RI>Robot conveyor receive start
+<MS>Wait for Station 1 Head End sensor to clear
+<MS>Sensor cleared on station 1
+<RI>Robot conveyor reset
+<MS>Receive Completed
+<MS>Processing master step 3 out of step 4
+<MS>Processing move chain
+<MS> Generating path from current location
+<MS>Sending move command to robot 1 bound for WH
+<MS>Processing move chain 1 out of 4
+<RI>Move Completed
+<MS>Sending move command to robot 1 bound for TPLeft
+<MS>Processing move chain 2 out of 4
+<RI>Move Completed
+<MS>Sending move command to robot 1 bound for TPUp
+<MS>Processing move chain 3 out of 4
+<RI>Move Completed
+<MS>Sending move command to robot 1 bound for Stn1
+<MS>Processing move chain 4 out of 4
+<RI>Move Completed
+<MS> Robot reached destination
+<MS>Processing master step 4 out of step 4
+<MS>Sending unload command to robot 1.
+<MS>Get current location to determine handshake
+<MS>Send request to send to PLC
+<MS>Wait for ready to receive from PLC
+<MS> Received ready to receive from PLC. Start rolling conveyor.
+<RI>Robot conveyor send start
+<MS> Wait for station 1 to detect item on tail end sensor.
+<MS> Item detected on station 1
+<MS>Receive Completed
+<RI>Robot conveyor reset
+<MS> End of execution for task 2616
+reponse code from server: 200
+response from server:{"WMSTaskID":"TC1676980528762"}
+<DB> Write to robot task destination Stn1;WH
+<MS>Processing master step 1 out of step 4
+<MS>Processing move chain
+<MS> Generating path from current location
+<MS>Sending move command to robot 1 bound for Stn1
+<MS>Processing move chain 1 out of 1
+<RI>Move Completed
+<MS> Robot reached destination
+<MS>Processing master step 2 out of step 4
+<MS>Sending load command to robot 1.
+<MS>Get current location to determine handshake
+<MS>Start rolling conveyor and send ready to receive
+<RI>Robot conveyor receive start
+<MS>Wait for Station 1 Head End sensor to clear
+<MS>Sensor cleared on station 1
+<RI>Robot conveyor reset
+<MS>Receive Completed
+<MS>Processing master step 3 out of step 4
+<MS>Processing move chain
+<MS> Generating path from current location
+<MS>Sending move command to robot 1 bound for Stn1
+<MS>Processing move chain 1 out of 4
+<RI>Move Completed
+<MS>Sending move command to robot 1 bound for TPUp
+<MS>Processing move chain 2 out of 4
+<RI>Move Completed
+<MS>Sending move command to robot 1 bound for TPLeft
+<MS>Processing move chain 3 out of 4
+<RI>Move Completed
+<MS>Sending move command to robot 1 bound for WH
+<MS>Processing move chain 4 out of 4
+<RI>Move Completed
+<MS> Robot reached destination
+<MS>Processing master step 4 out of step 4
+<MS>Sending unload command to robot 1.
+<MS>Get current location to determine handshake
+<MS>Send request to send to PLC
+<MS>Wait for ready to receive from PLC
+<MS> Received ready to receive from PLC. Start rolling conveyor.
+<RI>Robot conveyor send start
+<MS> Wait for warehouse to detect item on tail end sensor.
+<MS> Item detected on Warehouse
+<MS>Send bin ready signal to WMS
+signalBinAtWH() missing 1 required positional argument: 'tid'
+<DB>Database stack start up
+<DB>Database connected
+<RI>Robot Interface stack start up
+<RI>Connecting to ROS robot
+<RI>Connection suceeded
+<MS>Robot Scheduler start up
+ * Serving Flask app 'RMS-Server'
+ * Debug mode: off
+<MS> Start robot scheduler
+<PLC> Call WMS interface to request empty bottle
+<WI>Request bottle from WMS
+reponse code from server: 200
+response from server:{"WMSTaskID":"TC1676980865651"}
+<PLC> Inserting robot task
+<DB> Write to robot task destination WH;Stn1
+('HY000', 'The driver did not supply an error!')
