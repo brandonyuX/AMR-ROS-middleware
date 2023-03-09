@@ -145,7 +145,10 @@ def delSubTaskByID(tskmodno):
 #Retrieve Subtask information by task model id
 def getSubTaskListByID(tskmodno):
     subtsk_list.clear()
-    cursor.execute("SELECT * FROM SubTask WHERE TaskModelID = ?",tskmodno) 
+    if tskmodno == "":
+        cursor.execute("SELECT * FROM SubTask")
+    else: 
+        cursor.execute("SELECT * FROM SubTask WHERE TaskModelID = ?",tskmodno) 
     row = cursor.fetchone() 
     while row: 
         #print(row[0])
@@ -345,7 +348,7 @@ def writeTask(finalrid,reqid,rbt_list,req_list):
 def writeSubTask(tsklist):
     
     for tsk in tsklist:
-        cursor.execute("INSERT INTO SubTask (TaskModelID,ActionType,Step,EndStep,Command) VALUES (?,?,?,?,?)",tsk.tskmodno,tsk.action,tsk.step,len(tsklist),tsk.cmd)
+        cursor.execute("INSERT INTO SubTask (TaskModelID,ActionType,Step,EndStep,Command) VALUES (?,?,?,?,?)",tsk.tmid,tsk.cmd,tsk.currstep,len(tsklist),tsk.cmd)
         cursor.commit()
 
 def updateReqStatus(status,reqid):
@@ -720,7 +723,18 @@ def getUserName(userid):
         print(row[0])
         return row[0]
     
-
+def getAccount(username):
+    # Check if account exists using SQL
+    cursor.execute("SELECT * FROM UserTable WHERE username=?", username)
+    account = cursor.fetchone()
+    if account:
+        print("Account exist in database with id = {0} and username = {1}".format(account[0], account[1]))  #print user id
+        return account
+    
+def updateRip(rip, rid):
+    cursor.execute("UPDATE Configuration SET RobotIP = ? WHERE RobotID = ?",rip,rid)
+    cursor.commit()
+    
 #DANGER OF MISUSE
 #Delete from production table
 def deleteAllProduction():
@@ -762,6 +776,7 @@ def deleteWO(wo):
         cursor.execute(statement)
         cursor.commit()
     
+
 #Delete everything from WO
 def deleteAllWO():
     for i in range(1,7):
@@ -769,3 +784,14 @@ def deleteAllWO():
         print(statement)
         cursor.execute(statement)
         cursor.commit()
+
+def registerRbt(RobotID, Alias,TaskAcceptanceThres,DefaultLoc,RobotIP, ChargeThres, IdleTime):
+    cursor.execute("SELECT * FROM Configuration WHERE RobotID=?", RobotID)
+    row = cursor.fetchone()
+    if row:
+        return "Register unsuccessful! Robot(ID: {0}) already exist in database!".format(RobotID)
+    else:
+        cursor.execute("INSERT INTO Configuration (RobotID, Alias,TaskAcceptanceThres,DefaultLoc,RobotIP, ChargeThres, IdleTime) VALUES (?,?,?,?,?,?,?)", RobotID, Alias,TaskAcceptanceThres,DefaultLoc,RobotIP, ChargeThres, IdleTime)
+        cursor.commit()
+        return "Robot successfully registered!"
+    # 

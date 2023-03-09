@@ -1,0 +1,30 @@
+<div id="alertContainer" style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999;"></div>
+
+<script>
+function addAlert(message, type) {
+  var alertContainer = document.getElementById("alertContainer");
+
+  var alert = document.createElement("div");
+  alert.setAttribute("class", "alert alert-" + type + " alert-dismissible fade show");
+  alert.setAttribute("role", "alert");
+  alert.setAttribute("style", "display: none;");
+  alert.innerHTML = message;
+
+  var button = document.createElement("button");
+  button.setAttribute("type", "button");
+  button.setAttribute("class", "close");
+  button.setAttribute("data-dismiss", "alert");
+  button.setAttribute("aria-label", "Close");
+
+  var span = document.createElement("span");
+  span.setAttribute("aria-hidden", "true");
+  span.innerHTML = "&times;";
+  button.appendChild(span);
+
+  alert.appendChild(button);
+
+  alertContainer.appendChild(alert);
+
+  $(alert).slideDown();
+}
+</script>

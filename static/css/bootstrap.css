@@ -722,6 +722,12 @@ progress {
   width: auto;
 }
 
+.col-shrink-width{
+  flex: 0 0;
+  width: auto;
+  height: auto;
+}
+
 .col-1 {
   flex: 0 0 auto;
   width: 8.33333333%;

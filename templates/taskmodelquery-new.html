@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+
+
+
+  <!-- CSS only -->
+  <link rel="stylesheet" href="/static/css/bootstrap.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+  <script type="text/javascript" src="/static/js/easeljs-NEXT.js"></script>
+  <script type="text/javascript" src="/static/js/eventemitter2.js"></script>
+  <script type="text/javascript" src="/static/js/roslib.js"></script>
+  <script type="text/javascript" src="/static/js/ros2d.js"></script>
+  <script type="text/javascript" src="/static/js/nav2d.js"></script>
+
+  <!-- Online Downloaded Stylesheet -->
+  <link href="/static/css/style.css" rel="stylesheet">
+
+  <title>M8M Resource Management</title>
+</head>
+
+<body>
+  <div class="container-fluid position-relative d-flex p-0">
+    <div id="spinner"
+      class="show bg-dark position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+      <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+    <!-- Side navigation bar: Start -->
+    {% include "sideNavigationBar.html" %}
+    <!-- Side navigation bar: End -->
+
+    <div class="content">
+      <!-- Top navigation bar: Start -->
+      {% include "TopNavigationBar.html" %}
+      <!-- Top navigation bar: End -->
+
+      <!-- Query Title and Form Start -->
+      <div class="container-fluid pt-4 px-4">
+        <div class="bg-content-card text-center rounded p-4">
+          <div class="row col-sm-12 align-items-center justify-content-center">
+            <h2 class="mb-4 text-white text-center">Welcome to M8M RMS Task Model Query Center</h2>
+            <form id="tskQueryForm" method="POST" action="">
+              <div class="row">
+                <div class="col-sm-2"></div>
+                <div class="col-sm-8" style="display: inline-flex;">
+                  <input type="text" id="queryID" name="queryID" placeholder="Enter Task Model ID" class="form-control"
+                  title='Enter Task Model ID! Blank = Request All!'/>
+                  <input type="submit" id="queryBtn" class="btn btn-primary" form="tskQueryForm" style="width: 35%;">Query</input>
+                </div>
+                <div class="col-sm-2"></div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <!-- Query Title and Form End -->
+      
+      <div class="container-fluid pt-4 px-4">
+        <div class="bg-content-card text-center rounded p-4">
+          <div class="row g-4">
+            <div class="table-responsive">
+              <table class="table text-center align-middle table-bordered table-hover mb-0">
+                <thead>
+                  <tr class="text-white">
+                    <th scope="col">Task Model ID</th>
+                    <th scope="col">Sub Task ID</th>
+                    <th scope="col">Action Type</th>
+                    <th scope="col">Step</th>
+                    <th scope="col">End Step</th>
+                    <th scope="col">Command</th>
+                  </tr>
+                </thead>
+                <tbody id="tskModelTable">
+                  <!-- {% for subtsk in subtsklist %}
+                  <tr>
+                    <td>{{ subtsk.tmid }}</td>
+                    <td>{{ subtsk.stid }}</td>
+                    <td>{{ subtsk.at }}</td>
+                    <td>{{ subtsk.currstep }}</td>
+                    <td>{{ subtsklen }}</td>
+                    <td>{{ subtsk.cmd }}</td>
+                  </tr>
+                  {% endfor %} -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- JavaScript Bundle with Popper -->
+      <script src="/static/js/jquery-3.6.0.min.js"></script>
+      <script src="/static/js/socket.io.js"></script>
+      <script src="/static/js/popper.min.js"></script>
+      <script src="/static/js/bootstrap.js"></script>
+      <!-- This template Javascript -->
+      <script src="/static/js/navSpinnerToggler.js"></script>
+      <script src="/static/js/taskModelQuery-new.js"></script>
+</body>
+
+<script type="text/javascript" charset="utf-8">
+
+  // $(document).ready(function () {
+  //   //Validate json, return true if valid json
+  //   function isJsonString(str) {
+  //     try {
+  //       JSON.parse(str);
+  //     } catch (e) {
+  //       return false;
+  //     }
+  //     return true;
+  //   }
+
+  //   function createAutoClosingAlert(selector, delay) {
+  //     var alert = $(selector).alert();
+  //     window.setTimeout(function () { alert.alert('close') }, delay);
+  //   }
+  // });
+</script>
+
+</html>

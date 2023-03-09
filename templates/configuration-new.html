@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+
+
+
+  <!-- CSS only -->
+  <link rel="stylesheet" href="/static/css/bootstrap.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+  <script type="text/javascript" src="/static/js/easeljs-NEXT.js"></script>
+  <script type="text/javascript" src="/static/js/eventemitter2.js"></script>
+  <script type="text/javascript" src="/static/js/roslib.js"></script>
+  <script type="text/javascript" src="/static/js/ros2d.js"></script>
+  <script type="text/javascript" src="/static/js/nav2d.js"></script>
+
+  <!-- Online Downloaded Stylesheet -->
+  <link href="/static/css/style.css" rel="stylesheet">
+
+  <title>M8M Resource Management</title>
+</head>
+
+<body>
+  <div id="notificationContainer" style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999;"></div>
+  <div class="container-fluid position-relative d-flex p-0">
+    <div id="spinner"
+      class="show bg-dark position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+      <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+    <!-- Side navigation bar: Start -->
+    {% include "sideNavigationBar.html" %}
+    <!-- Side navigation bar: End -->
+
+    <!-- Top navigation bar: Start -->
+    <div class="content">
+      <!-- Top navigation bar: Start -->
+      {% include "TopNavigationBar.html" %}
+      <!-- Top navigation bar: End -->
+
+      <!-- Current Robot Available Start -->
+      <div class="container-fluid pt-4 px-4">
+        <div class="bg-content-card text-center rounded p-4">
+          <div class="d-flex align-items-center justify-content-between mb-4">
+            <h4 class="mb-0 text-white">Current Robot Available</h4>
+          </div>
+          <div class="table-responsive">
+            <table class="table text-start align-middle table-bordered table-hover mb-0">
+              <thead>
+                <tr class="text-white">
+                  <th scope="col">Robot ID</th>
+                  <th scope="col">Alias</th>
+                  <th scope="col">Battery Threshold</th>
+                  <th scope="col">Robot IP</th>
+                </tr>
+              </thead>
+              <tbody id="rbtListTBody">
+                {% for rbt in rbtlist %}
+                <tr>
+                  <td class="rid">{{ rbt.rid }}</td>
+                  <td>{{ rbt.alias }}</td>
+                  <td>{{ rbt.battthres }}%</td>
+                  <td contenteditable="true" class="rip">{{ rbt.rip }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- Current Robot Available End -->
+
+      <!-- Create Robot Form Start -->
+      <div class="container-fluid pt-4 px-4">
+        <div class="row">
+          <div class="col-sm-3"></div>
+          <div class="col-sm-6 bg-content-card rounded p-4">
+            <div class="row mb-4">
+              <h4 class="mb-0 text-white">Robot Creation</h4>
+            </div>
+            <div class="row">
+              <form id="regRbtForm" method="POST" action="/configuration">
+                <input type="hidden" name="regRbtForm" value="regRbtForm">
+                <div class="row mb-4">
+                  <label for="rbtID" class="col-sm-6 col-form-label text-white">Robot ID: </label>
+                  <div class="col-sm-6">
+                    <input type="text" id="rbtID" name="rbtID" title='Input your robot ID' 
+                      placeholder="Robot ID" class="form-control" required />
+                  </div>
+                </div>
+
+                <div class="row mb-4">
+                  <label for="rbtAlias" class="col-sm-6 col-form-label text-white">Robot Alias: </label>
+                  <div class="col-sm-6">
+                    <input type="text" id="rbtAlias" name="rbtAlias" title='Input your robot alias'
+                      placeholder="Robot Alias" class="form-control" required />
+                  </div>
+                </div>
+
+                <div class="row mb-4">
+                  <label for="defLoc" class="col-sm-6 col-form-label text-white">Default Location: </label>
+                  <div class="col-sm-6">
+                    <select id="defLoc" class="form-select" name="defLoc">
+                      <option selected>Select your robot default location</option>
+                      <option value="Station 1">Station 1</option>
+                      <option value="Station 2">Station 2</option>
+                      <option value="Station 3">Station 3</option>
+                      <option value="Station 4">Station 4</option>
+                      <option value="Station 5">Station 5</option>
+                      <option value="Station 6">Station 6</option>
+                      <option value="Charging Station">Charging Station</option>
+                      <option value="Warehouse">Warehouse</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row mb-4">
+                  <label for="tskAccpThres" class="col-sm-6 col-form-label text-white">Task Acceptance Threshold:
+                  </label>
+                  <div class="col-sm-6">
+                    <input type="number" id="tskAccpThres" class="form-control" name="tskAccpThres" min="0"
+                      max="100" value="1">
+                  </div>
+                </div>
+
+                <div class="row mb-4">
+                  <label for="chrgThres" class="col-sm-6 col-form-label text-white">Charge Battery Threshold (%):
+                  </label>
+                  <div class="col-sm-6">
+                    <input type="number" id="chrgThres" class="form-control" name="chrgThres" min="0"
+                      max="100" value="1">
+                  </div>
+                </div>
+
+                <div class="row mb-4">
+                  <label for="idleTime" class="col-sm-6 col-form-label text-white">Idle Dock Time (min): </label>
+                  <div class="col-sm-6">
+                    <input type="number" id="idleTime" class="form-control" name="idleTime" min="0"
+                      max="100" value="1">
+                  </div>
+                </div>
+
+                <div class="row mb-4">
+                  <label for="rbtIP" class="col-sm-6 col-form-label text-white">Robot IP Address: </label>
+                  <div class="col-sm-6">
+                    <input type="text" id="rbtIP" name="rbtIP" title='Input your robot IP address'
+                      placeholder="Robot IP" class="form-control" required />
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-sm-3"></div>
+                  <div class="col-sm-6 d-flex justify-content-center">
+                    <button type="button" name= "regRbtBtn" value="regRbtBtn" id="regRbtBtn" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                      form="regRbtForm">Register Robot</button>
+                  </div>
+                  <div class="col-sm-3"></div>
+                </div>
+              </form>
+            </div>
+          </div>
+          <div class="col-sm-3"></div>
+        </div>
+      </div>
+      <!-- Create Robot Form End -->
+
+      <!-- Modal -->
+      <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Register Robot</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>Are you sure you want to register the robot?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+              <button type="submit" id="regRbtYesBtn" name="regRbtYesBtn" value="regRbtYesBtn" 
+                class="btn btn-primary" data-bs-dismiss="modal" form="regRbtForm">Yes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- JavaScript Bundle with Popper -->
+      <script src="/static/js/jquery-3.6.0.min.js"></script>
+      <script src="/static/js/socket.io.js"></script>
+      <script src="/static/js/popper.min.js"></script>
+      <script src="/static/js/bootstrap.js"></script>
+      <!-- This emplate Javascript -->
+      <script src="/static/js/navSpinnerToggler.js"></script>
+      <script src="/static/js/notificationContainer-bs5.js"></script>
+      <script src="/static/js/configuration-new.js"></script>
+</body>
+
+<!-- <script type="text/javascript" charset="utf-8">
+  Get data table from flask server
+  var get_table = function getInfo() {
+    let myRequest = new Request('/get_list');
+    fetch(myRequest).then(response => response.json()).then(function (data) {
+      var availno = 0;
+
+      //Build robot information table from array
+      var rbtarr = JSON.parse(data['rbtarr']);
+      var HTML = "";
+      for (let i = 0; i < rbtarr.rbtinfo.length; i++) {
+        HTML += "<tr><td>" + rbtarr.rbtinfo[i].rid + "</td>";
+        HTML += "<td>" + rbtarr.rbtinfo[i].currloc + "</td>";
+        HTML += "<td>" + rbtarr.rbtinfo[i].x + "</td>";
+        HTML += "<td>" + rbtarr.rbtinfo[i].y + "</td>";
+        HTML += "<td>" + rbtarr.rbtinfo[i].r + "</td>";
+        HTML += "<td>" + rbtarr.rbtinfo[i].msg + "</td></tr>";
+        if (rbtarr.rbtinfo[i].avail == true) {
+          availno += 1
+        }
+      }
+      document.getElementById("curRbtStatus").innerHTML = HTML;
+
+      //Build task information table from array
+      var taskarr = JSON.parse(data['taskarr'])
+      var HTML = "";
+      for (let i = 0; i < taskarr.taskinfo.length; i++) {
+        HTML += "<tr><td>" + taskarr.taskinfo[i].tid + "</td>";
+        HTML += "<td>" + taskarr.taskinfo[i].rid + "</td>";
+        HTML += "<td>" + taskarr.taskinfo[i].reqid + "</td>";
+        HTML += "<td>" + taskarr.taskinfo[i].currstep + "</td>";
+        HTML += "<td>" + taskarr.taskinfo[i].endstep + "</td>";
+        HTML += "<td>" + taskarr.taskinfo[i].completed + "</td></tr>";
+      }
+      document.getElementById("curTask").innerHTML = HTML;
+
+      //Build request information table from array
+      var reqarr = JSON.parse(data['reqarr'])
+      var HTML = "";
+      for (let i = 0; i < reqarr.reqinfo.length; i++) {
+        HTML += "<tr><td>" + reqarr.reqinfo[i].plcid + "</td>";
+        HTML += "<td>" + reqarr.reqinfo[i].reqid + "</td>";
+        HTML += "<td>" + reqarr.reqinfo[i].destloc + "</td>";
+        HTML += "<td>" + reqarr.reqinfo[i].tskmodno + "</td>";
+        HTML += "<td>" + reqarr.reqinfo[i].status + "</td></tr>";
+      }
+      document.getElementById("curPLCRequest").innerHTML = HTML;
+
+      document.getElementById("msmsg").innerHTML = data['msinfo'];
+      document.getElementById("numRbtAvail").innerHTML = '<small>Robot Available: ' + availno + '</small>';
+      document.getElementById("numCurTask").innerHTML = "<small>In Queue: " + taskarr.taskinfo.length +'</small>';
+      document.getElementById("numPLCReq").innerHTML = "<small>In Queue: " + reqarr.reqinfo.length +'</small>';
+    });
+  }
+
+  setInterval(get_table, 3000);
+  get_table();
+  $(document).ready(function () {
+    //Validate json, return true if valid json
+    function isJsonString(str) {
+      try {
+        JSON.parse(str);
+      } catch (e) {
+        return false;
+      }
+      return true;
+    }
+
+    function createAutoClosingAlert(selector, delay) {
+      var alert = $(selector).alert();
+      window.setTimeout(function () { alert.alert('close') }, delay);
+    }
+  });
+</script> -->
+
+</html>

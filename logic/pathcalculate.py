@@ -140,7 +140,7 @@ def test():
         key = next(key for key, value in graphdict.items() if value == path)
         print(key+'-->')
 
-dbinterface.startup()
+# dbinterface.startup()
 #print(generate_path('WH','Stn1'))
 # # for i in range(len(pathinfo[0])):
 
