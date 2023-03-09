@@ -1,9 +1,8 @@
-from cgi import test
+# from cgi import test
 from flask import Flask, render_template,request,session,make_response,redirect,url_for,jsonify
 import interface.dbinterface as dbinterface
 import schedulers.woscheduler as woscheduler
 import main
-import test_wo
 from mwclass.workorder import WO
 from mwclass.robotconfig import RobotConfig
 import interface.robotinterface as robotinterface
@@ -374,27 +373,61 @@ def taskmodelcreatepost():
 
 @app.route('/syngenta/rm/production/createwo',methods=['POST'])
 def createWOTask():
-    #Receive body information
-    recv=request.get_data()
-    #Parse to json object from string
-    parsedJSON= json.loads(recv)
-    #Send information to database
-    print(parsedJSON)
-    wolist=[]
-    for item in parsedJSON:
-        # msg='Batch ID:{}\nInit SN:{}\nManufacture Date:{}\nFill and Pack Date:{}ml\nFill Volume:{}\nTarget Torque:{}\nWork Orders:{}\n'.format(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'][0])
-        # print(msg)
-        for i in range(len(item['Work Orders'])):
-            wo=WO(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'][i])
-            wolist.append(wo)
+
+    avail=True
+    for i in range(1,7):
+        #Set avaialability to false if any station is not available
+        stnstate,wowstate=plcinterface.checkStnStatus(i)
+        if stnstate in [4,5] or wowstate in [2,3]:
+            avail=False
+
+    #Check if station available
+    if avail:
+        #Receive body information
+        recv=request.get_data()
+        
+        # for item in parsedJSON:
+        #     # msg='Batch ID:{}\nInit SN:{}\nManufacture Date:{}\nFill and Pack Date:{}ml\nFill Volume:{}\nTarget Torque:{}\nWork Orders:{}\n'.format(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'][0])
+        #     # print(msg)
+        try:
+            #print(len(parsedJSON['Work Orders']))
+            dbinterface.voidWO()
+            plcinterface.initTag()
+            #plcinterface.setNewBatch()
+            print(recv)
+        #Parse to json object from string
+            parsedJSON= json.loads(recv)
+            #Send information to database
+            print(parsedJSON)
+            #
+            wolist=[]
+            for i in range(len(parsedJSON['Work Orders'])):
+                
+                wo=WO(parsedJSON['Batch ID'],parsedJSON['Init SN'],parsedJSON['Manufacture Date'],parsedJSON['Fill and Pack Date'],parsedJSON['Fill Volume'],parsedJSON['Target Torque'],parsedJSON['Work Orders'][i],expdate=parsedJSON['Expiry Date'],ordernum=i)
+                wolist.append(wo)
+            
+             #Write to Work Order Table in database
+            dbinterface.writeWO(wolist)
+            #time.sleep(1)
+            
+            response = make_response("Work Order Received", 200)
+            response.mimetype = "text/plain"
+            return response
+        except Exception as e:
+            print(e)
+            response = make_response("Invalid JSON format", 400)
+            response.mimetype = "text/plain"
+            return response
+
+        #Tell MES station not ready if state is not 1
 
 
-    #Write to Work Order Table in database
-    dbinterface.writeWO(wolist)
-    response = make_response("Work Order Received", 200)
-    response.mimetype = "text/plain"
-    return response
-
+       
+    else:
+        print('<SVR> Station not ready')
+        response = make_response("Stations not ready", 400)
+        response.mimetype = "text/plain"
+        return response 
 #Route for information carton completion status
 @app.route('/syngenta/rm/production/cartonready',methods=['POST'])
 def cartonReady():
@@ -650,11 +683,12 @@ dbinterface.startup()
 
 robotinterface.startup()
 plcinterface.startup()
-#woscheduler.startup()
+
 rbtscheduler.startup()
+woscheduler.startup()
 
-app.run(host='192.168.0.239',debug=False)
-
+# time.sleep(10)
+app.run(host='0.0.0.0',debug=False)
 
 # t1=threading.Thread(target=app.run(),daemon=True)
 # t1.start()

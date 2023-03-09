@@ -46,9 +46,9 @@ def reset():
 #     decoder = BinaryPayloadDecoder.fromRegisters(rr.registers, byteorder=Endian.Little)
 #     print(decoder)
 #     decoded=(decoder.decode_16bit_int())
-    # print(decoded)
-    # bit_2 = (decoded & (1 << 0)) >> 0
-    # print(bit_2)
+#     print(decoded)
+#     bit_2 = (decoded & (1 << 0)) >> 0
+#     print(bit_2)
 
 # while True:
 #     choice=input("1 - Extend, 2 - Retract 3 - Start 4 - Stop 5 - Reset\n")

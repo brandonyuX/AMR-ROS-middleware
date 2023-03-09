@@ -18,7 +18,10 @@ def reqEb():
         print('<WI>Request bottle from WMS')
         #res = requests.post('http://'+wmsip+'/syngenta/mc/production/requesteb',timeout=5)
         res = requests.post('http://'+wmsip+':3000/syngenta/mc/production/requesteb',timeout=5)
+        data = json.loads(res.text)
+        # os.environ['tempBID']=data['WMSTaskID']
         print('reponse code from server: {}'.format(res.status_code))
+
         print ('response from server:'+res.text)
     except Exception as e:
         print(e)
@@ -39,7 +42,8 @@ def reqstb():
 def reqetb():
     try:
         res = requests.post('http://'+wmsip+':3000/syngenta/mc/production/requestetb',timeout=5)
-        print ('response from server:'+res.text)
+        print('<WMS>reponse code from server: {}'.format(res.status_code))
+        print ('<WMS>response from server:'+res.text)
     except Exception as e:
         print(e)
 
@@ -48,7 +52,8 @@ def reqetb():
 def reqwmsrdy():
     try:
         res = requests.post('http://'+wmsip+':3000/syngenta/mc/wms/status',timeout=5)
-        print ('response from server:'+res.text)
+        print('<WMS>reponse code from server: {}'.format(res.status_code))
+        print ('<WMS>response from server:'+res.text)
     except Exception as e:
         print(e)
 
@@ -117,7 +122,8 @@ def reqrtb(wmsid):
     dictToSend = {'WMSTaskID':wmsid}
     try:
         res = requests.post('http://'+wmsip+':3000/syngenta/mc/amr/custom/retrievetb',json=dictToSend,timeout=5)
-        print ('response from server:'+res.text)
+        print('<WMS>reponse code from server: {}'.format(res.status_code))
+        print ('<WMS>response from server:'+res.text)
     except Exception as e:
         print(e)
 
@@ -129,7 +135,8 @@ def reqstbwid(wmsid):
     dictToSend = {'WMSTaskID':wmsid}
     try:
         res = requests.post('http://'+wmsip+':3000/syngenta/mc/amr/custom/storetb',json=dictToSend,timeout=5)
-        print ('response from server:'+res.text)
+        print('<WMS>reponse code from server: {}'.format(res.status_code))
+        print ('<WMS>response from server:'+res.text)
     except Exception as e:
         print(e)
 
@@ -139,18 +146,19 @@ def reqrcc():
     dictToSend = {'WMSTaskID':'12345'}
     try:
         res = requests.post('http://'+wmsip+':3000/syngenta/mc/amr/custom/retrievecarton',json=dictToSend,timeout=5)
-        print ('response from server:'+res.text)
+        print('<WMS>reponse code from server: {}'.format(res.status_code))
+        print ('<WMS>response from server:'+res.text)
     except Exception as e:
         print(e)
 
 #AMR to store filled carton to WMS
 
 def reqsfc(batchid):
-    dictToSend = {"BatchID":batchid,"ItemType":"Y01"}
+    dictToSend = {"BatchID":batchid,"ItemType":"SKU 1 - 250ml Bottles"}
     try:
         res = requests.post('http://'+wmsip+':3000/syngenta/mc/production/storefc',json=dictToSend,timeout=5)
-        print('reponse code from server: {}'.format(res.status_code))
-        print ('response from server:'+res.text)
+        print('<WMS>reponse code from server: {}'.format(res.status_code))
+        print ('<WMS>response from server:'+res.text)
     except Exception as e:
         print(e)
         
@@ -160,8 +168,8 @@ def informManualTask(tid):
     dictToSend = {"WMSTaskID":tid}
     try:
         res = requests.post('http://'+wmsip+':3000/syngenta/mc/wms/manualtask',json=dictToSend,timeout=5)
-        print('reponse code from server: {}'.format(res.status_code))
-        print ('response from server:'+res.text)
+        print('<WMS>reponse code from server: {}'.format(res.status_code))
+        print ('<WMS>response from server:'+res.text)
     except Exception as e:
         print(e) 
         
@@ -170,8 +178,8 @@ def signalBinAtWH():
     
     try:
         res = requests.post('http://'+wmsip+':3000/syngenta/mc/wms/binatstation',timeout=5)
-        print('reponse code from server: {}'.format(res.status_code))
-        print ('response from server:'+res.text)
+        print('<WMS>reponse code from server: {}'.format(res.status_code))
+        print ('<WMS>response from server:'+res.text)
     except Exception as e:
         print(e)
         
@@ -181,7 +189,7 @@ def signalBinToWH():
     
     try:
         res = requests.post('http://'+wmsip+':3000/syngenta/mc/wms/binentering',timeout=5)
-        print('reponse code from server: {}'.format(res.status_code))
-        print ('response from server:'+res.text)
+        print('<WMS>reponse code from server: {}'.format(res.status_code))
+        print ('<WMS>response from server:'+res.text)
     except Exception as e:
         print(e)
