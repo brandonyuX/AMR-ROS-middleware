@@ -49,7 +49,8 @@ class Logger(object):
     def write(self, message):
         self.terminal.write(message)
         
-        self.log.write('{} {}'.format(datetime.now(),message))  
+        self.log.write('{} {} \n'.format(datetime.now(),message))  
+        
 
     def flush(self):
         # this flush method is needed for python 3 compatibility.
@@ -96,7 +97,7 @@ def tskpolling():
     #     print(item)
     #Initialze robot interface
     #robotinterface.startup()
-    time.sleep(1)
+    time.sleep(3)
     print('<MS> Start robot scheduler')
     loop=True
     currIndex=0
@@ -201,11 +202,26 @@ def tskpolling():
                                 wmstid=dbinterface.getWMSTID(tsk.tid)
                                 match tsk.hsmsg:
                                     case 'Retrieve':
+                                        #Retrieve tote box
+                                        print('<MS> Call WMS to retrieve tote with wms id')
                                         wmsinterface.reqrtb(wmstid)
                                         pass
                                     case 'Store':
+                                        #Store tote box with request id
+                                        print('<MS> Call WMS to store tote with wms id')
                                         wmsinterface.reqstbwid(wmstid)
                                         pass
+                            elif table=='production' and tsk.currstep==1:
+                                match tsk.hsmsg:
+                                    case 'REB':
+                                        #Retrieve empty bottle
+                                        print('<MS> Call WMS to request empty bottle')
+                                        wmsinterface.reqEb()
+                                    case 'STB':
+                                        #Store empty tote box
+                                        print('<MS> Call WMS to store empty tote box')
+                                        wmsinterface.reqstb()
+                                pass
                                 
                             
                             #Special move sequence
@@ -234,6 +250,12 @@ def tskpolling():
                                 #Get destination location based on movestep
                                 pathlist=pathcalculate.generate_path_simple(tskq[movestep])
                                 robotinterface.publish_sound(tskq[movestep])
+                                if(tskq[movestep]=='Stn1'):
+                                    plcinterface.informDocked(dock=1,stn=1)
+                                else:
+                                    plcinterface.informDocked(dock=0,stn=1)
+
+
                                 dest=tskq[movestep]
                                
                                     
@@ -242,6 +264,8 @@ def tskpolling():
                                 
                                 for i in range(mcstep,len(pathlist)):
                                     print('<MS>Sending move command to robot {} bound for {}'.format(tsk.rid,pathlist[i]))
+                                    
+
                                     os.environ['reached'] = 'False'
                                     
                                     
@@ -272,7 +296,9 @@ def tskpolling():
                                         if production:
                                             #robotinterface.align_qr()
                                             pass
-                                
+                                if dest=="Stn6":
+                                    plcinterface.informDocked(dock=True,stn=6)
+                                    pass
                                 dbinterface.incStep(tsk.tid,tsk.currstep+1,False,table)
                                 dbinterface.setExecute(0,tsk.tid,table)
                                 
@@ -421,6 +447,7 @@ def tskpolling():
                                             pass
                                         print('<MS> Received ready to receive from PLC. Start rolling conveyor.')
                                         #Tell WMS that bin is going to send to station
+                                        print('<MS> Tell WMS tote is sending in.')
                                         wmsinterface.signalBinToWH()
                                         if production:
                                             robotinterface.send_item()

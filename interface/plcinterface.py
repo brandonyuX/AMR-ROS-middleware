@@ -1,8 +1,8 @@
 #This file provides interface with the PLC and update the database
 #Will use opcua in this example
-import socket,datetime,sys,signal
+import socket,datetime,sys,signal,math
 import time,os
-import threading,yaml
+import threading,yaml,random
 
 
 sys.path.append('../Middleware Development')
@@ -21,11 +21,11 @@ production=doc['SERVER']['PRODUCTION']
 
 decdata=''
 try:
-    client = Client("opc.tcp://192.168.0.239:49321",timeout=60*8)
+    client = Client("opc.tcp://192.168.0.187:49320",timeout=60*8)
 except KeyboardInterrupt:
     print("Interrupted by user")
             
-client = Client("opc.tcp://192.168.0.250:49321")    #Suppose is opc.tcp://192.168.0.253:49321", Alvin temporary change it to prevent interrupt the original system.
+# client = Client("opc.tcp://192.168.0.250:49321")    #Suppose is opc.tcp://192.168.0.253:49321", Alvin temporary change it to prevent interrupt the original system.
 
 graphdict={"CHR":1,
             "Stn1":2,
@@ -38,11 +38,12 @@ graphdict={"CHR":1,
             "CL2":9
             }
 
-
+def startupdemo():
+    client.connect()
+    print('Connection Successful')
 def startup():
     try:
-        #client.connect()
-        #print('Connection to OPC Server successful!')
+        # client.connect()
         t1=threading.Thread(target=readTags,daemon=True)
         t1.start()
     except KeyboardInterrupt:
@@ -52,11 +53,27 @@ def startup():
         print(e)
     
 
- 
+def incProcQty(station):
+    procqtypath="ns=2;s=SyngentaPLC.Station{}.ProcessedQty".format(station)
+    rejqtypath="ns=2;s=SyngentaPLC.Station5.RejectedQty".format(station)
+    procqtystate=client.get_node(procqtypath)
+    procqty=procqtystate.get_value()
+    
+    rejqtystate=client.get_node(rejqtypath)
+    rejqty=rejqtystate.get_value()
+    #Increase processed quantity by 1
+    procqtystate.set_value(ua.DataValue(ua.Variant(procqty+1,ua.VariantType.UInt16)))
+    print(f'Increased station {station} processed quantity to {procqty+1}.')
+    #Station is inspection
+    if(station==5):
+        reject = random.choices([True, False], [0.6,0.4])
+        if(reject[0]):
+            rejqtystate.set_value(ua.DataValue(ua.Variant(rejqty+1,ua.VariantType.UInt16)))
+
 
 def checkProcQty(station):
-    procqtypath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.ProcessedQty".format(station)
-    reqqtypath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.RequiredQty".format(station)
+    procqtypath="ns=2;s=SyngentaPLC.Station{}.ProcessedQty".format(station)
+    reqqtypath="ns=2;s=SyngentaPLC.Station{}.RequiredQty".format(station)
     procqtystate=client.get_node(procqtypath)
     reqqtystate=client.get_node(reqqtypath)
 
@@ -70,10 +87,10 @@ def writeWODetails(station,wonum,wostatus,reqqty,procqty):
     
     if station==0:
         for i in range(1,7):
-            wonumpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.WorkOrderNumber".format(i)
-            wostatuspath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.WorkOrderStatus".format(i)
-            reqqtypath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.RequiredQty".format(i)
-            procqtypath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.ProcessedQty".format(i)
+            wonumpath="ns=2;s=SyngentaPLC.Station{}.WorkOrderNumber".format(i)
+            wostatuspath="ns=2;s=SyngentaPLC.Station{}.WorkOrderStatus".format(i)
+            reqqtypath="ns=2;s=SyngentaPLC.Station{}.RequiredQty".format(i)
+            procqtypath="ns=2;s=SyngentaPLC.Station{}.ProcessedQty".format(i)
 
             wonumstate=client.get_node(wonumpath)
             wostatusstate=client.get_node(wostatuspath)
@@ -85,10 +102,10 @@ def writeWODetails(station,wonum,wostatus,reqqty,procqty):
             reqqtystate.set_value(ua.DataValue(ua.Variant(reqqty,ua.VariantType.UInt16)))
             procqtystate.set_value(ua.DataValue(ua.Variant(procqty,ua.VariantType.UInt16)))
     else:
-        wonumpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.WorkOrderNumber".format(station)
-        wostatuspath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.WorkOrderStatus".format(station)
-        reqqtypath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.RequiredQty".format(station)
-        procqtypath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.ProcessedQty".format(station)
+        wonumpath="ns=2;s=SyngentaPLC.Station{}.WorkOrderNumber".format(station)
+        wostatuspath="ns=2;s=SyngentaPLC.Station{}.WorkOrderStatus".format(station)
+        reqqtypath="ns=2;s=SyngentaPLC.Station{}.RequiredQty".format(station)
+        procqtypath="ns=2;s=SyngentaPLC.Station{}.ProcessedQty".format(station)
 
         wonumstate=client.get_node(wonumpath)
         wostatusstate=client.get_node(wostatuspath)
@@ -103,13 +120,13 @@ def writeWODetails(station,wonum,wostatus,reqqty,procqty):
 
 
 def startWOACK(station):
-    woackpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.StartAck".format(station)
+    woackpath="ns=2;s=SyngentaPLC.Station{}.StartAck".format(station)
 
     woackstate=client.get_node(woackpath)
     woackstate.set_value(ua.DataValue(ua.Variant('RDYORD',ua.VariantType.String)))
  
 def getWOACK(station):      
-    woackpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.StartAck".format(station)
+    woackpath="ns=2;s=SyngentaPLC.Station{}.StartAck".format(station)
 
     woackstate=client.get_node(woackpath)
     ack=woackstate.get_value()
@@ -163,7 +180,7 @@ def decodemsg(testmsg):
 queue=['WO001','WO002','WO003','WO004']
 
 def getNextWO(station):
-    wopath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.WorkOrderNumber".format(station)
+    wopath="ns=2;s=SyngentaPLC.Station{}.WorkOrderNumber".format(station)
     wostate=client.get_node(wopath)
 
     currwo=wostate.get_value()
@@ -240,57 +257,107 @@ def readPLC(type,loc):
             wmsinpath="ns=2;s=SyngentaPLC.Warehouse.ItemReadyToOut"
             wmsinstate=client.get_node(wmsinpath)
             return wmsinstate.get_value()
-
-def checkStnDone(stn):
+def divmod(a, b):
+    quotient = a // b
+    remainder = a % b
+    return quotient, remainder
+os.environ['prevrej']= str(0)
+def checkStnDone(stn,check,bcode):
     reqqtypath="ns=2;s=SyngentaPLC.Station{}.RequiredQty".format(stn)
     procqtypath="ns=2;s=SyngentaPLC.Station{}.ProcessedQty".format(stn)
     wocmppath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.CompleteAck".format(stn)
-    wostatuspath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.WorkOrderStatus".format(stn)
+    wostatuspath="ns=2;s=SyngentaPLC.Station{}.WorkOrderStatus".format(stn)
+    
     
     procqtystate=client.get_node(procqtypath)
     reqqtystate=client.get_node(reqqtypath)
     wocmpstate=client.get_node(wocmppath)
     wostatusstate=client.get_node(wostatuspath)
+
+    procqty=procqtystate.get_value()
+    #Monitor rejected quantity
+    if stn==5:
+        rejqtypath="ns=2;s=SyngentaPLC.Station5.RejectedQty"
+        rejstate=client.get_node(rejqtypath)
+        currrej=rejstate.get_value()
+        reqqty=int(os.environ['reqqty'])
+        prevrej=int(os.environ['prevrej'])
+        if currrej!=prevrej:
+            os.environ['prevrej']=str(currrej)
+            
+            wocancel,qtycancel=divmod(currrej,reqqty)
+            newqty=reqqty-qtycancel
+            wo2cancelfromlast=math.floor(wocancel)
+
+            dbinterface.writeStn6Qty(newqty,bcode,wo2cancelfromlast)
+
+    #Handle bottle torque out of range   
+    if stn==3:
+        tofrpath="ns=2;s=SyngentaPLC.Station3.TorqueOutOfRange"
+        
+        tofrstate=client.get_node(tofrpath)
+        tofr=tofrstate.get_value()
+        
+        if tofr:
+            tofrstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+            #Need to confirm when the processed quantity is increased
+            rejbottle=procqty-1
+            
+            
+        pass
+
+
+
+
     
     #If work order status is empty
     if wocmpstate.get_value()==0:
         pass
     
-    if procqtystate.get_value()==reqqtystate.get_value() :
-        wocmpstate.set_value(ua.DataValue(ua.Variant('CMPORD',ua.VariantType.String)))
-        wostatusstate.set_value(ua.DataValue(ua.Variant(4,ua.VariantType.UInt16)))
-        return True
+    if procqty==reqqtystate.get_value() :
+        if(check):
+            return 1
+        elif(reqqtystate.get_value()==0):
+            return 2
+        else:
+            wocmpstate.set_value(ua.DataValue(ua.Variant('CMPORD',ua.VariantType.String)))
+            wostatusstate.set_value(ua.DataValue(ua.Variant(4,ua.VariantType.UInt16)))
+            return 1
     else:
-        return False
+        return 0
 
-def checkStnAvail(stn):
+def setWoStatus(stn,state):
+    wostatuspath="ns=2;s=SyngentaPLC.Station{}.WorkOrderStatus".format(stn)
+    wostatusstate=client.get_node(wostatuspath)
+    wostatusstate.set_value(ua.DataValue(ua.Variant(state,ua.VariantType.UInt16)))
+
+
+def checkStnStatus(stn):
     reqqtypath="ns=2;s=SyngentaPLC.Station{}.RequiredQty".format(stn)
     procqtypath="ns=2;s=SyngentaPLC.Station{}.ProcessedQty".format(stn)
     wocmppath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.CompleteAck".format(stn)
-    wostatuspath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.WorkOrderStatus".format(stn)
-    sstatuspath="ns=2;s=Syngenta.SmartLab.FNP.Info.Station{}.StationState".format(stn)
-    
+    wostatuspath="ns=2;s=SyngentaPLC.Station{}.WorkOrderStatus".format(stn)
+    sstatuspath="ns=2;s=SyngentaPLC.Station{}.StationState".format(stn)
+    # print(sstatuspath)
     procqtystate=client.get_node(procqtypath)
     reqqtystate=client.get_node(reqqtypath)
     wocmpstate=client.get_node(wocmppath)
     wostatusstate=client.get_node(wostatuspath)
-    sstatuspath=client.get_node(sstatuspath)
-    ss=sstatuspath.get_value()
+    sstatusstate=client.get_node(sstatuspath)
+    ss=sstatusstate.get_value()
+    ws=wostatusstate.get_value()
+    # print(ss)
     #Return station state so scheduler knows the current status of he work order
-    if(ss==1):
-        return 1
-    elif(ss==2):
-        return 2
-    else:
-        return 0
+    return ss,ws
 def sendWO2PLC(stn,wo):
     
-    uint16_wonum = [c.to_bytes(2, byteorder='big') for c in map(ord, wo[2])]  
+    # uint16_wonum = [c.to_bytes(2, byteorder='big') for c in map(ord, wo[2])]  
     procqtypath="ns=2;s=SyngentaPLC.Station{}.ProcessedQty".format(stn)
     reqqtypath="ns=2;s=SyngentaPLC.Station{}.RequiredQty".format(stn)
     wonumpath="ns=2;s=SyngentaPLC.Station{}.WorkOrderNumber".format(stn)
-    wostatuspath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.WorkOrderStatus".format(stn)
-    wostartackpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.StartAck".format(i)
+    bcodepath="ns=2;s=SyngentaPLC.Station{}.BatchCode".format(stn)
+    wostatuspath="ns=2;s=SyngentaPLC.Station{}.WorkOrderStatus".format(stn)
+    wostartackpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.StartAck".format(stn)
     
     
     
@@ -299,12 +366,39 @@ def sendWO2PLC(stn,wo):
     wonumstate=client.get_node(wonumpath)
     wostatusstate=client.get_node(wostatuspath)
     wostartackstate=client.get_node(wostartackpath)
-    
-    wostartackstate.set_value(ua.DataValue(ua.Variant('RDYORD',ua.VariantType.String)))
+    bcodestate=client.get_node(bcodepath)
+
+    wonumstate.set_value(ua.DataValue(ua.Variant(wo[2],ua.VariantType.String)))
+    bcodestate.set_value(ua.DataValue(ua.Variant(wo[1],ua.VariantType.String)))
     reqqtystate.set_value(ua.DataValue(ua.Variant(0,ua.VariantType.UInt16)))
     procqtystate.set_value(ua.DataValue(ua.Variant(0,ua.VariantType.UInt16)))
-    wonumstate.set_value(ua.DataValue(ua.Variant(wo,ua.VariantType.String)))
+    #Write fill volume
+    if(stn==2):
+        fvpath="ns=2;s=SyngentaPLC.Station2.FillVolume"
+        fvstate=client.get_node(fvpath)
+        fvstate.set_value(ua.DataValue(ua.Variant(wo[11],ua.VariantType.UInt16)))
+    #Write target torque
+    if(stn==3):
+        ttpath="ns=2;s=SyngentaPLC.Station3.TargetTorque"
+        ttstate=client.get_node(ttpath)
+        # ttstate.set_value(ua.DataValue(ua.Variant(wo[12],ua.VariantType.UInt16)))
+
+    #Set label information for station 4
+    if(stn==4):
+        pdpath="ns=2;s=SyngentaPLC.Station4.ProductionDate"
+        edpath="ns=2;s=SyngentaPLC.Station4.ExpirationDate"
+
+        pdstate=client.get_node(pdpath)
+        edstate=client.get_node(edpath)
+
+        pdstate.set_value(ua.DataValue(ua.Variant(wo[3],ua.VariantType.String)))
+        edstate.set_value(ua.DataValue(ua.Variant(wo[13],ua.VariantType.String)))
+
+
+    time.sleep(1.5)
     wostatusstate.set_value(ua.DataValue(ua.Variant(2,ua.VariantType.UInt16)))
+    wostartackstate.set_value(ua.DataValue(ua.Variant('RDYORD',ua.VariantType.String)))
+    
     
     
     print('<PI>Sending {} to PLC and wait for MES acknowledgement'.format(wo[2]))
@@ -314,18 +408,51 @@ def setWOStart():
         procqtypath="ns=2;s=SyngentaPLC.Station{}.ProcessedQty".format(i)
         procqtystate=client.get_node(procqtypath)
         procqtystate.set_value(ua.DataValue(ua.Variant(0,ua.VariantType.UInt16)))
-    
-        
+
+
+     
 def startWO(stn,wo):
     reqqtypath="ns=2;s=SyngentaPLC.Station{}.RequiredQty".format(stn)
     reqqtystate=client.get_node(reqqtypath)
+    #Change back to variable
     reqqtystate.set_value(ua.DataValue(ua.Variant(wo[6],ua.VariantType.UInt16)))
-  
+    #If station 1 did not detect any tote box, request for empty bottle
+    # if readPLC("te","Stn1")==0 and stn==1:
+    #     print('<PLC> Request Tote box')
+    #     reqeb()
+    
+
+    #CHANGE TO ALL STATION FOR PRODUCTION TO CHANGE PAUSED TO START
+    if(checkStnStatus(stn))==3 or (checkStnStatus(stn))==1:
+        setStnState(stn,'Start')
+
+#Start station command
+def setStnState(stn,state):
+    statepath='ns=2;s=SyngentaPLC.Station{}.Cmd{}'.format(stn,state)
+    statestate=client.get_node(statepath)
+    statestate.set_value(ua.DataValue(ua.Variant(True,ua.VariantType.Boolean)))
+
+def setNewBatch():
+    for i in range(1,6):
+        reqqtypath="ns=2;s=SyngentaPLC.Station{}.NewBatch".format(i)
+        reqqtystate=client.get_node(reqqtypath)
+        reqqtystate.set_value(ua.DataValue(ua.Variant(True,ua.VariantType.Boolean)))
+
+def informDocked(dock,stn):
+    if stn==6:
+        reqqtypath="ns=2;s=SyngentaPLC.Station6.AMRDocked"
+        reqqtystate=client.get_node(reqqtypath)
+        reqqtystate.set_value(ua.DataValue(ua.Variant(dock,ua.VariantType.Boolean)))
+    elif stn==1:
+        reqqtypath="ns=2;s=SyngentaPLC.Station1.AMRDocking"
+        reqqtystate=client.get_node(reqqtypath)
+        reqqtystate.set_value(ua.DataValue(ua.Variant(dock,ua.VariantType.UInt16)))
+
 def checkCMPAck(station):      
     woackpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.StartAck".format(station)
     wocmppath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.CompleteAck".format(station)
     wocncpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.CancelledAck".format(station)
-    wonumpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.WorkOrderNumber".format(station)
+    wonumpath="ns=2;s=SyngentaPLC.Station{}.WorkOrderNumber".format(station)
 
     woackstate=client.get_node(woackpath)
     wonumstate=client.get_node(wonumpath)
@@ -339,8 +466,8 @@ def checkCMPAck(station):
     
     
     if wocmp==currwo:
-        print('Work Order acknowledgement matched')
-        woackstate.set_value(ua.DataValue(ua.Variant('',ua.VariantType.String)))
+        print(f'Completed acknowledgement matched for station{station}, {currwo}')
+        wocmpstate.set_value(ua.DataValue(ua.Variant('',ua.VariantType.String)))
 
        
         return True
@@ -350,7 +477,7 @@ def checkStartAck(station):
     woackpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.StartAck".format(station)
     wocmppath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.CompleteAck".format(station)
     wocncpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.CancelledAck".format(station)
-    wonumpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.WorkOrderNumber".format(station)
+    wonumpath="ns=2;s=SyngentaPLC.Station{}.WorkOrderNumber".format(station)
 
     woackstate=client.get_node(woackpath)
     wonumstate=client.get_node(wonumpath)
@@ -364,7 +491,7 @@ def checkStartAck(station):
     
     
     if startack==currwo:
-        print('Work Order acknowledgement matched')
+        print('Start Work Order acknowledgement matched')
         woackstate.set_value(ua.DataValue(ua.Variant('',ua.VariantType.String)))
 
        
@@ -372,6 +499,14 @@ def checkStartAck(station):
     else:
         return False
     
+#Initialize tag for new batch
+def initTag():
+    #Init reject qty to 0 for new batch
+    rejqtypath="ns=2;s=SyngentaPLC.Station5.RejectedQty"
+    rejqtystate=client.get_node(rejqtypath)
+    rejqtystate.set_value(ua.DataValue(ua.Variant(0,ua.VariantType.UInt16)))
+
+    pass
 #Check station is empty
 def checkEmpty(stn):
       
@@ -379,104 +514,166 @@ def checkEmpty(stn):
         return True
     else:
         return False
+def reqeb():
+    if readPLC("te","Stn1")==0:
+        print('<PLC> Request Tote box')
+        
+        #Call WMS to retrieve bottles bottles
+        if production:
+            print('<PLC> Call WMS interface to request empty bottle')
+            wmsinterface.reqEb()
+        
+        #Generate robot path and insert as a robot task
+        # pathinfo=pathcalculate.generate_path('WH','Stn1','')
+        print('<PLC> Inserting robot task')
+        dbinterface.insertRbtTask("WH;Stn1",1,'REB')
+        #Set wms ready bit to false
+        os.environ['wmsrdy'] = 'False'
+        # reqbotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+        return True
+    else:
+        return False
 
 def readTags():
     client.connect()
+    print('Connection to OPC Server successful!')
     while True:
-        try:
-            time.sleep(0.1)
-            
-            #print('Connection to OPC Server successful!')
-            
-            #Station 1 tote request and store
-            reqbotpath="ns=2;s=SyngentaPLC.Station1.AMR.RequestBottle"
-            rettotpath="ns=2;s=SyngentaPLC.Station1.AMR.ReturnToteBox"
-            
-            cp2path="ns=2;s=Syngenta.SmartLab.FNP.Info.Station6.CartonPresent2"
-            ccpath="ns=2;s=Syngenta.SmartLab.FNP.CL.CustomComplete"
-            
-            #Station 6 tote retrieval and store
-            rtbpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station6.RetrieveToteBox"
-            stbpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station6.StoreToteBox"
-
-
-            reqbotstate=client.get_node(reqbotpath)
-            rettotstate=client.get_node(rettotpath)
-            cp2state=client.get_node(cp2path)
-            ccstate=client.get_node(ccpath)
-            rtbstate=client.get_node(rtbpath)
-            stbstate=client.get_node(stbpath)
-
-
-            reqbot=reqbotstate.get_value()
-            rettot=rettotstate.get_value()
-            cp2=cp2state.get_value()
-            cc=ccstate.get_value()
-            rtb=rtbstate.get_value()
-            stb=stbstate.get_value()
+       
+        time.sleep(0.1)
         
-            #Procedure to request bottles
-            if(reqbot):
-                #Call WMS to retrieve bottles bottles
-                if production:
-                    print('<PLC> Call WMS interface to request empty bottle')
-                    wmsinterface.reqEb()
-                
-                #Generate robot path and insert as a robot task
-                # pathinfo=pathcalculate.generate_path('WH','Stn1','')
-                print('<PLC> Inserting robot task')
-                dbinterface.insertRbtTask("WH;Stn1",1)
-                #Set wms ready bit to false
-                os.environ['wmsrdy'] = 'False'
-                reqbotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+        #print('Connection to OPC Server successful!')
+        
+        #Station 1 tote request and store
+        reqbotpath="ns=2;s=SyngentaPLC.Station1.AMR.RequestBottle"
+        rettotpath="ns=2;s=SyngentaPLC.Station1.AMR.ReturnToteBox"
+        
+        
+        #Station 6 tote retrieval and store
+        # rtbpath="ns=2;s=SyngentaPLC.Station6.RetrieveToteBox"
+        rtbpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station6.RetrieveToteBox"
+        stbpath="ns=2;s=SyngentaPLC.Station6.StoreToteBox"
 
-            #Procedure to return tote box
-            if(rettot):
-                
-                #Call WMS to store tote box
-                if production:
-                    wmsinterface.reqstb()
-                # pathinfo=pathcalculate.generate_path('Stn1','WH','')
-                dbinterface.insertRbtTask('Stn1;WH',1)
-                rettotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+        #Start/Pause signal from MES
+        startpath="ns=2;s=Syngenta.SmartLab.FNP.BO.Start"
+        pausepath="ns=2;s=Syngenta.SmartLab.FNP.BO.Paused"
+        cancelpath="ns=2;s=Syngenta.SmartLab.FNP.BO.Cancelled"
 
-            if(cp2):
-                if production:
-                    wmsinterface.reqsfc()
-                dbinterface.insertRbtTask('Stn6;WH',1)
-                cp2state.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+        #Monitor rejected qty and write into sys var
+        rejqtypath="ns=2;s=SyngentaPLC.Station5.RejectedQty"
+        
 
-            if(cc):
-                print('<PLC>carton complete')
-                os.environ['waitcomplete'] = 'True'
-                
+        
+
+
+        reqbotstate=client.get_node(reqbotpath)
+        rettotstate=client.get_node(rettotpath)
+        rtbstate=client.get_node(rtbpath)
+        stbstate=client.get_node(stbpath)
+
+        startstate=client.get_node(startpath)
+        pausestate=client.get_node(pausepath)
+        cancelstate=client.get_node(cancelpath)
+
+
+        reqbot=reqbotstate.get_value()
+        rettot=rettotstate.get_value()
+        rtb=rtbstate.get_value()
+        stb=stbstate.get_value()
+
+        bostart=startstate.get_value()
+        bopause=pausestate.get_value()
+        bocancel=cancelstate.get_value()
+
+
+       
+
+        
+
+        
+    
+        #Procedure to request bottles
+        if(reqbot):
+            #Call WMS to retrieve bottles bottles
+            # if production:
+            #     print('<PLC> Call WMS interface to request empty bottle')
+            #     wmsinterface.reqEb()
             
-            #Fetch empty tote box from WH and go to Stn 6
-            if(rtb):
-                #Call WMS to retrieve empty tote
-                if production:
-                    wmsinterface.reqetb()
-                
-                #Generate robot path and insert as a robot task
-                # pathinfo=pathcalculate.generate_path('WH','Stn6','')
-                #Insert robot task to fetch empty tote
-                dbinterface.insertRbtTask('WH;Stn6;WH',6)
-                
-                rtbstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
-                
-            if(stb):
-                
-                os.environ['waitcomplete'] = 'True'
-                 
-                #Call WMS to receive item
-                if production:
-                    wmsinterface.reqsfc("123456")
-                stbstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
-            #client.disconnect()
-        except KeyboardInterrupt:
-            print("Interrupted by user")
-        except Exception as e:
-            continue
+            #Generate robot path and insert as a robot task
+            # pathinfo=pathcalculate.generate_path('WH','Stn1','')
+            print('<PLC> Inserting robot task')
+            dbinterface.insertRbtTask("WH;Stn1",1,'REB')
+            #Set wms ready bit to false
+            os.environ['wmsrdy'] = 'False'
+            reqbotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+
+        #Procedure to return tote box
+        if(rettot):
+            
+            #Call WMS to store tote box
+            # if production:
+            #     wmsinterface.reqstb()
+            # pathinfo=pathcalculate.generate_path('Stn1','WH','')
+            dbinterface.insertRbtTask('Stn1;WH',1,'STB')
+            rettotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+
+        # if(cp2):
+        #     if production:
+        #         wmsinterface.reqsfc()
+        #     dbinterface.insertRbtTask('Stn6;WH',1)
+        #     cp2state.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+
+        # if(cc):
+        #     print('<PLC>carton complete')
+        #     os.environ['waitcomplete'] = 'True'
+            
+        
+        #Fetch empty tote box from WH and go to Stn 6
+        if(rtb):
+            #Call WMS to retrieve empty tote
+            if production:
+                wmsinterface.reqetb()
+            
+            #Generate robot path and insert as a robot task
+            # pathinfo=pathcalculate.generate_path('WH','Stn6','')
+            #Insert robot task to fetch empty tote
+            print('<PLC> Insert robot task')
+            dbinterface.insertRbtTask('WH;Stn6;WH',6,'WAIT')
+            
+            rtbstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+            
+        if(stb):
+            
+            os.environ['waitcomplete'] = 'True'
+            informDocked(dock=False,stn=6)
+            
+            #Call WMS to receive item
+            if production:
+                wmsinterface.reqsfc("123456")
+            stbstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+        #client.disconnect()
+
+        #Start BO from MES
+        if(bostart):
+            for i in range(1,7):
+                setStnState(i,'Start')
+                setWoStatus(i,2)
+            startstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+            pass
+
+        #Receive pause from MES
+        if(bopause):
+            for i in range(1,7):
+                setStnState(i,'Pause')
+                setWoStatus(i,3)
+            pausestate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+            pass
+
+        if(bocancel):
+            dbinterface.cancelWO()
+            cancelstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+            
+
+       
         
 
 
