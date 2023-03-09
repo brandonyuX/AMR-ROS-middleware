@@ -795,15 +795,15 @@ def checkEmpty():
 #Initialize all interfaces
 dbinterface.startup()
 
-robotinterface.startup()
-plcinterface.startup()
-#woscheduler.startup()
-rbtscheduler.startup()
+# robotinterface.startup()
+# plcinterface.startup()
+# woscheduler.startup()
+# rbtscheduler.startup()
 
-app.run(host='192.168.0.239',debug=False)
+# app.run(host='192.168.0.239',debug=False)
 
-# app.run(host='0.0.0.0',debug=False)
-socketio.run(app, debug=False)
+app.run(host='0.0.0.0',debug=False)
+# socketio.run(app, debug=False)
 
 # t1=threading.Thread(target=app.run(),daemon=True)
 # t1.start()

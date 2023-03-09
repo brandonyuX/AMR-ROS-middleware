@@ -51,7 +51,7 @@ var get_table = function getInfo() {
       HTML += "<td>" + reqarr.reqinfo[i].tskmodno + "</td>";
       HTML += "<td>" + reqarr.reqinfo[i].status + "</td></tr>";
     }
-    document.getElementById("curPLCRequest").innerHTML = HTML;
+    document.getElementById("curCustomRequest").innerHTML = HTML;
 
     document.getElementById("msmsg").innerHTML = data['msinfo'];
     document.getElementById("numRbtAvail").innerHTML = '<small>Robot Available: ' + availno + '</small>';
