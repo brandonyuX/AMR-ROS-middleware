@@ -274,6 +274,8 @@ def checkStnDone(stn,check,bcode):
     wocmpstate=client.get_node(wocmppath)
     wostatusstate=client.get_node(wostatuspath)
 
+    procqty=procqtystate.get_value()
+    #Monitor rejected quantity
     if stn==5:
         rejqtypath="ns=2;s=SyngentaPLC.Station5.RejectedQty"
         rejstate=client.get_node(rejqtypath)
@@ -289,8 +291,20 @@ def checkStnDone(stn,check,bcode):
 
             dbinterface.writeStn6Qty(newqty,bcode,wo2cancelfromlast)
 
+    #Handle bottle torque out of range   
+    if stn==3:
+        tofrpath="ns=2;s=SyngentaPLC.Station3.TorqueOutOfRange"
+        
+        tofrstate=client.get_node(tofrpath)
+        tofr=tofrstate.get_value()
+        
+        if tofr:
+            tofrstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+            #Need to confirm when the processed quantity is increased
+            rejbottle=procqty-1
             
-
+            
+        pass
 
 
 
@@ -300,7 +314,7 @@ def checkStnDone(stn,check,bcode):
     if wocmpstate.get_value()==0:
         pass
     
-    if procqtystate.get_value()==reqqtystate.get_value() :
+    if procqty==reqqtystate.get_value() :
         if(check):
             return 1
         elif(reqqtystate.get_value()==0):
@@ -657,6 +671,8 @@ def readTags():
         if(bocancel):
             dbinterface.cancelWO()
             cancelstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+            
+
        
         
 

@@ -1,7 +1,7 @@
 # from cgi import test
 from flask import Flask, render_template,request,session,make_response,redirect,url_for,jsonify
 import interface.dbinterface as dbinterface
-# import schedulers.woscheduler as woscheduler
+import schedulers.woscheduler as woscheduler
 import main
 from mwclass.workorder import WO
 from mwclass.robotconfig import RobotConfig
@@ -18,7 +18,7 @@ from flask_login import login_required, current_user,LoginManager,login_user,log
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, validators
 from flask_sqlalchemy import SQLAlchemy
-# import schedulers.rbtscheduler as rbtscheduler
+import schedulers.rbtscheduler as rbtscheduler
 from wtforms.validators import InputRequired, Length, ValidationError
 import threading
 from flask_bcrypt import Bcrypt
