@@ -2,525 +2,97 @@
 <html lang="en">
 
 <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
 
-    <title>M8M Resource Management - AMR Control</title>
 
-    <!-- Custom fonts for this template-->
-    <link href="/static/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <!-- <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet"> -->
+  <!-- CSS only -->
+  <link rel="stylesheet" href="/static/css/bootstrap.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+  <script type="text/javascript" src="/static/js/easeljs-NEXT.js"></script>
+  <script type="text/javascript" src="/static/js/eventemitter2.js"></script>
+  <script type="text/javascript" src="/static/js/roslib.js"></script>
+  <script type="text/javascript" src="/static/js/ros2d.js"></script>
+  <script type="text/javascript" src="/static/js/nav2d.js"></script>
 
-    <!-- Custom styles for this template-->
-    <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
+  <!-- Online Downloaded Stylesheet -->
+  <link href="/static/css/style.css" rel="stylesheet">
 
+  <title>M8M Resource Management</title>
 </head>
 
-<body id="page-top" onload="init()">
-
-    <!-- Page Wrapper -->
-    <div id="wrapper">
-
-        <!-- Sidebar -->
-        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
-
-            <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
-                
-                <div class="sidebar-brand-text mx-3">M8M Resource Management Interface</div>
-            </a>
-
-            <!-- Divider -->
-            <hr class="sidebar-divider my-0">
-
-            <!-- Nav Item - Dashboard -->
-            <li class="nav-item">
-                <a class="nav-link" href="/">
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Dashboard</span></a>
-            </li>
-
-            <!-- Divider -->
-            <hr class="sidebar-divider">
-
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                AMR Control
-            </div>
-
-            <!-- Nav Item - Pages Collapse Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseOne"
-                    aria-expanded="true" aria-controls="collapseOne">
-                    <i class="fas fa-fw fa-cog"></i>
-                    <span>Task Management</span>
-                </a>
-                <div id="collapseOne" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Task Model</h6>
-                        <a class="collapse-item" href="buttons.html">Query Task Model</a>
-                        <a class="collapse-item" href="cards.html">Create Task Model</a>
-                        <h6 class="collapse-header">Sub Task</h6>
-                        <a class="collapse-item" href="buttons.html">Query Sub Task</a>
-                        <a class="collapse-item" href="cards.html">Create Sub Task</a>
-                    </div>
-                </div>
-            </li>
-
-            
-
-            <li class="nav-item">
-                <a class="nav-link" href="amr-settings.html">
-                    <i class="fas fa-fw fa-wrench"></i>
-                    <span>AMR Settings</span></a>
-            </li>
-
-            <li class="nav-item active">
-                <a class="nav-link" href="amr-control.html">
-                    <i class="fas fa-fw fa-wrench"></i>
-                    <span>AMR Control</span></a>
-            </li>
-
-            <!-- Divider -->
-            <hr class="sidebar-divider">
-
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Work Order Management
-            </div>
-
-            <!-- Nav Item - Pages Collapse Menu -->
-            <!-- <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages"
-                    aria-expanded="true" aria-controls="collapsePages">
-                    <i class="fas fa-fw fa-folder"></i>
-                    <span>Pages</span>
-                </a>
-                <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Login Screens:</h6>
-                        <a class="collapse-item" href="login.html">Login</a>
-                        <a class="collapse-item" href="register.html">Register</a>
-                        <a class="collapse-item" href="forgot-password.html">Forgot Password</a>
-                        <div class="collapse-divider"></div>
-                        <h6 class="collapse-header">Other Pages:</h6>
-                        <a class="collapse-item" href="404.html">404 Page</a>
-                        <a class="collapse-item" href="blank.html">Blank Page</a>
-                    </div>
-                </div>
-            </li> -->
-
-            <!-- Nav Item - Charts -->
-            <li class="nav-item">
-                <a class="nav-link" href="charts.html">
-                    <i class="fas fa-fw fa-chart-area"></i>
-                    <span>Current Work Order</span></a>
-            </li>
-
-            <!-- Nav Item - Tables -->
-            <!-- <li class="nav-item">
-                <a class="nav-link" href="tables.html">
-                    <i class="fas fa-fw fa-table"></i>
-                    <span>Tables</span></a>
-            </li> -->
-
-            <!-- Divider -->
-            <hr class="sidebar-divider d-none d-md-block">
-
-            <!-- Sidebar Toggler (Sidebar) -->
-            <!-- <div class="text-center d-none d-md-inline">
-                <button class="rounded-circle border-0" id="sidebarToggle"></button>
-            </div> -->
-
-           
-        </ul>
-        <!-- End of Sidebar -->
-
-        <!-- Content Wrapper -->
-        <div id="content-wrapper" class="d-flex flex-column">
-
-            <!-- Main Content -->
-            <div id="content">
-
-                <!-- Topbar -->
-                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-
-                    <!-- Sidebar Toggle (Topbar) -->
-                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
-                        <i class="fa fa-bars"></i>
-                    </button>
-
-                    <!-- Topbar Search -->
-                    <!-- <form
-                        class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-                        <div class="input-group">
-                            <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..."
-                                aria-label="Search" aria-describedby="basic-addon2">
-                            <div class="input-group-append">
-                                <button class="btn btn-primary" type="button">
-                                    <i class="fas fa-search fa-sm"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </form> -->
-
-                    <!-- Topbar Navbar -->
-                    <ul class="navbar-nav ml-auto">
-
-                        <!-- Nav Item - Search Dropdown (Visible Only XS) -->
-                        <li class="nav-item dropdown no-arrow d-sm-none">
-                            <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-search fa-fw"></i>
-                            </a>
-                            <!-- Dropdown - Messages -->
-                            <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
-                                aria-labelledby="searchDropdown">
-                                <form class="form-inline mr-auto w-100 navbar-search">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control bg-light border-0 small"
-                                            placeholder="Search for..." aria-label="Search"
-                                            aria-describedby="basic-addon2">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-primary" type="button">
-                                                <i class="fas fa-search fa-sm"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </li>
-
-                        <!-- Nav Item - Alerts -->
-                        <li class="nav-item dropdown no-arrow mx-1">
-                            <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-bell fa-fw"></i>
-                                <!-- Counter - Alerts -->
-                                <span class="badge badge-danger badge-counter">1</span>
-                            </a>
-                            <!-- Dropdown - Alerts -->
-                            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                                aria-labelledby="alertsDropdown">
-                                <h6 class="dropdown-header">
-                                    Alerts Center
-                                </h6>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="mr-3">
-                                        <div class="icon-circle bg-primary">
-                                            <i class="fas fa-file-alt text-white"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="small text-gray-500">October 17, 2022</div>
-                                        <span class="font-weight-bold">A new work order has been executed at 12:03pm</span>
-                                    </div>
-                                </a>
-                                
-                                <a class="dropdown-item text-center small text-gray-500" href="#">Show All Alerts</a>
-                            </div>
-                        </li>
-
-                        <!-- Nav Item - Messages -->
-                        
-
-                        <div class="topbar-divider d-none d-sm-block"></div>
-
-                        <!-- Nav Item - User Information -->
-                        <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Admin</span>
-                                <img class="img-profile rounded-circle"
-                                    src="/static/img/undraw_profile.svg">
-                            </a>
-                            <!-- Dropdown - User Information -->
-                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                                aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
-                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Logout
-                                </a>
-                            </div>
-                        </li>
-
-                    </ul>
-
-                </nav>
-                <!-- End of Topbar -->
-
-                
-                <!-- Begin Page Content -->
-                <div class="container-fluid">
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Map</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="nav"></div>
-                        </div>
-                    </div>
-                    
-                    
-                    <!-- Content Row -->
-                    <div class="row">
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-primary shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                               Warehouse</div>
-                                               <button type="button" onclick="WHSave()" class="btn btn-primary btn-rounded   btn-block" data-mdb-ripple-color="#ffffff"> Save location </button>
-                                               <button type="button" onclick="MovWH()" class="btn btn-primary btn-rounded  btn-block" data-mdb-ripple-color="#ffffff"> Go to location </button>
-                       
-                                        </div>
-                                        <div class="col-auto">
-                                            <!-- <i class="fas fa-comments fa-2x text-gray-300"></i> -->
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-primary shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                               Station 1</div>
-                                               <button type="button" onclick="STN1Save()" class="btn btn-primary btn-rounded   btn-block" data-mdb-ripple-color="#ffffff"> Save location </button>
-                                               <button type="button" onclick="MovLoc1()" class="btn btn-primary btn-rounded   btn-block" data-mdb-ripple-color="#ffffff"> Go to location </button>
-                       
-                                        </div>
-                                        <div class="col-auto">
-                                            <!-- <i class="fas fa-comments fa-2x text-gray-300"></i> -->
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                      
-                        
-
-
-
-
-                        
-
-                        
-
-
-                        
-
-                         
-
-
-                        
-
-                   
-
-                </div>
-                <!-- /.container-fluid -->
-
-            </div>
-            <!-- End of Main Content -->
-
-            <!-- Footer -->
-            <footer class="sticky-footer bg-white">
-                <div class="container my-auto">
-                    <div class="copyright text-center my-auto">
-                        <span>Copyright &copy; M8M Pte Ltd 2022</span>
-                    </div>
-                </div>
-            </footer>
-            <!-- End of Footer -->
-
-        </div>
-        <!-- End of Content Wrapper -->
-
+<body>
+  <div class="container-fluid position-relative d-flex p-0">
+    <div id="spinner"
+      class="show bg-dark position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+      <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
     </div>
-    <!-- End of Page Wrapper -->
+    <!-- Side navigation bar: Start -->
+    {% include "sideNavigationBar.html" %}
+    <!-- Side navigation bar: End -->
 
-    <!-- Scroll to Top Button-->
-    <a class="scroll-to-top rounded" href="#page-top">
-        <i class="fas fa-angle-up"></i>
-    </a>
+    <!-- Top navigation bar: Start -->
+    <div class="content">
+      <!-- Top navigation bar: Start -->
+      {% include "TopNavigationBar.html" %}
+      <!-- Top navigation bar: End -->
 
-    <!-- Logout Modal-->
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="logout">Logout</a>
-                </div>
-            </div>
-        </div>
-    </div>
+      <div class="d-grid gap-2">
+			
+			
+			
+        <div class="form-group">
+            <label for="exampleFormControlSelect1">Location</label>
+            <select class="form-control" id="exampleFormControlSelect1">
+              <option value="">Location</option>
+              <option value="WH">WH</option>
+              <option value="Stn1">Stn1</option>
+              <option value="Stn6">Stn6</option>
+              <option value="TPUp">TPUp</option>
+              <option value="TPDown">TPDown</option>
+              <option value="TPLeft">TPLeft</option>
+              <option value="CHR">Charging Station</option>
+              <option value="FL">Formulation Lab</option>
+              <option value="MR">Materials Receiving</option>
+              <option value="PL">Packaging Line</option>
+            </select>
+          </div>
+          
+          <button type="button" onclick="savepoint()" class="btn btn-primary w-100 mx-2">Save Point</button>
 
-    
+          <button type="button" onclick="moveFun()" class="btn btn-primary w-100 mx-2">Go</button>
 
-    <!-- Bootstrap core JavaScript-->
-    <script src="/static/js/jquery.min.js"></script>
-    <script src="/static/js/sbadmin/bootstrap.bundle.min.js"></script>
-
-    <!-- Core plugin JavaScript-->
-    <script src="/static/js/jquery.easing.min.js"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="/static/js/sb-admin-2.min.js"></script>
-
-    <!-- Page level plugins -->
-    <script src="/static/js/chart.js/Chart.min.js"></script>
-
-    <!-- Page level custom scripts -->
-    <script src="/static/js/demo/chart-area-demo.js"></script>
-    <script src="/static/js/demo/chart-pie-demo.js"></script>
-
-    <script type="text/javascript" src="/static/js/easeljs-NEXT.js"></script>
-    <script type="text/javascript" src="/static/js/eventemitter2.js"></script>
-    <script type="text/javascript" src="/static/js/roslib.js"></script>
-    <script type="text/javascript" src="/static/js/ros2d.js"></script>
-    <script type="text/javascript" src="/static/js/nav2d.js"></script>
-
-    <script type="text/javascript" type="text/javascript">
-        var hostIP = "ws://"+"192.168.0.110"+":8080";
-        var ros = new ROSLIB.Ros();
-        var rosmsg="";
-        ros.connect(hostIP);
-        var cmdsrv = new ROSLIB.Service({
-            ros : ros,
-            name : '/web_cmd',
-            serviceType : 'htbot/mqueue'
-        });
-
-        var cmdreq = new ROSLIB.ServiceRequest({
-            cmd : 1,
-            LP : 0,
-            GN : 0,
-            gps : "",
-            lps : "POWER",
-                pw : "",
-            tx : 1.0,
-            ty : 2.0,
-            tz : 3.0,
-            rx : 0.0,
-                ry : 0.0,
-            rz : 0.0,
-            rw : 0.0,
-            prd : 0.0,
-                pra : 0.0,
-            psd : 0.0,
-            psa : 0.0,
-            prd1 : 0.0,
-            pra1 : 0.0,
-            psd1 : 0.0,
-            psa1 : 0.0,
-            align : 0.0,
-            func : 0.0 
-        });
-
-    function MovWH() {	
-	
-	cmdreq.cmd = 15;
-	cmdreq.lps = "HOME";	
-	cmdsrv.callService(cmdreq, function(result) {
-    console.log('Result for service call on '
-      + cmdsrv.name
-      + ': '
-      + result.status);
-		//document.getElementById("stat").innerHTML = "Moving To : "+fr+" and Next To : "+to ;
-  });	
-}
-
-function MovLoc1() {	
-	
-	cmdreq.cmd = 15;	
-	cmdreq.lps = "STN1";
-	cmdsrv.callService(cmdreq, function(result) {
-    console.log('Result for service call on '
-      + cmdsrv.name
-      + ': '
-      + result.status);
-		//document.getElementById("stat").innerHTML = "Moving To : "+fr+" and Next To : "+to ;
-  });	
-}
-
-function STN1Save() {	
-	alert("Mark STN1");
-	//document.getElementById("stat").innerHTML = "Marking STN1" ;
-	cmdreq.cmd = 18;		
-	//cmdreq.LP = 1;
-	cmdreq.lps = "STN1";
-	cmdsrv.callService(cmdreq, function(result) {
-  	console.log('Result for service call on '
-     	+ cmdsrv.name
-     	+ ': '
-     	+ result.status);
-  });	
-}
-
-function WHSave() {	
-	alert("Mark Warehouse Location");
-	//document.getElementById("stat").innerHTML = "Marking STN1" ;
-	cmdreq.cmd = 18;		
-	//cmdreq.LP = 1;
-	cmdreq.lps = "HOME";
-	cmdsrv.callService(cmdreq, function(result) {
-  	console.log('Result for service call on '
-     	+ cmdsrv.name
-     	+ ': '
-     	+ result.status);
-  });	
-}
-        
-        // Setup the nav client.
-    function init(){
-    var hostIP = "ws://"+"192.168.0.110"+":8080";
-    var ros = new ROSLIB.Ros();
-    var rosmsg="";
-    ros.connect(hostIP);
-    // Create the main viewer.
-    var viewer = new ROS2D.Viewer({
-        divID : 'nav',
-        
-    });
-
-    // Setup the nav client.
-    var nav = NAV2D.OccupancyGridClientNav({
-        ros : ros,
-            rootObject : viewer.scene,
-            viewer : viewer,
-            serverName : '/move_base'
-        });
-        nav.on('change', function(){
-        viewer.scaleToDimensions(nav.currentGrid.width, nav.currentGrid.height);
-    });
-        
-           // Scale the canvas to fit to the map
-        
-      }
-
-  
-    
-    </script>
+      <!-- JavaScript Bundle with Popper -->
+      <script src="/static/js/jquery-3.6.0.min.js"></script>
+      <script src="/static/js/socket.io.js"></script>
+      <script src="/static/js/popper.min.js"></script>
+      <script src="/static/js/bootstrap.js"></script>
+      <!-- This Template Javascript -->
+      <script src="/static/js/navSpinnerToggler.js"></script>
+      <script src="/static/js/amr-control.js"></script>
 </body>
+
+<!-- <script type="text/javascript" charset="utf-8">
+  $(document).ready(function () {
+    //Validate json, return true if valid json
+    function isJsonString(str) {
+      try {
+        JSON.parse(str);
+      } catch (e) {
+        return false;
+      }
+      return true;
+    }
+
+    function createAutoClosingAlert(selector, delay) {
+      var alert = $(selector).alert();
+      window.setTimeout(function () { alert.alert('close') }, delay);
+    }
+  });
+</script> -->
 
 </html>
