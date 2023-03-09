@@ -55,7 +55,7 @@ var get_table = function getInfo() {
 
     document.getElementById("msmsg").innerHTML = data['msinfo'];
     document.getElementById("numRbtAvail").innerHTML = '<small>Robot Available: ' + availno + '</small>';
-    document.getElementById("numCurTask").innerHTML = "<small>In Queue: " + taskarr.taskinfo.length + '</small>';
+    document.getElementById("numCurTask").innerHTML = "<small># of tasks: " + taskarr.taskinfo.length + '</small>';
     document.getElementById("numPLCReq").innerHTML = "<small>In Queue: " + reqarr.reqinfo.length + '</small>';
   });
 }
