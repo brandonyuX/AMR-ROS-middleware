@@ -7,7 +7,19 @@ document.getElementById("sideDbBtn").classList.add("active");
 
 //Get data table from flask server
 var get_table = function getInfo() {
-  let myRequest = new Request('/get_list');
+  // var stnRadioBtn = document.getElementsByName("stnRadioBtn");
+  // var checkedBtn;
+  // console.log(stnRadioBtn.length);
+  // for (var i = 0; i < stnRadioBtn.length; i++) {
+  //   if (stnRadioBtn[i].checked) {
+  //     checkedBtn = stnRadioBtn[i];
+  //     break;
+  //   }
+  // }
+  // var WOSelected = document.querySelector(checkedBtn.id).textContent;
+  // console.log(WOSelected);
+  let WOStn = 1;  
+  let myRequest = new Request('/get_list?WOStn=' + WOStn);
   fetch(myRequest).then(response => response.json()).then(function (data) {
     // console.log(data);
     var availno = 0;
@@ -39,24 +51,66 @@ var get_table = function getInfo() {
       HTML += "<td>" + taskarr.taskinfo[i].endstep + "</td>";
       HTML += "<td>" + taskarr.taskinfo[i].completed + "</td></tr>";
     }
-    document.getElementById("curTask").innerHTML = HTML;
+    document.getElementById("productionTask").innerHTML = HTML;
 
     //Build request information table from array
-    var reqarr = JSON.parse(data['reqarr'])
+    var custskarr = JSON.parse(data['custskarr'])
     var HTML = "";
-    for (let i = 0; i < reqarr.reqinfo.length; i++) {
-      HTML += "<tr><td>" + reqarr.reqinfo[i].plcid + "</td>";
-      HTML += "<td>" + reqarr.reqinfo[i].reqid + "</td>";
-      HTML += "<td>" + reqarr.reqinfo[i].destloc + "</td>";
-      HTML += "<td>" + reqarr.reqinfo[i].tskmodno + "</td>";
-      HTML += "<td>" + reqarr.reqinfo[i].status + "</td></tr>";
+    for (let i = 0; i < custskarr.custskarr.length; i++) {
+      HTML += "<tr><td>" + custskarr.custskarr[i].tid + "</td>";
+      HTML += "<td>" + custskarr.custskarr[i].rid + "</td>";
+      HTML += "<td>" + custskarr.custskarr[i].reqid + "</td>";
+      HTML += "<td>" + custskarr.custskarr[i].destloc + "</td>";
+      HTML += "<td>" + custskarr.custskarr[i].hsmsg + "</td>";
+      HTML += "<td>" + custskarr.custskarr[i].tskmodno + "</td>";
+      HTML += "<td>" + custskarr.custskarr[i].completed + "</td></tr>";
     }
-    document.getElementById("curCustomRequest").innerHTML = HTML;
+    document.getElementById("cusTsk").innerHTML = HTML;
+
+
+    //Build custom request table
+    var cusreqarr = JSON.parse(data['cusreqarr']);
+    var HTML = "";
+    for (let i = 0; i < cusreqarr.cusreqarr.length; i++) {
+      HTML += "<tr><td>" + cusreqarr.cusreqarr[i].cid + "</td>";
+      HTML += "<td>" + cusreqarr.cusreqarr[i].reqid + "</td>";
+      HTML += "<td>" + cusreqarr.cusreqarr[i].dest + "</td>";
+      HTML += "<td>" + cusreqarr.cusreqarr[i].priority + "</td>";
+      HTML += "<td>" + cusreqarr.cusreqarr[i].status + "</td>";
+      HTML += "<td>" + cusreqarr.cusreqarr[i].datetime + "</td></tr>";
+    }
+    document.getElementById("cusReq").innerHTML = HTML;
+
+    //Build WO table
+
+
+    var woarr = JSON.parse(data['woperstnarr']);
+    var HTML = "";
+    for (let i = 0; i < woarr.woperstnarr.length; i++) {
+      HTML += "<tr><td>" +  woarr.woperstnarr[i].woid + "</td>";
+      HTML += "<td>" +      woarr.woperstnarr[i].batchNum + "</td>";
+      HTML += "<td>" +      woarr.woperstnarr[i].woNum + "</td>";
+      HTML += "<td>" +      woarr.woperstnarr[i].manufactureDate + "</td>";
+      HTML += "<td>" +      woarr.woperstnarr[i].fnpDate + "</td>";
+      HTML += "<td>" +  woarr.woperstnarr[i].initSerialNum + "</td>";
+      HTML += "<td>" +      woarr.woperstnarr[i].requireQty + "</td>";
+      HTML += "<td>" +      woarr.woperstnarr[i].processedQty + "</td>";
+      HTML += "<td>" +      woarr.woperstnarr[i].startTime + "</td>";
+      HTML += "<td>" +      woarr.woperstnarr[i].endTime + "</td>";
+      HTML += "<td>" +  woarr.woperstnarr[i].status + "</td>";
+      HTML += "<td>" +      woarr.woperstnarr[i].fillVol + "</td>";
+      HTML += "<td>" +      woarr.woperstnarr[i].targetTor + "</td>";
+      HTML += "<td>" +      woarr.woperstnarr[i].orderNum + "</td></tr>";
+    }
+    document.getElementById("WO").innerHTML = HTML;
+    
 
     document.getElementById("msmsg").innerHTML = data['msinfo'];
     document.getElementById("numRbtAvail").innerHTML = '<small>Robot Available: ' + availno + '</small>';
-    document.getElementById("numCurTask").innerHTML = "<small># of tasks: " + taskarr.taskinfo.length + '</small>';
-    document.getElementById("numPLCReq").innerHTML = "<small>In Queue: " + reqarr.reqinfo.length + '</small>';
+    document.getElementById("numProductionTask").innerHTML = "<small>In Queue: " + taskarr.taskinfo.length + '</small>';
+    document.getElementById("numCusTsk").innerHTML = "<small>In Queue: " + custskarr.custskarr.length + '</small>';
+    document.getElementById("numCusReq").innerHTML = "<small>In Queue: " + cusreqarr.cusreqarr.length + '</small>';
+    document.getElementById("numWO").innerHTML = "<small>In Queue: " + woarr.woperstnarr.length + '</small>';
   });
 }
 
