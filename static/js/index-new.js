@@ -11,17 +11,24 @@ var get_table = function getInfo() {
   fetch(myRequest).then(response => response.json()).then(function (data) {
     // console.log(data);
     var availno = 0;
-
+    var charging='Not Charging';
+   
     //Build robot information table from array
     var rbtarr = JSON.parse(data['rbtarr']);
     var HTML = "";
     for (let i = 0; i < rbtarr.rbtinfo.length; i++) {
+      if(rbtarr.rbtinfo[i].charging == true){
+        charging='Charging'
+      }else{
+        charging='Not Charging'
+      }
       HTML += "<tr><td>" + rbtarr.rbtinfo[i].rid + "</td>";
       HTML += "<td>" + rbtarr.rbtinfo[i].currloc + "</td>";
       HTML += "<td>" + rbtarr.rbtinfo[i].x + "</td>";
       HTML += "<td>" + rbtarr.rbtinfo[i].y + "</td>";
-      HTML += "<td>" + rbtarr.rbtinfo[i].r + "</td>";
-      HTML += "<td>" + rbtarr.rbtinfo[i].msg + "</td></tr>";
+      HTML += "<td>" + rbtarr.rbtinfo[i].battlvl + "</td>";
+      HTML += "<td>" +charging + "</td></tr>";
+      
       if (rbtarr.rbtinfo[i].avail == true) {
         availno += 1
       }

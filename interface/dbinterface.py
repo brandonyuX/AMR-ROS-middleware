@@ -105,7 +105,7 @@ def getBundleInfo():
     row = cursor.fetchone() 
     while row: 
         #print(row[0])
-        rbt=Robot(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7])
+        rbt=Robot(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8])
         rbt_list.append(rbt)
         row = cursor.fetchone()
     #print('Updated variable from DB!')
@@ -369,6 +369,14 @@ def updateRbtStatus(status,rbtid):
 def updateRbtCharge(rbtid,state):
     cursor.execute("UPDATE Robot SET Charging = ? WHERE RobotID=?",state,rbtid) 
     cursor.commit()
+
+def checkCharging(rbtid):
+    cursor.execute("SELECT * FROM Robot WHERE Charging = 1 AND RobotID=?",rbtid) 
+    row=cursor.fetchone()
+    if row:
+        return True
+    else:
+        return False
 
 def updateRbtLoc(rbtid,currloc):
     cursor.execute("UPDATE Robot SET CurrentLoc=? WHERE RobotID=?",currloc,rbtid) 

@@ -5,7 +5,3 @@ dif = (document.getElementById("userLogout").offsetWidth - document.getElementBy
 document.getElementById("msmsgblock").style.left = dif + "px";
 document.getElementById("sideDbBtn").classList.add("active");
 
-
-
-setInterval(get_table, 3000);
-get_table();

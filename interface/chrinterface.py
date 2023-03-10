@@ -1,9 +1,11 @@
 #Interface for charging station
 
-import time
+import time,sys
 from pymodbus.client import ModbusTcpClient
 from pymodbus.payload import BinaryPayloadDecoder,Endian
 
+sys.path.append('../Middleware Development')
+import interface.dbinterface as dbinterface
 
 chargerip='192.168.0.91'
 chargerport=502
@@ -40,6 +42,15 @@ def reset():
     time.sleep(1)
     client.write_coil(7,0,3)
     
+
+def gocharge():
+    dbinterface.insertRbtTask('CHR',3,'CHARGE')
+
+def stopcharge():
+    stop()
+    time.sleep(5)
+    retract()
+    dbinterface.updateRbtCharge(rbtid=1,state=0)
 # def read():
 #     rr = client.read_holding_registers(3x13,1,unit=3)
 #     print(rr.registers)

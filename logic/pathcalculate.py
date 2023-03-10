@@ -8,7 +8,7 @@ import interface.dbinterface as dbinterface
 graph = Graph()
 #Cost can be calculated using simple euclidean distance
 
-graph.add_edge(1,4,(100,'Charging Station'))
+graph.add_edge(1,4,(100,'CHR'))
 graph.add_edge(4,1,(100,"TPDown"))
 
 graph.add_edge(2,3,(100,'Stn 1'))
@@ -84,12 +84,14 @@ def calculate_shortest(src,dest):
 def generate_path_simple(dest):
     strlist=[]
     currentloc=dbinterface.getRbtLoc(1)
+   
     #Find path from current location to source
     curr2src=find_path(graph, graphdict[currentloc], graphdict[dest], cost_func=cost_func)
     for i in range(len(curr2src[0])):
         val=curr2src[0][i]
         strlist.append(get_key(val))
     
+    print(strlist)
     
     return (strlist)
     

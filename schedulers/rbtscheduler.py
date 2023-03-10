@@ -108,6 +108,15 @@ def tskpolling():
             #time.sleep(1)
             tsklist=[]
             global table
+
+            #Logic to check if robot is charging
+            chargingstatus=dbinterface.checkCharging(rbtid=1)
+
+            while(chargingstatus):
+                chargingstatus=dbinterface.checkCharging(rbtid=1)
+                time.sleep(1)
+                pass
+
             table='production'
             # global coflag
             #Check if uncompleted task exist in Custom Action Table
@@ -226,81 +235,86 @@ def tskpolling():
                             
                             #Special move sequence
                             if(subtsk[0].at=='MoveC'):
-                                #sname=tskq[i].pop(0)
-                                #dbinterface.writeLog('ms','<MS>Executing step {} out of {}'.format(tsk.currstep,tsk.endstep),True)
-                                #print(currIndex)
-                                dbinterface.writeLog('ms','<MS>Processing move chain',True)
-                                
-                                #Detect previously moved and adjust move chain
-                                # if tsk.currstep>1:
-                                #     for i in range(len(tskq)):
-                                #         if tskq[i]=='SRC':
-                                #             currIndex=i+1
-                                
-                                #print(currmcstep)
-                                
-                                #New movement planning
-                                #Get movestep to decide which movement is the robot at (SRC or DEST)
-                                movestep=dbinterface.getMoveStep(tsk.tid,table)
-                                
-                                dest=''
-                                #Create path using path calculate
-                                print('<MS> Generating path from current location')
-                                
-                                #Get destination location based on movestep
-                                pathlist=pathcalculate.generate_path_simple(tskq[movestep])
-                                robotinterface.publish_sound(tskq[movestep])
-                                if(tskq[movestep]=='Stn1'):
-                                    plcinterface.informDocked(dock=1,stn=1)
+
+                                if(dbinterface.checkCharging(rbtid=1)):
+                                     dbinterface.writeLog('ms','<MS>Robot is still charging!!',True)
                                 else:
-                                    plcinterface.informDocked(dock=0,stn=1)
+                                    #sname=tskq[i].pop(0)
+                                    #dbinterface.writeLog('ms','<MS>Executing step {} out of {}'.format(tsk.currstep,tsk.endstep),True)
+                                    #print(currIndex)
 
-
-                                dest=tskq[movestep]
-                               
+                                    dbinterface.writeLog('ms','<MS>Processing move chain',True)
                                     
-                                #Get previous movechain step
-                                mcstep=dbinterface.getMCStep(tsk.tid,table)
-                                
-                                for i in range(mcstep,len(pathlist)):
-                                    print('<MS>Sending move command to robot {} bound for {}'.format(tsk.rid,pathlist[i]))
+                                    #Detect previously moved and adjust move chain
+                                    # if tsk.currstep>1:
+                                    #     for i in range(len(tskq)):
+                                    #         if tskq[i]=='SRC':
+                                    #             currIndex=i+1
                                     
-
-                                    os.environ['reached'] = 'False'
+                                    #print(currmcstep)
                                     
+                                    #New movement planning
+                                    #Get movestep to decide which movement is the robot at (SRC or DEST)
+                                    movestep=dbinterface.getMoveStep(tsk.tid,table)
                                     
-                                    print('<MS>Processing move chain {} out of {}'.format(i+1,len(pathlist)))
-                                    #print('Moving robot to {}'.format(pathlist[i]))
-                                    if production:
-                                        robotinterface.publish_cmd(tsk.rid,pathlist[i])
+                                    dest=''
+                                    #Create path using path calculate
+                                    print('<MS> Generating path from current location')
                                     
-                                    dbinterface.setExecute(1,tsk.tid,table)
-                                    if production:
-                                        while  os.environ['reached'] != 'True':
-                                            pass
+                                    #Get destination location based on movestep
+                                    pathlist=pathcalculate.generate_path_simple(tskq[movestep])
+                                    robotinterface.publish_sound(tskq[movestep])
+                                    if(tskq[movestep]=='Stn1'):
+                                        plcinterface.informDocked(dock=1,stn=1)
                                     else:
-                                        time.sleep(5)
-                                        os.environ['reached'] = 'True'
-                                    #print('<MS> Robot reached signal received')
+                                        plcinterface.informDocked(dock=0,stn=1)
+
+
+                                    dest=tskq[movestep]
+                                
+                                        
+                                    #Get previous movechain step
+                                    mcstep=dbinterface.getMCStep(tsk.tid,table)
                                     
-                                    #Write mcstep based on current index and update robot location
-                                    dbinterface.updateRbtLoc(1,pathlist[i])
-                                    
-                                    
-                                print('<MS> Robot reached destination')
-                                robotinterface.publish_sound('reach')
-                                dbinterface.incMoveStep(tsk.tid,table)
-                                #End of loop means completed
-                                if(dest=="Stn1" or dest=="WH"):
-                                        #time.sleep(1)
+                                    for i in range(mcstep,len(pathlist)):
+                                        print('<MS>Sending move command to robot {} bound for {}'.format(tsk.rid,pathlist[i]))
+                                        
+
+                                        os.environ['reached'] = 'False'
+                                        
+                                        
+                                        print('<MS>Processing move chain {} out of {}'.format(i+1,len(pathlist)))
+                                        #print('Moving robot to {}'.format(pathlist[i]))
                                         if production:
-                                            #robotinterface.align_qr()
-                                            pass
-                                if dest=="Stn6":
-                                    plcinterface.informDocked(dock=True,stn=6)
-                                    pass
-                                dbinterface.incStep(tsk.tid,tsk.currstep+1,False,table)
-                                dbinterface.setExecute(0,tsk.tid,table)
+                                            robotinterface.publish_cmd(tsk.rid,pathlist[i])
+                                        
+                                        dbinterface.setExecute(1,tsk.tid,table)
+                                        if production:
+                                            while  os.environ['reached'] != 'True':
+                                                pass
+                                        else:
+                                            time.sleep(5)
+                                            os.environ['reached'] = 'True'
+                                        #print('<MS> Robot reached signal received')
+                                        
+                                        #Write mcstep based on current index and update robot location
+                                        dbinterface.updateRbtLoc(1,pathlist[i])
+                                        
+                                        
+                                    print('<MS> Robot reached destination')
+                                    robotinterface.publish_sound('reach')
+                                    dbinterface.incMoveStep(tsk.tid,table)
+                                    #End of loop means completed
+                                    if(dest=="Stn1" or dest=="WH"):
+                                            #time.sleep(1)
+                                            if production:
+                                                #robotinterface.align_qr()
+                                                pass
+                                    if dest=="Stn6":
+                                        plcinterface.informDocked(dock=True,stn=6)
+                                        pass
+                                    dbinterface.incStep(tsk.tid,tsk.currstep+1,False,table)
+                                    dbinterface.setExecute(0,tsk.tid,table)
                                 
                                 
                                 
@@ -556,6 +570,7 @@ def tskpolling():
                                 dbinterface.updateRbtCharge(1,1)
                                 dbinterface.setExecute(0,tsk.tid,table)
                                 dbinterface.incStep(tsk.tid,tsk.currstep+1,False,table)
+
                             if(subtsk[0].at=="StopCharge"):
                                 dbinterface.writeLog('ms','<MS>Stop Charging',True)
                                 #Extend rod

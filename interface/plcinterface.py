@@ -301,7 +301,8 @@ def checkStnDone(stn,check,bcode):
         if tofr:
             tofrstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
             #Need to confirm when the processed quantity is increased
-            rejbottle=procqty-1
+            time.sleep(0.1)
+            os.environ['rejbottle']=str(procqty)
             
             
         pass
@@ -316,10 +317,14 @@ def checkStnDone(stn,check,bcode):
     
     if procqty==reqqtystate.get_value() :
         if(check):
+            if(stn==3):
+                os.environ['rejbottle']='0'
             return 1
         elif(reqqtystate.get_value()==0):
             return 2
         else:
+            if(stn==3):
+                os.environ['rejbottle']='0'
             wocmpstate.set_value(ua.DataValue(ua.Variant('CMPORD',ua.VariantType.String)))
             wostatusstate.set_value(ua.DataValue(ua.Variant(4,ua.VariantType.UInt16)))
             return 1

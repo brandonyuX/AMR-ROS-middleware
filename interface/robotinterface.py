@@ -87,8 +87,8 @@ def get_info():
             #listener.subscribe(store_pose)
             listener3=roslibpy.Topic(client,'/move_base/result','move_base_msgs/MoveBaseActionResult')
             listener3.subscribe(move_complete)
-            # battlisterner=roslibpy.Topic(client,'/batt_charge','std_msgs/String',throttle_rate=5000)
-            # battlisterner.subscribe(batt_cb)
+            battlisterner=roslibpy.Topic(client,'/batt_charge','std_msgs/String',throttle_rate=5000)
+            battlisterner.subscribe(batt_cb)
             convlistener=roslibpy.Topic(client,'/convcomplete','std_msgs/String')
             convlistener.subscribe(convcb)
             alignlistener=roslibpy.Topic(client,'/aligncomplete','std_msgs/String')
@@ -98,6 +98,9 @@ def get_info():
             helistener.subscribe(he)
             telistener=roslibpy.Topic(client,'/te','std_msgs/String')
             telistener.subscribe(te)
+
+            chrlistener=roslibpy.Topic(client,'/ischarging','std_msgs/Bool')
+            chrlistener.subscribe(chrcb)
             
             
             
@@ -111,6 +114,10 @@ def get_info():
     except:
         print('No connection to ROS Robot')
 
+#Read charging info and write to system variable
+def chrcb(message):
+    os.environ['ischarging']=str(message['data'])
+    # print(os.environ['ischarging'])
 #Read head end sensor and write into system variable
 def he(message):
     os.environ['he']=message['data']

@@ -7,6 +7,7 @@ from mwclass.workorder import WO
 from mwclass.robotconfig import RobotConfig
 import interface.robotinterface as robotinterface
 import interface.wmsinterface as wmsinterface
+import interface.chrinterface as chrinterface
 from mwclass.subtask import SubTask
 import interface.plcinterface as plcinterface
 from flask_socketio import SocketIO, emit
@@ -162,7 +163,7 @@ def login():
                     session['username'] = account[1]    #account[0] referring to first column of user table which is "username"
                     # Redirect to home page
                     print('{0} (id:{1}) successfully login to M8M RMS!'.format(account[1], account[0]))
-                    return redirect(url_for('index'))
+                    return redirect(url_for('/'))
                 else:
                     # Account doesnt exist or username/password incorrect
                     return 'Incorrect username or password!'
@@ -279,9 +280,8 @@ def index():
     # Check if user is loggedin
     if 'loggedin' in session:
         # User is loggedin show them the home page
-        tsklist=dbinterface.getTaskList()
-        rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
-        return render_template('index-new.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, username=session['username'], async_mode=async_mode)
+       
+        return render_template('index-new.html', username=session['username'], async_mode=async_mode)
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
 
@@ -371,7 +371,25 @@ def taskmodelcreate():
 def amrcontrol():
     # Check if user is loggedin
     if 'loggedin' in session:
-        return render_template('amr-control.html')
+        return render_template('amr-control.html',username=session['username'], async_mode=async_mode)
+
+
+@app.route('/amr-control', methods=['POST'])
+# @login_required
+def amrcontrolpost():
+    if 'loggedin' in session:
+        #Read the type of request and process
+        posttype=request.form['type']
+        print(posttype)
+        match posttype:
+            case 'charge':
+                chrinterface.gocharge()    
+            case 'stopcharge':
+                chrinterface.stopcharge()    
+        return redirect(request.url)
+        return render_template('amr-control.html',username=session['username'], async_mode=async_mode)
+    # User is not loggedin redirect to login page
+    return redirect(url_for('login'))   
 
 @app.route('/amr-settings')
 # @login_required

@@ -3,7 +3,7 @@ import json
 
 class Robot:
     cost=0
-    def __init__(self,rid,currloc,battlvl,x,y,r,avail,msg) -> None:
+    def __init__(self,rid,currloc,battlvl,x,y,r,avail,msg,charging=None) -> None:
         self.rid=rid
         self.currloc=currloc
         self.battlvl=battlvl
@@ -12,6 +12,7 @@ class Robot:
         self.r=r
         self.avail=avail
         self.msg=msg
+        self.charging=charging
     
     def setCost(self,cost):
         self.cost=cost
