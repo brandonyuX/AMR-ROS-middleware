@@ -5,21 +5,21 @@ dif = (document.getElementById("userLogout").offsetWidth - document.getElementBy
 document.getElementById("msmsgblock").style.left = dif + "px";
 document.getElementById("sideDbBtn").classList.add("active");
 
-//Get data table from flask server
-var get_table = function getInfo() {
-  // var stnRadioBtn = document.getElementsByName("stnRadioBtn");
-  // var checkedBtn;
-  // console.log(stnRadioBtn.length);
-  // for (var i = 0; i < stnRadioBtn.length; i++) {
-  //   if (stnRadioBtn[i].checked) {
-  //     checkedBtn = stnRadioBtn[i];
-  //     break;
-  //   }
-  // }
-  // var WOSelected = document.querySelector(checkedBtn.id).textContent;
-  // console.log(WOSelected);
-  let WOStn = 1;  
-  let myRequest = new Request('/get_list?WOStn=' + WOStn);
+
+const woRadioBtns = document.querySelectorAll('input[type="radio"][name="woRadioBtns"]');
+let selectedWOStn = 1;
+
+woRadioBtns.forEach((button) => {
+  button.addEventListener('change', (event) => {
+    selectedWOStn = event.target.value;
+    // console.log('Selected WO station:', selectedWOStn);
+    get_wo_table();
+  });
+});
+
+//Get all data table from flask server
+var get_all_table = function getInfo() {
+  let myRequest = new Request('/get_list');
   fetch(myRequest).then(response => response.json()).then(function (data) {
     // console.log(data);
     var availno = 0;
@@ -88,9 +88,21 @@ var get_table = function getInfo() {
     }
     document.getElementById("cusReq").innerHTML = HTML;
 
+    get_wo_table();
+
+    document.getElementById("msmsg").innerHTML = data['msinfo'];
+    document.getElementById("numRbtAvail").innerHTML = '<small>Robot Available: ' + availno + '</small>';
+    document.getElementById("numProductionTask").innerHTML = "<small>In Queue: " + taskarr.taskinfo.length + '</small>';
+    document.getElementById("numCusTsk").innerHTML = "<small>In Queue: " + custskarr.custskarr.length + '</small>';
+    document.getElementById("numCusReq").innerHTML = "<small>In Queue: " + cusreqarr.cusreqarr.length + '</small>';
+  });
+}
+
+//Get WO data table from flask server
+var get_wo_table = function getWO() {
+  let myRequest = new Request('/get_wo?WOStn=' + selectedWOStn);
+  fetch(myRequest).then(response => response.json()).then(function (data) {
     //Build WO table
-
-
     var woarr = JSON.parse(data['woperstnarr']);
     var HTML = "";
     for (let i = 0; i < woarr.woperstnarr.length; i++) {
@@ -99,22 +111,59 @@ var get_table = function getInfo() {
       HTML += "<td>" +      woarr.woperstnarr[i].woNum + "</td>";
       HTML += "<td>" +      woarr.woperstnarr[i].manufactureDate + "</td>";
       HTML += "<td>" +      woarr.woperstnarr[i].fnpDate + "</td>";
+      HTML += "<td>" +      woarr.woperstnarr[i].initSerialNum + "</td>";
       HTML += "<td>" +      woarr.woperstnarr[i].requireQty + "</td>";
       HTML += "<td>" +      woarr.woperstnarr[i].processedQty + "</td>";
+      HTML += "<td>" +      woarr.woperstnarr[i].startTime + "</td>";
+      HTML += "<td>" +      woarr.woperstnarr[i].endTime + "</td>";
       HTML += "<td>" +      woarr.woperstnarr[i].fillVol + "</td>";
       HTML += "<td>" +      woarr.woperstnarr[i].targetTor + "</td>";
+      HTML += "<td>" +      woarr.woperstnarr[i].status + "</td>";
+      HTML += "<td>" +      woarr.woperstnarr[i].orderNum + "</td>";
+      HTML += "<td>" +      woarr.woperstnarr[i].expDate + "</td></tr>";
     }
     document.getElementById("WO").innerHTML = HTML;
-    
-
-    document.getElementById("msmsg").innerHTML = data['msinfo'];
-    document.getElementById("numRbtAvail").innerHTML = '<small>Robot Available: ' + availno + '</small>';
-    document.getElementById("numProductionTask").innerHTML = "<small>In Queue: " + taskarr.taskinfo.length + '</small>';
-    document.getElementById("numCusTsk").innerHTML = "<small>In Queue: " + custskarr.custskarr.length + '</small>';
-    document.getElementById("numCusReq").innerHTML = "<small>In Queue: " + cusreqarr.cusreqarr.length + '</small>';
     document.getElementById("numWO").innerHTML = "<small>In Queue: " + woarr.woperstnarr.length + '</small>';
+
+    function hideColumn(colIndex) {
+      var table = document.querySelector("#woTable");
+      table.getElementsByTagName('thead')[0].getElementsByTagName('th')[colIndex-1].style.display = "none";
+      var rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+      for (var i = 0; i < rows.length; i++) {
+        rows[i].getElementsByTagName('td')[colIndex-1].style.display = "none";
+      }
+    }
+
+
+    function showColumn(colIndex) {
+			var table = document.querySelector("#woTable");
+			table.getElementsByTagName('thead')[0].getElementsByTagName('th')[colIndex-1].style.display = "table-cell";
+			var rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+			for (var i = 0; i < rows.length; i++) {
+				rows[i].getElementsByTagName('td')[colIndex-1].style.display = "table-cell";
+			}
+		}
+
+    // // Get the table header row and all cells in it
+    // var headerRow = document.querySelector("#woTable thead tr");
+    // var cells = headerRow.cells;
+
+    // Hide columns
+    if(selectedWOStn == 1){
+      showColumn(14);
+      hideColumn(15);
+    }
+    else if(selectedWOStn == 4){
+      hideColumn(14);
+      showColumn(15);
+    }
+    else{
+      hideColumn(14);
+      hideColumn(15);
+    }
   });
 }
 
-setInterval(get_table, 3000);
-get_table();
+
+setInterval(get_all_table, 300000);
+get_all_table();

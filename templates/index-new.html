@@ -134,10 +134,6 @@
               <div class="d-flex align-items-center justify-content-between mb-4">
                 <div style="vertical-align: bottom;">
                   <h4 class="mb-0 text-white" style="display: inline; margin-right: 0.75rem;">Current Custom Request</h4>
-                  <a href="#" data-bs-toggle="modal" data-bs-target="#delCustomModal"
-                    style="color: #19c0e1; text-decoration: none;">
-                    <u>Delete Request</u>
-                  </a>
                 </div>
                 <h4 id="numCusReq" class="mb-0 text-white"></h4>
               </div>
@@ -165,29 +161,29 @@
                 <div style="vertical-align: bottom;">
                   <h4 class="mb-0 text-white" style="display: inline; margin-right: 0.75rem;">Work Order: Station </h4>
                   <div class="btn-group" role="group" style="vertical-align: middle;">
-                    <input type="radio" class="btn-check" name="stnRadioBtn" id="stn1RadioBtn" autocomplete="off" checked>
+                    <input type="radio" class="btn-check" name="woRadioBtns" id="stn1RadioBtn" value = "1" autocomplete="off" checked>
                     <label class="btn btn-outline-primary" for="stn1RadioBtn">1</label>
           
-                    <input type="radio" class="btn-check" name="stnRadioBtn" id="stn2RadioBtn" autocomplete="off">
+                    <input type="radio" class="btn-check" name="woRadioBtns" id="stn2RadioBtn" value = "2" autocomplete="off">
                     <label class="btn btn-outline-primary" for="stn2RadioBtn">2</label>
           
-                    <input type="radio" class="btn-check" name="stnRadioBtn" id="stn3RadioBtn" autocomplete="off">
+                    <input type="radio" class="btn-check" name="woRadioBtns" id="stn3RadioBtn" value = "3" autocomplete="off">
                     <label class="btn btn-outline-primary" for="stn3RadioBtn">3</label>
           
-                    <input type="radio" class="btn-check" name="stnRadioBtn" id="stn4RadioBtn" autocomplete="off">
+                    <input type="radio" class="btn-check" name="woRadioBtns" id="stn4RadioBtn" value = "4" autocomplete="off">
                     <label class="btn btn-outline-primary" for="stn4RadioBtn">4</label>
           
-                    <input type="radio" class="btn-check" name="stnRadioBtn" id="stn5RadioBtn" autocomplete="off">
+                    <input type="radio" class="btn-check" name="woRadioBtns" id="stn5RadioBtn" value = "5" autocomplete="off">
                     <label class="btn btn-outline-primary" for="stn5RadioBtn">5</label>
           
-                    <input type="radio" class="btn-check" name="stnRadioBtn" id="stn6RadioBtn" autocomplete="off">
+                    <input type="radio" class="btn-check" name="woRadioBtns" id="stn6RadioBtn" value = "6" autocomplete="off">
                     <label class="btn btn-outline-primary" for="stn6RadioBtn">6</label>
                   </div>
-                  <h4 id="numWO" class="mb-0 text-white" style="display: inline;"></h4>
                 </div>
+                <h4 id="numWO" class="mb-0 text-white" style="display: inline;"></h4>
               </div>
               <div class="table-responsive" style="height: calc(50vh - 10px);">
-                <table class="table text-start align-middle table-bordered table-hover mb-0">
+                <table  id="woTable" class="table text-start align-middle table-bordered table-hover mb-0">
                   <thead>
                     <tr class="text-white">
                       <th scope="col">State</th>
@@ -199,6 +195,9 @@
                       <th scope="col">Processed Qty</th>
                       <th scope="col">Fill Volume</th>
                       <th scope="col">Target Torque</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Order Num</th>
+                      <th scope="col">Exp Date</th>
                     </tr>
                   </thead>
                   <tbody id="WO"></tbody>
