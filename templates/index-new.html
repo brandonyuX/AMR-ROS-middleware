@@ -67,9 +67,9 @@
       </div>
       <!-- Current Robot Status End -->
 
-      <!-- Current Task and PLC Request Start -->
+      <!-- Current Production Task and Custom Task Start -->
       <div class="container-fluid pt-4 px-4">
-        <div class="row g-4">
+        <div class="row g-4 mb-4">
           <div class="col-sm-12 col-xl-6">
             <div class="bg-content-card text-center rounded p-4">
               <div class="d-flex align-items-center justify-content-between mb-4">
@@ -80,9 +80,9 @@
                     <u>Add Task</u>
                   </a>
                 </div>
-                <h4 id="numCurTask" class="mb-0 text-white"></h4>
+                <h4 id="numProductionTask" class="mb-0 text-white"></h4>
               </div>
-              <div class="table-responsive">
+              <div class="table-responsive" style="height: calc(50vh - 10px);">
                 <table class="table text-start align-middle table-bordered table-hover mb-0">
                   <thead>
                     <tr class="text-white">
@@ -94,7 +94,7 @@
                       <th scope="col">Completion</th>
                     </tr>
                   </thead>
-                  <tbody id="curTask"></tbody>
+                  <tbody id="productionTask"></tbody>
                 </table>
               </div>
             </div>
@@ -103,27 +103,117 @@
           <div class="col-sm-12 col-xl-6">
             <div class="bg-content-card text-center rounded p-4">
               <div class="d-flex align-items-center justify-content-between mb-4">
-                <h4 class="mb-0 text-white">Current PLC Request</h4>
-                <h4 id="numPLCReq" class="mb-0 text-white"></h4>
+                <h4 class="mb-0 text-white">Current Custom Task</h4>
+                <h4 id="numCusTsk" class="mb-0 text-white"></h4>
               </div>
-              <div class="table-responsive">
+              <div class="table-responsive" style="height: calc(50vh - 10px);">
                 <table class="table text-start align-middle table-bordered table-hover mb-0">
                   <thead>
                     <tr class="text-white">
-                      <th scope="col">PLC ID</th>
-                      <th scope="col">Request ID</th>
-                      <th scope="col">Destination</th>
-                      <th scope="col">Task Model</th>
+                      <th scope="col">Task ID</th>
+                      <th scope="col">Robot ID</th>
+                      <th scope="col">WMS Request ID</th>
+                      <th scope="col">Dest Loc</th>
+                      <th scope="col">HS Msg</th>
+                      <th scope="col">Task Model ID</th>
                       <th scope="col">Status</th>
                     </tr>
                   </thead>
-                  <tbody id="curPLCRequest"></tbody>
+                  <tbody id="cusTsk"></tbody>
                 </table>
               </div>
             </div>
           </div>
         </div>
-        <!-- Current Task and PLC Request End -->
+        <!-- Current Production Task and Custom Task End -->
+
+        <!-- Current Custom Request and Work Order Start -->
+        <div class="row g-4 ">
+          <div class="col-sm-12 col-xl-6">
+            <div class="bg-content-card text-center rounded p-4">
+              <div class="d-flex align-items-center justify-content-between mb-4">
+                <div style="vertical-align: bottom;">
+                  <h4 class="mb-0 text-white" style="display: inline; margin-right: 0.75rem;">Current Custom Request</h4>
+                  <a href="#" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                    style="color: #19c0e1; text-decoration: none;">
+                    <u>Add Task</u>
+                  </a>
+                </div>
+                <h4 id="numCusReq" class="mb-0 text-white"></h4>
+              </div>
+              <div class="table-responsive" style="height: calc(50vh - 10px);">
+                <table class="table text-start align-middle table-bordered table-hover mb-0">
+                  <thead>
+                    <tr class="text-white">
+                      <th scope="col">Custom ID</th>
+                      <th scope="col">Request ID</th>
+                      <th scope="col">Destination</th>
+                      <th scope="col">Priority</th>
+                      <th scope="col">Date Time</th>
+                      <th scope="col">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cusReq"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-12 col-xl-6">
+            <div class="bg-content-card text-center rounded p-4">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <div style="vertical-align: bottom;">
+                  <h4 class="mb-0 text-white" style="display: inline; margin-right: 0.75rem;">Work Order: Station </h4>
+                  <div class="btn-group" role="group" style="vertical-align: middle;">
+                    <input type="radio" class="btn-check" name="stnRadioBtn" id="stn1RadioBtn" autocomplete="off" checked>
+                    <label class="btn btn-outline-primary" for="stn1RadioBtn">1</label>
+          
+                    <input type="radio" class="btn-check" name="stnRadioBtn" id="stn2RadioBtn" autocomplete="off">
+                    <label class="btn btn-outline-primary" for="stn2RadioBtn">2</label>
+          
+                    <input type="radio" class="btn-check" name="stnRadioBtn" id="stn3RadioBtn" autocomplete="off">
+                    <label class="btn btn-outline-primary" for="stn3RadioBtn">3</label>
+          
+                    <input type="radio" class="btn-check" name="stnRadioBtn" id="stn4RadioBtn" autocomplete="off">
+                    <label class="btn btn-outline-primary" for="stn4RadioBtn">4</label>
+          
+                    <input type="radio" class="btn-check" name="stnRadioBtn" id="stn5RadioBtn" autocomplete="off">
+                    <label class="btn btn-outline-primary" for="stn5RadioBtn">5</label>
+          
+                    <input type="radio" class="btn-check" name="stnRadioBtn" id="stn6RadioBtn" autocomplete="off">
+                    <label class="btn btn-outline-primary" for="stn6RadioBtn">6</label>
+                  </div>
+                  <h4 id="numWO" class="mb-0 text-white" style="display: inline;"></h4>
+                </div>
+              </div>
+              <div class="table-responsive" style="height: calc(50vh - 10px);">
+                <table class="table text-start align-middle table-bordered table-hover mb-0">
+                  <thead>
+                    <tr class="text-white">
+                      <th scope="col">WO ID</th>
+                      <th scope="col">Batch Num</th>
+                      <th scope="col">WO Num</th>
+                      <th scope="col">Manufactured Date</th>
+                      <th scope="col">FNP Date</th>
+                      <th scope="col">Init Serial Num</th>
+                      <th scope="col">Required Qty</th>
+                      <th scope="col">Processed Qty</th>
+                      <th scope="col">Start Time</th>
+                      <th scope="col">End Time</th>
+                      <th scope="col">Fill Volume</th>
+                      <th scope="col">Target Torque</th>
+                      <th scope="col">Order Num</th>
+                      <th scope="col">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="WO"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Current Custom Request and Work Order Start -->
+
       </div>
 
       <!--Add Custom Request, Custom Task Table, WO table -->

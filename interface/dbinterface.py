@@ -12,6 +12,8 @@ sys.path.append('../Middleware Development')
 from mwclass.robotconfig import RobotConfig
 from mwclass.stationmap import StationMap
 from mwclass.plcrequest import PLCReq
+from mwclass.customRequest import CustomRequest
+from mwclass.woPerStn import WOPerStn 
 from mwclass.subtask import SubTask
 from mwclass.task import Task
 from mwclass.robot import Robot
@@ -41,6 +43,12 @@ subtsk_list=[]
 
 #Work order list
 wo_list=[]
+
+#custom request list
+cus_req_list = []
+
+#wo per work station list
+wo_per_stn_list = []
 
 #Get current time 
 now = datetime.datetime.utcnow()
@@ -182,7 +190,8 @@ def getReqList():
         req_list.append(req)
         row = cursor.fetchone()
     return req_list
-def getTaskList():
+
+def getProductionTaskList():
      #Fetch Robot task list
     tsk_list.clear()
     cursor.execute("SELECT * FROM ProductionTask") 
@@ -190,10 +199,9 @@ def getTaskList():
     while row: 
         #print(row[0])
         tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12])
-        
         tsk_list.append(tsk)
         row = cursor.fetchone()
-
+    # print(len(tsk_list))
     return tsk_list
 
 #Write move chain step
@@ -242,9 +250,35 @@ def getCustomListTop():
     
     return tsk_list
 
+#Get all custom task that is not completed
+def getCustomTaskList():
+    tsk_list.clear()
+    #Fetch custom task list
+    cursor.execute("SELECT * FROM CustomTask WHERE Completed=1") 
+    row = cursor.fetchone()
+
+    while row:
+        tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12])
+        tsk_list.append(tsk)
+        row = cursor.fetchone()
+    return tsk_list
+
+#Get all custom request
+def getCustomRequestList():
+    cus_req_list.clear()
+    #Fetch custom request list
+    cursor.execute("SELECT * FROM CustomRequest") 
+    row = cursor.fetchone()
+
+    while row:
+        cus_req = CustomRequest(row[0],row[1],row[2],row[3],row[4],row[5])
+        cus_req_list.append(cus_req)
+        row = cursor.fetchone()
+    return cus_req_list
+
 #Return WMS Task ID
 def getWMSTID(tid):
-    cursor.execute("SELECT WMSTID FROM CustomTask WHERE TaskID=?",tid) 
+    cursor.execute("SELECT WMSTID FROM CustomTask WHERE TaskID=?",tid)
     row = cursor.fetchone() 
     if row:
         return row[0]
@@ -407,7 +441,7 @@ def deltask(reqid):
     cursor.execute("DELETE FROM ProductionTask WHERE ReqID = ?",reqid) 
     cursor.commit()
 
-#Increment step to task 
+#Increment step to task customtask
 def incStep(tid,step,comp,table):
     if table=='production':
         if comp:
@@ -625,6 +659,35 @@ def getWOQ(stn):
                 return row[1]
             row = cursor.fetchone()
 
+#Get work order list based on stn number
+def getWOList(WOStn):
+    if int(WOStn) > 6 or int(WOStn) < 1:
+        print('No such station!')
+    else:
+        wo_per_stn_list.clear()
+        
+        if int(WOStn) == 1:
+            sqlmsg = "SELECT * FROM wo_stn1"
+        elif int(WOStn) == 2:
+            sqlmsg = "SELECT * FROM wo_stn2"
+        elif int(WOStn) == 3:
+            sqlmsg = "SELECT * FROM wo_stn3"
+        elif int(WOStn) == 4:
+            sqlmsg = "SELECT * FROM wo_stn4"
+        elif int(WOStn) == 5:
+            sqlmsg = "SELECT * FROM wo_stn5"
+        else:
+            sqlmsg = "SELECT * FROM wo_stn6"
+
+        cursor.execute(sqlmsg)
+        row = cursor.fetchone() 
+        while row:
+            wo_line = WOPerStn(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12],row[13])
+            wo_per_stn_list.append(wo_line)
+            row = cursor.fetchone()
+    return wo_per_stn_list
+            
+
 #Create custom request queue
 def writeCustomReq(reqid,priority):
     cursor.execute("INSERT INTO CustomRequest (reqid,priority,status) VALUES (?,?,?)",reqid,priority,'NEW')
@@ -638,7 +701,7 @@ def getCustomTaskID(priority):
 
  #Get normal task id
 def getCustomNTaskID():
-    cursor.execute("SELECT TOP 1 * FROM CustomRequest WHERE priority=0 AND status='NEW'ORDER BY cid DESC") 
+    cursor.execute("SELECT TOP 1 * FROM CustomRequest WHERE priority=0 AND status='NEW' ORDER BY cid DESC") 
     row = cursor.fetchone() 
     return row[1]
 

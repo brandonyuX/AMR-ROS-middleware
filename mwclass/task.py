@@ -3,18 +3,18 @@ import json
 
 class Task:
     def __init__(self,tid,rid,reqid,completed,mcstep,currstep,endstep,destloc,hsmsg,lastupd,exec,tskmodno,processing) -> None:
-        self.tid=tid
-        self.rid=rid
-        self.reqid=reqid
-        self.completed=completed
-        self.mcstep=mcstep
-        self.currstep = currstep
-        self.destloc=destloc
-        self.endstep=endstep
-        self.hsmsg=hsmsg
-        self.lastupd=lastupd
-        self.exec=exec
-        self.tskmodno=tskmodno
+        self.tid=tid                    #task id
+        self.rid=rid                    #robot id
+        self.reqid=reqid                #request id
+        self.completed=completed        #complete status
+        self.mcstep=mcstep              #task code
+        self.currstep = currstep        #current step
+        self.endstep=endstep            #end step
+        self.destloc=destloc            #destination location
+        self.hsmsg=hsmsg                #hs msg
+        self.lastupd=lastupd            #last Upd
+        self.exec=exec                  #Executing
+        self.tskmodno=tskmodno          #task model ID
         self.processing=processing
         
     
@@ -27,3 +27,4 @@ class Task:
         self_dict = self.__dict__
         self_dict['completed'] = 'Completed Task' if self_dict['completed'] else 'Active Task'
         return self_dict
+    

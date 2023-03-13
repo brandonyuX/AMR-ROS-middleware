@@ -50,7 +50,7 @@ log = logging.getLogger('werkzeug')
 log.setLevel(logging.INFO)
 app.debug=False
 
-socketio = SocketIO(app, async_mode=async_mode)
+# socketio = SocketIO(app, async_mode=async_mode)
 thread = None
 thread_lock = Lock()
 actiondict={'0':'Move','1':'Unload','2':'Load','3':'Custom Command'}
@@ -306,7 +306,7 @@ def move(stn):
 #     # Check if user is loggedin
 #     if 'loggedin' in session:
 #         # User is loggedin show them the home page
-#         tsklist=dbinterface.getTaskList()
+#         tsklist=dbinterface.getProductionTaskList()
 #         rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
 #         return render_template('index.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, async_mode=async_mode)
 #     # User is not loggedin redirect to login page
@@ -350,9 +350,10 @@ def indexpost():
         if(posttype=='abort'):
             robotinterface.abort()
             
-        tsklist=dbinterface.getTaskList()
+        tsklist=dbinterface.getProductionTaskList()
         rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
-        return render_template('index-new.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, async_mode=async_mode)
+        cus_tsk_list=dbinterface.getCustomTaskList()
+        return render_template('index-new.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, cus_tsk_list=cus_tsk_list, async_mode=async_mode)
     
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))   
@@ -444,7 +445,7 @@ def get_list():
     # Check if user is loggedin
     if 'loggedin' in session:
         rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
-        tsk_list=dbinterface.getTaskList()
+
         result={}
         result['rbtinfo']=[]
         #Convert python object to json
@@ -459,11 +460,13 @@ def get_list():
             # rbt_info['currloc']=rbt.currloc
             result['rbtinfo'].append(rbt.__dict__)
         
+        tsk_list=dbinterface.getProductionTaskList()
         #Convert task table information to json
         result2={}
         result2['taskinfo']=[]
         #Convert python object to json
         for tsk in tsk_list:
+            result2['taskinfo'].append(tsk.to_dict())
             # tsk_info={}
             # tsk_info['tid']=tsk.tid
             # tsk_info['rid']=tsk.rid
@@ -474,8 +477,8 @@ def get_list():
             #     tsk_info['completed']='Completed Task' 
             # else:
             #     tsk_info['completed']='Active Task'
-
-            result2['taskinfo'].append(tsk.to_dict())
+            
+        # print(len(result2['taskinfo']))
 
         #Convert plc request table information to json
         result3={}
@@ -491,14 +494,34 @@ def get_list():
 
             result3['reqinfo'].append(req.__dict__)
         
+        #Get Custom Task List & Convert to json
+        cus_tsk_list=dbinterface.getCustomTaskList()
+        result4={}
+        result4['custskarr']=[]
+        #Convert python object to json
+        for cus_tsk in cus_tsk_list:
+            result4['custskarr'].append(cus_tsk.to_dict())
+
+        #Get Custom Request List & Convert to json
+        cus_req_list=dbinterface.getCustomRequestList()
+        result5={}
+        result5['cusreqarr']=[]
+        #Convert python object to json
+        for cus_req in cus_req_list:
+            result5['cusreqarr'].append(cus_req.__dict__)
+
+        #Get WO List & Convert to json
+        WOStn = request.args.get('WOStn')
+        wo_per_stn_list=dbinterface.getWOList(WOStn)
+        result6={}
+        result6['woperstnarr']=[]
+        #Convert python object to json
+        for wo_line in wo_per_stn_list:
+            result6['woperstnarr'].append(wo_line.__dict__)
+        
         msinfo=dbinterface.readLog('ms')
-        #print(msinfo)
 
-
-        
-        
-        #print(result)
-        return make_response({"rbtarr": json.dumps(result),"taskarr":json.dumps(result2),"reqarr":json.dumps(result3),"msinfo":msinfo})
+        return make_response({"rbtarr": json.dumps(result),"taskarr":json.dumps(result2),"reqarr":json.dumps(result3),"custskarr":json.dumps(result4),"cusreqarr":json.dumps(result5),"woperstnarr":json.dumps(result6),"msinfo":msinfo})
 
 
 # Routes for task create
@@ -853,6 +876,11 @@ def checkEmpty():
     response = make_response(dictToSend, 200)
     response.mimetype = "application/json"
     return response
+
+# #To Be Deleted
+# @app.route('/amrcontrolpanel')
+# def amrcontrolpanel():
+#     return render_template("amr-controlpanel-nelson.html")
 
 
 # @socketio.on('connect')
