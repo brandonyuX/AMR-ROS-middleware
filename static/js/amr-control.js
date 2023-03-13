@@ -55,3 +55,5 @@ function stopcharge(){
 function cancelnav(){
     fetch("amr/action/cancelnav")
 }
+
+document.getElementById("rbtpos").innerHTML = 'Charging Station';

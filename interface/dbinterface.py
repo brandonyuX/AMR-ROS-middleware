@@ -194,7 +194,7 @@ def getReqList():
 def getProductionTaskList():
      #Fetch Robot task list
     tsk_list.clear()
-    cursor.execute("SELECT * FROM ProductionTask") 
+    cursor.execute("SELECT * FROM ProductionTask WHERE Completed=0") 
     row = cursor.fetchone() 
     while row: 
         #print(row[0])
@@ -254,7 +254,7 @@ def getCustomListTop():
 def getCustomTaskList():
     tsk_list.clear()
     #Fetch custom task list
-    cursor.execute("SELECT * FROM CustomTask WHERE Completed=1") 
+    cursor.execute("SELECT * FROM CustomTask WHERE Completed=0") 
     row = cursor.fetchone()
 
     while row:
@@ -267,7 +267,7 @@ def getCustomTaskList():
 def getCustomRequestList():
     cus_req_list.clear()
     #Fetch custom request list
-    cursor.execute("SELECT * FROM CustomRequest") 
+    cursor.execute("SELECT * FROM CustomRequest WHERE status = 'NEW'") 
     row = cursor.fetchone()
 
     while row:
@@ -667,26 +667,30 @@ def getWOList(WOStn):
         wo_per_stn_list.clear()
         
         if int(WOStn) == 1:
-            sqlmsg = "SELECT * FROM wo_stn1"
+            sqlmsg = "SELECT * FROM wo_stn1 WHERE status = 'NEW'"
         elif int(WOStn) == 2:
-            sqlmsg = "SELECT * FROM wo_stn2"
+            sqlmsg = "SELECT * FROM wo_stn2 WHERE status = 'NEW'"
         elif int(WOStn) == 3:
-            sqlmsg = "SELECT * FROM wo_stn3"
+            sqlmsg = "SELECT * FROM wo_stn3 WHERE status = 'NEW'"
         elif int(WOStn) == 4:
-            sqlmsg = "SELECT * FROM wo_stn4"
+            sqlmsg = "SELECT * FROM wo_stn4 WHERE status = 'NEW'"
         elif int(WOStn) == 5:
-            sqlmsg = "SELECT * FROM wo_stn5"
+            sqlmsg = "SELECT * FROM wo_stn5 WHERE status = 'NEW'"
         else:
-            sqlmsg = "SELECT * FROM wo_stn6"
+            sqlmsg = "SELECT * FROM wo_stn6 WHERE status = 'NEW'"
 
         cursor.execute(sqlmsg)
         row = cursor.fetchone() 
         while row:
-            wo_line = WOPerStn(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12],row[13])
+            wo_line = WOPerStn(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12],row[13],row[14])
             wo_per_stn_list.append(wo_line)
             row = cursor.fetchone()
     return wo_per_stn_list
-            
+
+def writeWOState(stn,wo,state):
+    statement=f"UPDATE wo_stn{stn} SET state = '{state}' WHERE wo_number = {wo}"
+    cursor.execute(statement)
+    cursor.commit()         
 
 #Create custom request queue
 def writeCustomReq(reqid,priority):
