@@ -94,20 +94,15 @@ var get_table = function getInfo() {
     var woarr = JSON.parse(data['woperstnarr']);
     var HTML = "";
     for (let i = 0; i < woarr.woperstnarr.length; i++) {
-      HTML += "<tr><td>" +  woarr.woperstnarr[i].woid + "</td>";
+      HTML += "<tr><td>" +   woarr.woperstnarr[i].state + "</td>";
       HTML += "<td>" +      woarr.woperstnarr[i].batchNum + "</td>";
       HTML += "<td>" +      woarr.woperstnarr[i].woNum + "</td>";
       HTML += "<td>" +      woarr.woperstnarr[i].manufactureDate + "</td>";
       HTML += "<td>" +      woarr.woperstnarr[i].fnpDate + "</td>";
-      HTML += "<td>" +  woarr.woperstnarr[i].initSerialNum + "</td>";
       HTML += "<td>" +      woarr.woperstnarr[i].requireQty + "</td>";
       HTML += "<td>" +      woarr.woperstnarr[i].processedQty + "</td>";
-      HTML += "<td>" +      woarr.woperstnarr[i].startTime + "</td>";
-      HTML += "<td>" +      woarr.woperstnarr[i].endTime + "</td>";
-      HTML += "<td>" +  woarr.woperstnarr[i].status + "</td>";
       HTML += "<td>" +      woarr.woperstnarr[i].fillVol + "</td>";
       HTML += "<td>" +      woarr.woperstnarr[i].targetTor + "</td>";
-      HTML += "<td>" +      woarr.woperstnarr[i].orderNum + "</td></tr>";
     }
     document.getElementById("WO").innerHTML = HTML;
     
