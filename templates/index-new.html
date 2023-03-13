@@ -56,7 +56,7 @@
                   <th scope="col">Current Location</th>
                   <th scope="col">X</th>
                   <th scope="col">Y</th>
-                  <th scope="col">Battery</th>
+                  <th scope="col">Battery(%)</th>
                   <th scope="col">Status</th>
                 </tr>
               </thead>
@@ -134,9 +134,9 @@
               <div class="d-flex align-items-center justify-content-between mb-4">
                 <div style="vertical-align: bottom;">
                   <h4 class="mb-0 text-white" style="display: inline; margin-right: 0.75rem;">Current Custom Request</h4>
-                  <a href="#" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                  <a href="#" data-bs-toggle="modal" data-bs-target="#delCustomModal"
                     style="color: #19c0e1; text-decoration: none;">
-                    <u>Add Task</u>
+                    <u>Delete Request</u>
                   </a>
                 </div>
                 <h4 id="numCusReq" class="mb-0 text-white"></h4>
@@ -214,11 +214,11 @@
       <!--Add Custom Request, Custom Task Table, WO table -->
 
       <!-- Modal -->
-      <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal fade" id="delCustomModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="exampleModalLabel">Add Task</h5>
+              <h5 class="modal-title" id="exampleModalLabel">Delete Custom Task</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -226,21 +226,13 @@
               <form class="row g-3">
                 <div class="col-auto">
                   <select class="form-select" aria-label="Select Task Model ID">
-                    <option selected>Select Task Model ID</option>
+                    <option selected>Select Request to delete</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
                     <option value="3">3</option>
                   </select>
                 </div>
-                <div class="col-auto">
-                  <select class="form-select" aria-label="Select Action">
-                    <option selected>Select Action</option>
-                    <option value="1">Move</option>
-                    <option value="2">Unload</option>
-                    <option value="3">Load</option>
-                    <option value="4">Custom Command</option>
-                  </select>
-                </div>
+                
                 <div class="col-auto">
                   <input class="form-control" type="text" placeholder="Default input"
                     aria-label="default input example">
@@ -250,7 +242,7 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary">Save changes</button>
+              <button type="button" class="btn btn-primary">Delete Request</button>
             </div>
           </div>
         </div>

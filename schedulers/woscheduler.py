@@ -119,7 +119,7 @@ def startWOS():
             #         plcinterface.sendWO2PLC(i,wo)
             #         #Set WO to start status to prevent resending
             #         dbinterface.setWOStart(i,wo[2])
-            time.sleep(1)
+            time.sleep(0.5)
         
 
 #dbinterface.startup()

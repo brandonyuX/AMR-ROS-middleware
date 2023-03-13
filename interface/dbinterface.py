@@ -267,7 +267,7 @@ def getCustomTaskList():
 def getCustomRequestList():
     cus_req_list.clear()
     #Fetch custom request list
-    cursor.execute("SELECT * FROM CustomRequest WHERE status = 'NEW'") 
+    cursor.execute("SELECT * FROM CustomRequest WHERE status='NEW'") 
     row = cursor.fetchone()
 
     while row:
