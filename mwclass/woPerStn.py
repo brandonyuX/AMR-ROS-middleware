@@ -3,7 +3,7 @@ import pyodbc
 import datetime
 
 class WOPerStn:
-    def __init__(self, woid=None, batchNum=None, woNum=None, manufactureDate=None, fnpDate=None, initSerialNum=None, requireQty=None, processedQty=None, startTime=None, endTime=None, status=None, fillVol=None, targetTor=None, orderNum=None) -> None:
+    def __init__(self, woid=None, batchNum=None, woNum=None, manufactureDate=None, fnpDate=None, initSerialNum=None, requireQty=None, processedQty=None, startTime=None, endTime=None, status=None, fillVol=None, targetTor=None, orderNum=None, expDate=None) -> None:
         self.woid=woid
         self.batchNum=batchNum
         self.woNum=woNum
@@ -18,6 +18,7 @@ class WOPerStn:
         self.fillVol=fillVol
         self.targetTor=targetTor
         self.orderNum=orderNum
+        self.expDate = expDate
 
     def __str__(self) -> str:
         text="{} {} {} {} {} {}".format(self.woid,self.batchNum,self.woNum,self.manufactureDate,self.fnpDate,self.initSerialNum)

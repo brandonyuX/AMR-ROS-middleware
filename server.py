@@ -383,7 +383,7 @@ def amrsettings():
         return render_template('amr-settings.html')
 
 
-#Try getting list test
+#Get list of data for dashboard display
 @app.route("/get_list")
 # @login_required
 def get_list():
@@ -454,19 +454,27 @@ def get_list():
         #Convert python object to json
         for cus_req in cus_req_list:
             result5['cusreqarr'].append(cus_req.__dict__)
-
-        #Get WO List & Convert to json
-        WOStn = request.args.get('WOStn')
-        wo_per_stn_list=dbinterface.getWOList(WOStn)
-        result6={}
-        result6['woperstnarr']=[]
-        #Convert python object to json
-        for wo_line in wo_per_stn_list:
-            result6['woperstnarr'].append(wo_line.__dict__)
         
         msinfo=dbinterface.readLog('ms')
 
-        return make_response({"rbtarr": json.dumps(result),"taskarr":json.dumps(result2),"reqarr":json.dumps(result3),"custskarr":json.dumps(result4),"cusreqarr":json.dumps(result5),"woperstnarr":json.dumps(result6),"msinfo":msinfo})
+        return make_response({"rbtarr": json.dumps(result),"taskarr":json.dumps(result2),"reqarr":json.dumps(result3),"custskarr":json.dumps(result4),"cusreqarr":json.dumps(result5),"msinfo":msinfo})
+
+#Get wo data for dashboard display
+@app.route("/get_wo")
+# @login_required
+def get_wo():
+    # Check if user is loggedin
+    if 'loggedin' in session:
+        #Get WO List & Convert to json
+        WOStn = request.args.get('WOStn')
+        wo_per_stn_list=dbinterface.getWOList(WOStn)
+        result={}
+        result['woperstnarr']=[]
+        #Convert python object to json
+        for wo_line in wo_per_stn_list:
+            result['woperstnarr'].append(wo_line.__dict__)
+        return make_response({"woperstnarr":json.dumps(result)})
+
 
 
 # Routes for task create

@@ -673,10 +673,23 @@ def getWOList(WOStn):
 
         cursor.execute(sqlmsg)
         row = cursor.fetchone() 
-        while row:
-            wo_line = WOPerStn(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12],row[13])
-            wo_per_stn_list.append(wo_line)
-            row = cursor.fetchone()
+
+        if int(WOStn) == 1:
+            while row:
+                wo_line = WOPerStn(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12],row[13],None)
+                wo_per_stn_list.append(wo_line)
+                row = cursor.fetchone()
+        elif int(WOStn) == 4:
+            while row:
+                wo_line = WOPerStn(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12],None,row[13])
+                wo_per_stn_list.append(wo_line)
+                row = cursor.fetchone()
+        else:
+            while row:
+                wo_line = WOPerStn(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12],None,None)
+                wo_per_stn_list.append(wo_line)
+                row = cursor.fetchone()
+
     return wo_per_stn_list
             
 
