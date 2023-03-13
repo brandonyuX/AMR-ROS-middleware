@@ -31,7 +31,7 @@ import sys
 from datetime import datetime
 import logging
 import os.path
-import json,os
+import json,os,random
 
 
 
@@ -260,7 +260,45 @@ def nav():
     if 'loggedin' in session:
         return render_template('navbar.html')
 
- 
+#Reset function for amr
+@app.route('/amr/action/<act>')
+def action(act):
+    if 'loggedin' in session:
+        match act:
+            case 'reset':
+                robotinterface.reset_motor()
+            case 'tocharge':
+                chrinterface.gocharge()
+            case 'stopcharge':
+                chrinterface.stopcharge()
+            case 'cancelnav':
+                robotinterface.cancelnav()
+
+        response = make_response("Command sent to AMR", 200)
+        response.mimetype = "text/plain"
+        return response
+
+#Save point function for amr
+@app.route('/amr/save/<stn>')
+def savepoint(stn):
+    if 'loggedin' in session:
+        #Save point code
+        robotinterface.save_point(stn=stn)
+        response = make_response("Command sent to AMR", 200)
+        response.mimetype = "text/plain"
+        return response
+ #Move function for amr
+@app.route('/amr/move/<stn>')
+def move(stn):
+    if 'loggedin' in session:
+        robotinterface.publish_cmd(rid=1,stn=stn)
+        while  os.environ['reached'] != 'True':
+            pass
+        dbinterface.updateRbtLoc(rbtid=1,currloc=stn)
+
+        response = make_response("Command sent to AMR", 200)
+        response.mimetype = "text/plain"
+        return response
 #Define homepage 
 # @app.route('/')
 # # @login_required
@@ -553,8 +591,9 @@ def createWOTask():
             wolist=[]
             for i in range(len(parsedJSON['Work Orders'])):
                 
-                wo=WO(parsedJSON['Batch ID'],parsedJSON['Init SN'],parsedJSON['Manufacture Date'],parsedJSON['Fill and Pack Date'],parsedJSON['Fill Volume'],parsedJSON['Target Torque'],parsedJSON['Work Orders'][i],expdate=parsedJSON['Expiry Date'],ordernum=i)
+                wo=WO(parsedJSON['Batch ID'],parsedJSON['Init SN'],parsedJSON['Manufacture Date'],parsedJSON['Fill and Pack Date'],parsedJSON['Fill Volume'],parsedJSON['Target Torque'],parsedJSON['Work Orders'][i],expdate=parsedJSON['Expiry Date'],ordernum=i,itemtype=parsedJSON['Item Type'])
                 wolist.append(wo)
+            os.environ['currentBatch']=parsedJSON['Item Type']
             
              #Write to Work Order Table in database
             dbinterface.writeWO(wolist)
@@ -582,7 +621,8 @@ def createWOTask():
 @app.route('/syngenta/rm/production/cartonready',methods=['POST'])
 def cartonReady():
     #Call WMS to receive item
-    wmsinterface.reqsfc("123456")
+    rand_batch=random.randrange(100000,999999)
+    wmsinterface.reqsfc(rand_batch)
     #Signal wait complete
     os.environ['waitcomplete'] = 'True'
     #print('print carton ready')

@@ -80,7 +80,7 @@ def startWOS():
                 case wostate.WAITCOMPLETE:
                     
                     #Check whether order is completed
-                    if plcinterface.checkStnDone(stn,check=False,bcode=wo[1])==1:
+                    if plcinterface.checkStnDone(stn,check=False,bcode=wo[1],wonum=wo[2])==1:
                         print("<WOS> Order completed for station {}. Waiting for MES acknowledgement.".format(stn))
                         wostatearr[stn]=wostate.WAITCOMPLETEACK
                         print(f'Station {stn} now in WAIT COMPLETE ACK state')

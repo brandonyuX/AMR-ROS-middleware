@@ -16,7 +16,10 @@ with open('server-config.yaml', 'r') as f:
     doc = yaml.safe_load(f)
 
 production=doc['SERVER']['PRODUCTION']
+#List of rejects
+rejlist=[]
 
+currrejqty=-1
 
 
 decdata=''
@@ -262,17 +265,20 @@ def divmod(a, b):
     remainder = a % b
     return quotient, remainder
 os.environ['prevrej']= str(0)
-def checkStnDone(stn,check,bcode):
+def checkStnDone(stn,check,bcode,wonum=None):
     reqqtypath="ns=2;s=SyngentaPLC.Station{}.RequiredQty".format(stn)
     procqtypath="ns=2;s=SyngentaPLC.Station{}.ProcessedQty".format(stn)
     wocmppath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.CompleteAck".format(stn)
     wostatuspath="ns=2;s=SyngentaPLC.Station{}.WorkOrderStatus".format(stn)
     
     
+    
     procqtystate=client.get_node(procqtypath)
     reqqtystate=client.get_node(reqqtypath)
     wocmpstate=client.get_node(wocmppath)
     wostatusstate=client.get_node(wostatuspath)
+
+    
 
     procqty=procqtystate.get_value()
     #Monitor rejected quantity
@@ -302,9 +308,23 @@ def checkStnDone(stn,check,bcode):
             tofrstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
             #Need to confirm when the processed quantity is increased
             time.sleep(0.1)
-            os.environ['rejbottle']=str(procqty)
+            rejdict={"WO":wonum,"index":procqty}
+            rejlist.append(rejdict)
+
             
             
+    #Check the list of rejects and reject the bottles marked from station 3
+    if stn==5:
+        rejwo=[item['index'] for item in rejlist if item['WO']==wonum]
+        for rej in rejwo:
+            print(rej)
+        
+        #Check if procqty for the given wo is in the rejected list and if reject next bottle is previously set
+        if procqty+1 in rejwo and currrejqty!=procqty:
+            rnbpath="ns=2;s=SyngentaPLC.Station5.RejectNextBottle"
+            rnbstate=client.get_node(rnbpath)
+            rnbstate.set_value(ua.DataValue(ua.Variant(True,ua.VariantType.Boolean)))
+            currrejqty=procqty
         pass
 
 
@@ -315,16 +335,20 @@ def checkStnDone(stn,check,bcode):
     if wocmpstate.get_value()==0:
         pass
     
+    #When station done criteria is met
     if procqty==reqqtystate.get_value() :
         if(check):
-            if(stn==3):
-                os.environ['rejbottle']='0'
+            #Reset station 5 current reject qty
+            if stn==5:
+                currrejqty=-1
             return 1
         elif(reqqtystate.get_value()==0):
             return 2
         else:
-            if(stn==3):
-                os.environ['rejbottle']='0'
+            #Reset station 5 current reject qty
+            if stn==5:
+                currrejqty=-1
+            
             wocmpstate.set_value(ua.DataValue(ua.Variant('CMPORD',ua.VariantType.String)))
             wostatusstate.set_value(ua.DataValue(ua.Variant(4,ua.VariantType.UInt16)))
             return 1
@@ -438,7 +462,7 @@ def setStnState(stn,state):
     statestate.set_value(ua.DataValue(ua.Variant(True,ua.VariantType.Boolean)))
 
 def setNewBatch():
-    for i in range(1,6):
+    for i in range(1,7):
         reqqtypath="ns=2;s=SyngentaPLC.Station{}.NewBatch".format(i)
         reqqtystate=client.get_node(reqqtypath)
         reqqtystate.set_value(ua.DataValue(ua.Variant(True,ua.VariantType.Boolean)))
@@ -510,6 +534,8 @@ def initTag():
     rejqtypath="ns=2;s=SyngentaPLC.Station5.RejectedQty"
     rejqtystate=client.get_node(rejqtypath)
     rejqtystate.set_value(ua.DataValue(ua.Variant(0,ua.VariantType.UInt16)))
+
+    setNewBatch()
 
     pass
 #Check station is empty
@@ -613,13 +639,13 @@ def readTags():
 
         #Procedure to return tote box
         if(rettot):
-            
+            pass
             #Call WMS to store tote box
             # if production:
             #     wmsinterface.reqstb()
             # pathinfo=pathcalculate.generate_path('Stn1','WH','')
-            dbinterface.insertRbtTask('Stn1;WH',1,'STB')
-            rettotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
+            # dbinterface.insertRbtTask('Stn1;WH',1,'STB')
+            # rettotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
 
         # if(cp2):
         #     if production:
@@ -645,7 +671,7 @@ def readTags():
             dbinterface.insertRbtTask('WH;Stn6;WH',6,'WAIT')
             
             rtbstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
-            
+        
         if(stb):
             
             os.environ['waitcomplete'] = 'True'
@@ -653,7 +679,8 @@ def readTags():
             
             #Call WMS to receive item
             if production:
-                wmsinterface.reqsfc("123456")
+                rand_batch=random.random(100000,999999)
+                wmsinterface.reqsfc(rand_batch)
             stbstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
         #client.disconnect()
 

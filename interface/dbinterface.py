@@ -520,7 +520,7 @@ def checkWOComplete(stn):
 
 #Get work order
 def writeWO(wolist):
-    reqqty=3
+    reqqty=int( os.environ['reqqty'])
     
     for wo in wolist:
         cursor2=cnxn.cursor()

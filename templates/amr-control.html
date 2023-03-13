@@ -65,13 +65,17 @@
           <button type="button" onclick="savepoint()" class="btn btn-primary w-100 mx-2">Save Point</button>
 
           <button type="button" onclick="moveFun()" class="btn btn-primary w-100 mx-2">Go</button>
-          <form method="post">
-            <div class="d-grid gap-2">
-              <button type="submit" class="btn btn-primary w-100 mx-2" id="toastbtn" type="submit" name="type" value="charge">Send to charge</button>
-          <button type="submit" class="btn btn-primary w-100 mx-2" id="toastbtn" type="submit" name="type" value="stopcharge">Stop Charging</button>
-            </div>
+
           
-            </form>
+
+
+          <button type="button" onclick="tocharge()" class="btn btn-primary w-100 mx-2">Send to charge</button>
+
+          <button type="button" onclick="stopcharge()" class="btn btn-primary w-100 mx-2">Stop charging</button>
+
+          <button type="button" onclick="resetMotor()" class="btn btn-danger w-100 mx-2">Reset</button>
+          <button type="button" onclick="cancelnav()" class="btn btn-danger w-100 mx-2">Cancel</button>
+
           </div>
         </div>
       <!-- JavaScript Bundle with Popper -->

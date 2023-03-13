@@ -154,6 +154,7 @@ def reqrcc():
 #AMR to store filled carton to WMS
 
 def reqsfc(batchid):
+    print(batchid)
     dictToSend = {"BatchID":batchid,"ItemType":"SKU 1 - 250ml Bottles"}
     try:
         res = requests.post('http://'+wmsip+':3000/syngenta/mc/production/storefc',json=dictToSend,timeout=5)

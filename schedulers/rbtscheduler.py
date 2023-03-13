@@ -590,6 +590,11 @@ def tskpolling():
                                     
                                     while(os.environ.get('waitcustom')!='Confirmed'):
                                         if(os.environ.get('waitcustom')=='Continue-Confirm'):
+                                            #Roll back conveyor if item not in position
+                                            # robotinterface.receive_item()
+                                            # while(os.environ.get('convcomplete')=='False'):
+                                            #     pass
+                                            # robotinterface.reset_conv()
                                             os.environ['waitcustom']='Confirmed'
                                         elif(os.environ.get('waitcustom')=='Cancel-Confirm'):
                                             dbinterface.setNxtComp(tsk.tid)
@@ -607,6 +612,13 @@ def tskpolling():
                                     # pp=True
                                     while(os.environ.get('waitcomplete')=='False'):
                                         pass
+
+                                    #Roll back conveyor if item not in position
+                                    # robotinterface.receive_item()
+                                    # while(os.environ.get('convcomplete')=='False'):
+                                    #     pass
+                                    # robotinterface.reset_conv()
+
                                 dbinterface.writeLog('ms','<MS>Complete command received!',True)
                                 dbinterface.setExecute(0,tsk.tid,table)
                                 dbinterface.incStep(tsk.tid,tsk.currstep+1,False,table)

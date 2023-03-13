@@ -1,6 +1,6 @@
 #This file will provide the interface to communicate with the robot and update database 
 
-import roslibpy
+import roslibpy,math
 import pyodbc
 import sys,os
 import threading
@@ -87,8 +87,8 @@ def get_info():
             #listener.subscribe(store_pose)
             listener3=roslibpy.Topic(client,'/move_base/result','move_base_msgs/MoveBaseActionResult')
             listener3.subscribe(move_complete)
-            battlisterner=roslibpy.Topic(client,'/batt_charge','std_msgs/String',throttle_rate=5000)
-            battlisterner.subscribe(batt_cb)
+            # battlisterner=roslibpy.Topic(client,'/batt_charge','std_msgs/String',throttle_rate=5000)
+            # battlisterner.subscribe(batt_cb)
             convlistener=roslibpy.Topic(client,'/convcomplete','std_msgs/String')
             convlistener.subscribe(convcb)
             alignlistener=roslibpy.Topic(client,'/aligncomplete','std_msgs/String')
@@ -161,7 +161,11 @@ def convcb(message):
 #Battery callback function
 def batt_cb(message):
     #print(message)
-    dbinterface.updateRbtBatt(1,float(message['data']))
+    try:
+        if message:
+            dbinterface.updateRbtBatt(1,math.floor(float(message['data'])))
+    except Exception as e:
+        print(e)
 
     
    
@@ -323,8 +327,49 @@ def publish_info(rid):
     
     print('<RI>Publish goal information to robot {}'.format(rid))
 
+#Cancel navigation function
+
+def cancelnav():
+    try:
+        #client = roslibpy.Ros(host=ip, port=8080)
+        #client.run(timeout=1)
+        cmdsrv = roslibpy.Service(client,'/web_cmd','htbot/mqueue')
+        
+        
+        cmdreq=roslibpy.ServiceRequest(dict(cmd=29))
+        
+        
+        result=cmdsrv.call(cmdreq)
+        #print(result)
+        print('<RI>Robot navigation cancel')
+        return True
+    except:
+        print("<ERR>Fail to connect to robot")
+        return False
+#Save point function 
+def save_point(rid=None,stn=None):
+    try:
+        #client = roslibpy.Ros(host=ip, port=8080)
+        #client.run(timeout=1)
+        #print(stn)
+        cmdsrv = roslibpy.Service(client,'/web_cmd','htbot/mqueue')
+        #print(stn)
+        #print('make service request')
+        cmdreq=roslibpy.ServiceRequest(dict(cmd=18, lps=stn))
+       
+        #print('call service')
+        result=cmdsrv.call(cmdreq)
+        #print(result)
+        #print('<RI>Command successfully sent to robot {}'.format(rid))
+        lastgoal=stn
+        return True
+    except:
+        print("<ERR>Fail to connect to robot")
+        return False
+    #client.terminate()
 #Publish move command to robot through robot interface
 #Input: rid - Robot ID, stn - Station
+
 def publish_cmd(rid,stn): 
     #stnmap={0:'REF',1:'STN1',2:'STN2',3:'STN3'} 
     
@@ -347,6 +392,26 @@ def publish_cmd(rid,stn):
         print("<ERR>Fail to connect to robot")
         return False
     #client.terminate()
+
+#Function to reset motor
+def reset_motor():
+    try:
+        #client = roslibpy.Ros(host=ip, port=8080)
+        #client.run(timeout=1)
+        cmdsrv = roslibpy.Service(client,'/web_cmd','htbot/mqueue')
+        
+        
+        cmdreq=roslibpy.ServiceRequest(dict(cmd=57))
+        
+        
+        result=cmdsrv.call(cmdreq)
+        #print(result)
+        print('<RI>Robot motor reset')
+        return True
+    except:
+        print("<ERR>Fail to connect to robot")
+        return False
+
 
 def abort():
     try:
