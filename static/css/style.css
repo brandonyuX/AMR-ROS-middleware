@@ -23,16 +23,18 @@
     color: #19c0e1;
     vertical-align: top;
     border-color: #000;
+    border-collapse: separate;
+    border-spacing: 0;
+    white-space: nowrap;
 }
 
-.table thead th {
+.table thead th{
     position: sticky;
     top: 0;
     white-space: nowrap;
     background-color: #373737;
+    border-bottom: 2px solid #19c0e1;
   }
-  
-  
 
 .back-to-top {
     position: fixed;

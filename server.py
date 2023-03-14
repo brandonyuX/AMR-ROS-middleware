@@ -273,53 +273,71 @@ def nav():
 #     # User is not loggedin redirect to login page
 #     return redirect(url_for('login'))
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 # @login_required
 def index():
     # Check if user is loggedin
     if 'loggedin' in session:
-        # User is loggedin show them the home page
-        tsklist=dbinterface.getProductionTaskList()
-        cus_tsk_list=dbinterface.getCustomTaskList()
-        rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
-        return render_template('index-new.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, cus_tsk_list=cus_tsk_list, username=session['username'], async_mode=async_mode)
+        if request.method == "GET":
+            # User is loggedin show them the home page
+            # tsklist=dbinterface.getProductionTaskList()
+            # cus_tsk_list=dbinterface.getCustomTaskList()
+            # rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
+            return render_template('index-new.html', username=session['username'])
+        else:
+            if len(request.form.get("wostn", "")) != 0 and len(request.form.get("woid", "")) != 0:
+                dbinterface.deleteWOByStn(request.form['wostn'], request.form['woid'])
+                return "Work Order Successfully Deleted!"
+            elif len(request.form.get("cusReqID", "")) != 0:
+                dbinterface.deleteCusReq(request.form['cusReqID'])
+                return "Custom Request Successfully Deleted!"
+            elif len(request.form.get("cusTaskID", "")) != 0:
+                dbinterface.deleteCusTask(request.form['cusTaskID'])
+                return "Custom Task Successfully Deleted!"
+            elif len(request.form.get("productionTaskID", "")) != 0:
+                dbinterface.deleteProductionTask(request.form['productionTaskID'])
+                return "Production Task Successfully Deleted!"
+            elif len(request.form.get("robotID", "")) != 0:
+                dbinterface.deleteRobot(request.form['robotID'])
+                return "Robot Successfully Deleted!"
+
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
 
 
-@app.route('/', methods=['POST'])
-# @login_required
-def indexpost():
-    if 'loggedin' in session:
-        #Read the type of request and process
-        posttype=request.form['type']
-        print(posttype)
-        if(posttype=='simulate'):
-            main.run()
+# @app.route('/', methods=['POST'])
+# # @login_required
+# def indexpost():
+#     if 'loggedin' in session:
+#         #Read the type of request and process
+#         posttype=request.form['type']
+#         print(posttype)
+#         if(posttype=='simulate'):
+#             main.run()
             
-        if(posttype=="cleartask"):
-            dbinterface.updateRbtStatus(True,1)
-            dbinterface.updateReqStatus('NEW',1)
-            dbinterface.updateRbtMsg(1,'Task cancelled')
-            dbinterface.deltask(1)
-        if(posttype=="stn1"):
-            dbinterface.updateReqDest('Station 1',1)
-            dbinterface.deltask(1)
-        if(posttype=="stn2"):
-            dbinterface.updateReqDest('Station 2',1)
-            dbinterface.deltask(1)
-        if(posttype=="localize"):
-            robotinterface.localize(1)
-        if(posttype=='abort'):
-            robotinterface.abort()
+#         if(posttype=="cleartask"):
+#             dbinterface.updateRbtStatus(True,1)
+#             dbinterface.updateReqStatus('NEW',1)
+#             dbinterface.updateRbtMsg(1,'Task cancelled')
+#             dbinterface.deltask(1)
+#         if(posttype=="stn1"):
+#             dbinterface.updateReqDest('Station 1',1)
+#             dbinterface.deltask(1)
+#         if(posttype=="stn2"):
+#             dbinterface.updateReqDest('Station 2',1)
+#             dbinterface.deltask(1)
+#         if(posttype=="localize"):
+#             robotinterface.localize(1)
+#         if(posttype=='abort'):
+#             robotinterface.abort()
             
-        tsklist=dbinterface.getProductionTaskList()
-        rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
-        cus_tsk_list=dbinterface.getCustomTaskList()
-        return render_template('index-new.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, cus_tsk_list=cus_tsk_list, async_mode=async_mode)
+#         tsklist=dbinterface.getProductionTaskList()
+#         rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
+#         cus_tsk_list=dbinterface.getCustomTaskList()
+#         return render_template('index-new.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, cus_tsk_list=cus_tsk_list, async_mode=async_mode)
     
-    # User is not loggedin redirect to login page
-    return redirect(url_for('login'))   
+#     # User is not loggedin redirect to login page
+#     return redirect(url_for('login'))   
 
 #Define configuration page
 @app.route('/configuration', methods=['GET', 'POST'])
@@ -865,11 +883,11 @@ def checkEmpty():
 #Initialize all interfaces
 dbinterface.startup()
 
-robotinterface.startup()
-plcinterface.startup()
+# robotinterface.startup()
+# plcinterface.startup()
 
-rbtscheduler.startup()
-woscheduler.startup()
+# rbtscheduler.startup()
+# woscheduler.startup()
 
 # time.sleep(10)
 app.run(host='0.0.0.0',debug=False)
