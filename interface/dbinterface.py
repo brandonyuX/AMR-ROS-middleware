@@ -76,50 +76,26 @@ def startup():
 
 def getBundleInfo():
    
-    rc_list.clear()
-    sm_list.clear()
-    req_list.clear()
+   
     rbt_list.clear()
     
-    #Create object list from configuration database
-    cursor.execute("SELECT * FROM Configuration") 
-    row = cursor.fetchone() 
-    while row: 
-        #print(row[0])
-        rc=RobotConfig(row[0],row[1],row[2],row[3],row[4])
-        rc_list.append(rc)
-        row = cursor.fetchone()
+  
 
-    #Create station map list from database
-    cursor.execute("SELECT * FROM MapStations") 
-    row = cursor.fetchone() 
-    while row: 
-        #print(row[0])
-        sm=StationMap(row[1],row[2],row[3],row[4],row[5])
-        sm_list.append(sm)
-        row = cursor.fetchone()
-
-    #Fetch PLC request list from database
-    cursor.execute("SELECT * FROM PLCRequest") 
-    row = cursor.fetchone() 
-    while row: 
-        #print(row[0])
-        req=PLCReq(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9])
-        req_list.append(req)
-        row = cursor.fetchone()
-
+    
+    cursor2=cnxn.cursor()
     #Fetch Robot current status
-    cursor.execute("SELECT * FROM Robot") 
-    row = cursor.fetchone() 
+    cursor2.execute("SELECT * FROM Robot") 
+    row = cursor2.fetchone() 
     while row: 
         #print(row[0])
         rbt=Robot(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8])
         rbt_list.append(rbt)
-        row = cursor.fetchone()
+        row = cursor2.fetchone()
+    cursor2.close()
     #print('Updated variable from DB!')
     #time.sleep(3)
     
-    return rc_list,sm_list,req_list,rbt_list
+    return rbt_list
 
 def getRobotList():
     #Fetch Robot current status
@@ -127,7 +103,7 @@ def getRobotList():
     row = cursor.fetchone() 
     while row: 
         #print(row[0])
-        rbt=Robot(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7])
+        rbt=Robot(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8])
         rbt_list.append(rbt)
         row = cursor.fetchone()
     return rbt_list
@@ -191,16 +167,23 @@ def getReqList():
         row = cursor.fetchone()
     return req_list
 
-def getProductionTaskList():
+def getProductionTaskList(data=None):
      #Fetch Robot task list
     tsk_list.clear()
-    cursor.execute("SELECT * FROM ProductionTask WHERE Completed=0") 
-    row = cursor.fetchone() 
+    cursor2=cnxn.cursor()
+    match data:
+        case None:
+            cursor2.execute("SELECT * FROM ProductionTask WHERE Completed=0") 
+        case 'all':
+            cursor2.execute("SELECT * FROM ProductionTask") 
+    
+    row = cursor2.fetchone() 
     while row: 
         #print(row[0])
         tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12])
         tsk_list.append(tsk)
-        row = cursor.fetchone()
+        row = cursor2.fetchone()
+    cursor2.close()
     # print(len(tsk_list))
     return tsk_list
 
@@ -251,29 +234,43 @@ def getCustomListTop():
     return tsk_list
 
 #Get all custom task that is not completed
-def getCustomTaskList():
+def getCustomTaskList(data=None):
     tsk_list.clear()
+    cursor2=cnxn.cursor()
     #Fetch custom task list
-    cursor.execute("SELECT * FROM CustomTask WHERE Completed=0") 
-    row = cursor.fetchone()
+    match data:
+        case None:
+            cursor2.execute("SELECT * FROM CustomTask WHERE Completed=0") 
+        case 'all':
+            cursor2.execute("SELECT * FROM CustomTask") 
+    
+    row = cursor2.fetchone()
 
     while row:
         tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12])
         tsk_list.append(tsk)
-        row = cursor.fetchone()
+        row = cursor2.fetchone()
+    cursor2.close()
     return tsk_list
 
 #Get all custom request
-def getCustomRequestList():
+def getCustomRequestList(data=None):
     cus_req_list.clear()
     #Fetch custom request list
-    cursor.execute("SELECT * FROM CustomRequest WHERE status='NEW'") 
-    row = cursor.fetchone()
+    cursor2=cnxn.cursor()
+    match data:
+        case None:
+            cursor2.execute("SELECT * FROM CustomRequest WHERE status='NEW'") 
+        case 'all':
+            cursor2.execute("SELECT * FROM CustomRequest") 
+    row = cursor2.fetchone()
 
     while row:
         cus_req = CustomRequest(row[0],row[1],row[2],row[3],row[4],row[5])
         cus_req_list.append(cus_req)
-        row = cursor.fetchone()
+        row = cursor2.fetchone()
+
+    cursor2.close()
     return cus_req_list
 
 #Return WMS Task ID
@@ -405,16 +402,20 @@ def updateRbtCharge(rbtid,state):
     cursor.commit()
 
 def checkCharging(rbtid):
-    cursor.execute("SELECT * FROM Robot WHERE Charging = 1 AND RobotID=?",rbtid) 
-    row=cursor.fetchone()
+    cursor2=cnxn.cursor()
+    cursor2.execute("SELECT * FROM Robot WHERE Charging = 1 AND RobotID=?",rbtid) 
+    row=cursor2.fetchone()
+    cursor2.close()
     if row:
         return True
     else:
         return False
 
 def updateRbtLoc(rbtid,currloc):
-    cursor.execute("UPDATE Robot SET CurrentLoc=? WHERE RobotID=?",currloc,rbtid) 
-    cursor.commit()
+    cursor2=cnxn.cursor()
+    cursor2.execute("UPDATE Robot SET CurrentLoc=? WHERE RobotID=?",currloc,rbtid) 
+    cursor2.commit()
+    cursor2.close()
 
 def getRbtLoc(rbtid):
     cursor.execute("SELECT CurrentLoc FROM Robot WHERE RobotID=?",rbtid) 
@@ -428,11 +429,14 @@ def updateRbtPosStatus(rbtid,x,y,r):
 
 #Update robot battery level
 def updateRbtBatt(rbtid,battlvl):
-    cursor.execute("UPDATE Robot SET BattLvl=? WHERE RobotID=?",battlvl,rbtid) 
-    cursor.commit()
+    cursor2=cnxn.cursor()
+    cursor2.execute("UPDATE Robot SET BattLvl=? WHERE RobotID=?",battlvl,rbtid) 
+    cursor2.commit()
+    cursor2.close()
 
 #Update position status to database
 def updateRbtMsg(rbtid,msg):
+
     cursor.execute("UPDATE Robot SET msg=? WHERE RobotID=?",msg,rbtid) 
     cursor.commit()
 
@@ -488,7 +492,7 @@ def readLog(type):
 def findWO(stn,type):
     
     cursor2 = cnxn.cursor()
-    statement="SELECT TOP 1 * FROM wo_stn{} WHERE processed_qty=0 AND status='{}' ORDER BY wo_number asc".format(stn,type)
+    statement="SELECT TOP 1 * FROM wo_stn{} WHERE status='{}' ORDER BY wo_number asc".format(stn,type)
      
     #print (statement)
     cursor2.execute(statement)
@@ -701,7 +705,7 @@ def getWOList(WOStn):
     return wo_per_stn_list
 
 def writeWOState(stn,wo,state):
-    statement=f"UPDATE wo_stn{stn} SET state = '{state}' WHERE wo_number = {wo}"
+    statement=f"UPDATE wo_stn{stn} SET state = '{state}' WHERE wo_number = '{wo}'"
     cursor.execute(statement)
     cursor.commit()         
 

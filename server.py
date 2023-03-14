@@ -2,7 +2,6 @@
 from flask import Flask, render_template,request,session,make_response,redirect,url_for,jsonify
 import interface.dbinterface as dbinterface
 import schedulers.woscheduler as woscheduler
-import main
 from mwclass.workorder import WO
 from mwclass.robotconfig import RobotConfig
 import interface.robotinterface as robotinterface
@@ -10,7 +9,6 @@ import interface.wmsinterface as wmsinterface
 import interface.chrinterface as chrinterface
 from mwclass.subtask import SubTask
 import interface.plcinterface as plcinterface
-from flask_socketio import SocketIO, emit
 from threading import Lock
 import json
 from flask import Blueprint, render_template, flash
@@ -351,7 +349,7 @@ def indexpost():
             robotinterface.abort()
             
         tsklist=dbinterface.getProductionTaskList()
-        rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
+        req_list,rbt_list=dbinterface.getBundleInfo()
         cus_tsk_list=dbinterface.getCustomTaskList()
         return render_template('index-new.html',tsklist=tsklist,reqlist=req_list,rbtlist=rbt_list, cus_tsk_list=cus_tsk_list, async_mode=async_mode)
     
@@ -437,6 +435,88 @@ def amrsettings():
     if 'loggedin' in session:
         return render_template('amr-settings.html')
 
+#Task management route
+@app.route('/task-management')
+def taskm():
+     # Check if user is loggedin
+    if 'loggedin' in session:
+        return render_template('task-management.html',username=session['username'], async_mode=async_mode)
+
+#Get list of data for task management
+@app.route("/get_list_all")
+# @login_required
+def get_list_all():
+    # Check if user is loggedin
+    if 'loggedin' in session:
+        rbt_list=dbinterface.getBundleInfo()
+
+        result={}
+        result['rbtinfo']=[]
+        #Convert python object to json
+        for rbt in rbt_list:
+            # rbt_info={}
+            # rbt_info['x']=rbt.x
+            # rbt_info['y']=rbt.y
+            # rbt_info['r']=rbt.r
+            # rbt_info['msg']=rbt.msg
+            # rbt_info['rid']=rbt.rid
+            # rbt_info['avail']=rbt.avail
+            # rbt_info['currloc']=rbt.currloc
+            result['rbtinfo'].append(rbt.__dict__)
+        
+        tsk_list=dbinterface.getProductionTaskList(data='all')
+        #Convert task table information to json
+        result2={}
+        result2['taskinfo']=[]
+        #Convert python object to json
+        for tsk in tsk_list:
+            result2['taskinfo'].append(tsk.to_dict())
+            # tsk_info={}
+            # tsk_info['tid']=tsk.tid
+            # tsk_info['rid']=tsk.rid
+            # tsk_info['reqid']=tsk.reqid
+            # tsk_info['currstep']=tsk.currstep
+            # tsk_info['endstep']=tsk.endstep
+            # if tsk.comp==1: 
+            #     tsk_info['completed']='Completed Task' 
+            # else:
+            #     tsk_info['completed']='Active Task'
+            
+        # print(len(result2['taskinfo']))
+
+        #Convert plc request table information to json
+        # result3={}
+        # result3['reqinfo']=[]
+        # #Convert python object to json
+        # for req in req_list:
+        #     # req_info={}
+        #     # req_info['plcid']=req.plcid
+        #     # req_info['reqid']=req.reqid
+        #     # req_info['destloc']=req.destloc
+        #     # req_info['tskmodno']=req.tskmodno
+        #     # req_info['status']=req.status
+
+        #     result3['reqinfo'].append(req.__dict__)
+        
+        #Get Custom Task List & Convert to json
+        cus_tsk_list=dbinterface.getCustomTaskList(data='all')
+        result4={}
+        result4['custskarr']=[]
+        #Convert python object to json
+        for cus_tsk in cus_tsk_list:
+            result4['custskarr'].append(cus_tsk.to_dict())
+
+        #Get Custom Request List & Convert to json
+        cus_req_list=dbinterface.getCustomRequestList(data='all')
+        result5={}
+        result5['cusreqarr']=[]
+        #Convert python object to json
+        for cus_req in cus_req_list:
+            result5['cusreqarr'].append(cus_req.__dict__)
+        
+        msinfo=dbinterface.readLog('ms')
+
+        return make_response({"rbtarr": json.dumps(result),"taskarr":json.dumps(result2),"custskarr":json.dumps(result4),"cusreqarr":json.dumps(result5),"msinfo":msinfo})
 
 #Get list of data for dashboard display
 @app.route("/get_list")
@@ -444,7 +524,7 @@ def amrsettings():
 def get_list():
     # Check if user is loggedin
     if 'loggedin' in session:
-        rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
+        rbt_list=dbinterface.getBundleInfo()
 
         result={}
         result['rbtinfo']=[]
@@ -481,18 +561,18 @@ def get_list():
         # print(len(result2['taskinfo']))
 
         #Convert plc request table information to json
-        result3={}
-        result3['reqinfo']=[]
-        #Convert python object to json
-        for req in req_list:
-            # req_info={}
-            # req_info['plcid']=req.plcid
-            # req_info['reqid']=req.reqid
-            # req_info['destloc']=req.destloc
-            # req_info['tskmodno']=req.tskmodno
-            # req_info['status']=req.status
+        # result3={}
+        # result3['reqinfo']=[]
+        # #Convert python object to json
+        # for req in req_list:
+        #     # req_info={}
+        #     # req_info['plcid']=req.plcid
+        #     # req_info['reqid']=req.reqid
+        #     # req_info['destloc']=req.destloc
+        #     # req_info['tskmodno']=req.tskmodno
+        #     # req_info['status']=req.status
 
-            result3['reqinfo'].append(req.__dict__)
+        #     result3['reqinfo'].append(req.__dict__)
         
         #Get Custom Task List & Convert to json
         cus_tsk_list=dbinterface.getCustomTaskList()
@@ -512,7 +592,7 @@ def get_list():
         
         msinfo=dbinterface.readLog('ms')
 
-        return make_response({"rbtarr": json.dumps(result),"taskarr":json.dumps(result2),"reqarr":json.dumps(result3),"custskarr":json.dumps(result4),"cusreqarr":json.dumps(result5),"msinfo":msinfo})
+        return make_response({"rbtarr": json.dumps(result),"taskarr":json.dumps(result2),"custskarr":json.dumps(result4),"cusreqarr":json.dumps(result5),"msinfo":msinfo})
 
 #Get wo data for dashboard display
 @app.route("/get_wo")
@@ -651,11 +731,10 @@ def createWOTask():
 #Route for information carton completion status
 @app.route('/syngenta/rm/production/cartonready',methods=['POST'])
 def cartonReady():
-    #Call WMS to receive item
-    rand_batch=random.randrange(100000,999999)
-    wmsinterface.reqsfc(rand_batch)
+    
     #Signal wait complete
     os.environ['waitcomplete'] = 'True'
+
     #print('print carton ready')
     response = make_response("Carton Ready Received", 200)
     response.mimetype = "text/plain"

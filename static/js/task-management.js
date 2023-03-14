@@ -3,7 +3,7 @@ document.getElementById("msmsgblock").innerHTML = '<div class="h6 py-2 fw-bold" 
 document.getElementById("msmsgblock").style.position = "relative";
 dif = (document.getElementById("userLogout").offsetWidth - document.getElementById("sideToggle").offsetWidth) / 2
 document.getElementById("msmsgblock").style.left = dif + "px";
-document.getElementById("sideDbBtn").classList.add("active");
+document.getElementById("sideWOBtn").classList.add("active");
 
 
 const woRadioBtns = document.querySelectorAll('input[type="radio"][name="woRadioBtns"]');
@@ -19,7 +19,7 @@ woRadioBtns.forEach((button) => {
 
 //Get all data table from flask server
 var get_all_table = function getInfo() {
-  let myRequest = new Request('/get_list');
+  let myRequest = new Request('/get_list_all');
   fetch(myRequest).then(response => response.json()).then(function (data) {
     // console.log(data);
     var availno = 0;

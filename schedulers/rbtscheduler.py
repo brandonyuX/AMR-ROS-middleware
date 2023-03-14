@@ -1,4 +1,4 @@
-import sys,os
+import sys,os,random
 import time,yaml
 from datetime import datetime
 import threading
@@ -104,7 +104,7 @@ def tskpolling():
     
     while(loop):
         #print('=====Start Async task get=====')
-        try:
+       
             #time.sleep(1)
             tsklist=[]
             global table
@@ -152,7 +152,7 @@ def tskpolling():
                 
 
                     #Do not execute next step when task is still processing
-                    if(int(tsk.exec)==1 and int(tsk.comp)==0):
+                    if(int(tsk.exec)==1 and int(tsk.completed)==0):
                         # choice=input('<MS> Previous task did not complete. Do you want to retry(1) or cancel(2)?')
                         # match choice:
                         #     case '1':
@@ -230,6 +230,12 @@ def tskpolling():
                                         #Store empty tote box
                                         print('<MS> Call WMS to store empty tote box')
                                         wmsinterface.reqstb()
+
+                                    case 'WAITCARTON':
+                                        print('<MS> Call WMS to retrieve empty tote box')
+                                        #Call WMS to retrieve empty tote
+                                        wmsinterface.reqetb()
+                                        
                                 pass
                                 
                             
@@ -612,6 +618,20 @@ def tskpolling():
                                     # pp=True
                                     while(os.environ.get('waitcomplete')=='False'):
                                         pass
+                                    
+                                    #Signal WMS to return tote box
+                                    final_bid=000000
+                                    rand_batch=random.randrange(100000,999999)
+                                    if os.environ['currbatchid']=='Null':
+                                        final_bid=str(rand_batch)
+                                    else:
+                                        final_bid=(os.environ['currbatchid'])
+                                    #Call WMS to receive item
+
+                                    plcinterface.informDocked(dock=False,stn=6)
+                                    
+                                    wmsinterface.reqsfc(final_bid)
+
 
                                     #Roll back conveyor if item not in position
                                     # robotinterface.receive_item()
@@ -643,8 +663,7 @@ def tskpolling():
                         
                 time.sleep(0.5)
                 pass
-        except Exception as e:
-            print(e)
+        
         #time.sleep(1.5)
 
 

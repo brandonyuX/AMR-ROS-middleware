@@ -1,5 +1,5 @@
 SERVER:
-    WMSIP: 192.168.1.188
+    WMSIP: 192.168.0.188
     PRODUCTION: True
     
 ROBOT:
@@ -10,4 +10,4 @@ DATABASE:
     DB: M8MMiddlewareDB
 
 PRODUCTION:
-    REQ_QTY: 3
+    REQ_QTY: 12

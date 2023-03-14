@@ -41,22 +41,31 @@
       {% include "TopNavigationBar.html" %}
       <!-- Top navigation bar: End -->
 
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-primary shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                            Robot Position</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="rbtpos"></div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
+      <!-- Current Robot Status Start -->
+      <div class="container-fluid pt-4 px-4">
+        <div class="bg-content-card text-center rounded p-4">
+          <div class="d-flex align-items-center justify-content-between mb-4">
+            <h4 class="mb-0 text-white">Current Robot Status</h4>
+            <h4 id="numRbtAvail" class="mb-0 text-white"></h4>
+          </div>
+          <div class="table-responsive">
+            <table class="table text-start align-middle table-bordered table-hover mb-0">
+              <thead>
+                <tr class="text-white">
+                  <th scope="col">Robot ID</th>
+                  <th scope="col">Current Location</th>
+                  <th scope="col">X</th>
+                  <th scope="col">Y</th>
+                  <th scope="col">Battery(%)</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody id="curRbtStatus"></tbody>
+            </table>
+          </div>
         </div>
-    </div>
+      </div>
+      <!-- Current Robot Status End -->
       <div class="container">
       <div class="d-grid gap-2">
 			
@@ -91,7 +100,7 @@
           <button type="button" onclick="stopcharge()" class="btn btn-primary w-100 mx-2">Stop charging</button>
 
           <button type="button" onclick="resetMotor()" class="btn btn-danger w-100 mx-2">Reset</button>
-          <button type="button" onclick="cancelnav()" class="btn btn-danger w-100 mx-2">Cancel</button>
+          <button type="button" onclick="cancelnav()" class="btn btn-danger w-100 mx-2">Cancel Navigation Goal</button>
 
           </div>
         </div>
