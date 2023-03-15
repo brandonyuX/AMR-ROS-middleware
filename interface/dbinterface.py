@@ -703,11 +703,40 @@ def getWOList(WOStn):
                 row = cursor.fetchone()
 
     return wo_per_stn_list
-
 def writeWOState(stn,wo,state):
     statement=f"UPDATE wo_stn{stn} SET state = '{state}' WHERE wo_number = '{wo}'"
     cursor.execute(statement)
     cursor.commit()         
+    
+#Delete work order
+def deleteWOByStn(woStn,woID):
+    sqlmsg = "DELETE FROM wo_stn" + str(woStn) + " WHERE wo_id = " + str(woID)
+    cursor.execute(sqlmsg) 
+    cursor.commit()
+
+#Delete custom request
+def deleteCusReq(cID):
+    sqlmsg = "DELETE FROM CustomRequest" + " WHERE cid = " + str(cID)
+    cursor.execute(sqlmsg) 
+    cursor.commit()
+
+#Delete custom task
+def deleteCusTask(taskID):
+    sqlmsg = "DELETE FROM CustomTask" + " WHERE TaskID = " + str(taskID)
+    cursor.execute(sqlmsg) 
+    cursor.commit()
+
+#Delete production task
+def deleteProductionTask(taskID):
+    sqlmsg = "DELETE FROM ProductionTask" + " WHERE TaskID = " + str(taskID)
+    cursor.execute(sqlmsg) 
+    cursor.commit()
+
+#Delete robot
+def deleteRobot(robotID):
+    sqlmsg = "DELETE FROM Robot" + " WHERE RobotID = " + str(robotID)
+    cursor.execute(sqlmsg) 
+    cursor.commit()
 
 #Create custom request queue
 def writeCustomReq(reqid,priority):

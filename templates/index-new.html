@@ -24,6 +24,7 @@
 </head>
 
 <body>
+  <div id="notificationContainer" style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999;"></div>
   <div class="container-fluid position-relative d-flex p-0">
     <div id="spinner"
       class="show bg-dark position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
@@ -49,9 +50,10 @@
             <h4 id="numRbtAvail" class="mb-0 text-white"></h4>
           </div>
           <div class="table-responsive">
-            <table class="table text-start align-middle table-bordered table-hover mb-0">
+            <table id="robotTable" class="table text-start align-middle table-bordered table-hover mb-0">
               <thead>
                 <tr class="text-white">
+                  <th scope="col">Action</th>
                   <th scope="col">Robot ID</th>
                   <th scope="col">Current Location</th>
                   <th scope="col">X</th>
@@ -83,9 +85,10 @@
                 <h4 id="numProductionTask" class="mb-0 text-white"></h4>
               </div>
               <div class="table-responsive" style="height: calc(50vh - 10px);">
-                <table class="table text-start align-middle table-bordered table-hover mb-0">
+                <table id="productionTaskTable" class="table text-start align-middle table-bordered table-hover mb-0">
                   <thead>
                     <tr class="text-white">
+                      <th scope="col">Action</th>
                       <th scope="col">Task ID</th>
                       <th scope="col">Robot ID</th>
                       <th scope="col">Request ID</th>
@@ -107,9 +110,10 @@
                 <h4 id="numCusTsk" class="mb-0 text-white"></h4>
               </div>
               <div class="table-responsive" style="height: calc(50vh - 10px);">
-                <table class="table text-start align-middle table-bordered table-hover mb-0">
+                <table id="cusTaskTable" class="table text-start align-middle table-bordered table-hover mb-0">
                   <thead>
                     <tr class="text-white">
+                      <th scope="col">Action</th>
                       <th scope="col">Task ID</th>
                       <th scope="col">Robot ID</th>
                       <th scope="col">WMS Request ID</th>
@@ -138,9 +142,10 @@
                 <h4 id="numCusReq" class="mb-0 text-white"></h4>
               </div>
               <div class="table-responsive" style="height: calc(50vh - 10px);">
-                <table class="table text-start align-middle table-bordered table-hover mb-0">
+                <table  id="cusReqTable" class="table text-start align-middle table-bordered table-hover mb-0">
                   <thead>
                     <tr class="text-white">
+                      <th scope="col">Action</th>
                       <th scope="col">Custom ID</th>
                       <th scope="col">Request ID</th>
                       <th scope="col">Priority</th>
@@ -185,7 +190,8 @@
                 <table  id="woTable" class="table text-start align-middle table-bordered table-hover mb-0">
                   <thead>
                     <tr class="text-white">
-                      <th scope="col">State</th>
+                      <th scope="col">Action</th>
+                      <th scope="col">WO ID</th>
                       <th scope="col">Batch Num</th>
                       <th scope="col">WO Num</th>
                       <th scope="col">Manufactured Date</th>
@@ -253,6 +259,7 @@
       <script src="/static/js/bootstrap.js"></script>
       <!-- This Template Javascript -->
       <script src="/static/js/navSpinnerToggler.js"></script>
+      <script src="/static/js/notificationContainer-bs5.js"></script>
       <script src="/static/js/index-new.js"></script>
 </body>
 
