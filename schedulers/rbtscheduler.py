@@ -271,10 +271,15 @@ def tskpolling():
                                     pathlist=pathcalculate.generate_path_simple(tskq[movestep])
                                     robotinterface.publish_sound(tskq[movestep])
                                     if(tskq[movestep]=='Stn1'):
-                                        plcinterface.informDocked(dock=1,stn=1)
+                                        plcinterface.informDocked(dock=True,stn=1)
                                     else:
-                                        plcinterface.informDocked(dock=0,stn=1)
+                                        plcinterface.informDocked(dock=False,stn=1)
 
+
+                                    if(tskq[movestep]=='Stn6'):
+                                        plcinterface.informDocked(dock=True,stn=6)
+                                    else:
+                                        plcinterface.informDocked(dock=False,stn=6)
 
                                     dest=tskq[movestep]
                                 
@@ -316,9 +321,7 @@ def tskpolling():
                                             if production:
                                                 #robotinterface.align_qr()
                                                 pass
-                                    if dest=="Stn6":
-                                        plcinterface.informDocked(dock=True,stn=6)
-                                        pass
+                                   
                                     dbinterface.incStep(tsk.tid,tsk.currstep+1,False,table)
                                     dbinterface.setExecute(0,tsk.tid,table)
                                 
@@ -628,7 +631,7 @@ def tskpolling():
                                         final_bid=(os.environ['currbatchid'])
                                     #Call WMS to receive item
 
-                                    plcinterface.informDocked(dock=False,stn=6)
+                                    
                                     
                                     wmsinterface.reqsfc(final_bid)
 

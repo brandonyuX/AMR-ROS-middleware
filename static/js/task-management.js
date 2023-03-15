@@ -17,6 +17,15 @@ woRadioBtns.forEach((button) => {
   });
 });
 
+//Function to pause all stations
+function pauseStation(){
+  fetch("stations/pause")
+}
+
+//Function to start all stations
+function startStation(){
+  fetch("stations/start")
+}
 //Get all data table from flask server
 var get_all_table = function getInfo() {
   let myRequest = new Request('/get_list_all');

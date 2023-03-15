@@ -289,10 +289,11 @@ def savepoint(stn):
 @app.route('/amr/move/<stn>')
 def move(stn):
     if 'loggedin' in session:
-        robotinterface.publish_cmd(rid=1,stn=stn)
+        # robotinterface.publish_cmd(rid=1,stn=stn)
+        dbinterface.insertRbtTask(destloc=stn,tskmod=10,task='COMMAND')
         while  os.environ['reached'] != 'True':
             pass
-        dbinterface.updateRbtLoc(rbtid=1,currloc=stn)
+        #dbinterface.updateRbtLoc(rbtid=1,currloc=stn)
 
         response = make_response("Command sent to AMR", 200)
         response.mimetype = "text/plain"
@@ -329,8 +330,7 @@ def indexpost():
         #Read the type of request and process
         posttype=request.form['type']
         print(posttype)
-        if(posttype=='simulate'):
-            main.run()
+        
             
         if(posttype=="cleartask"):
             dbinterface.updateRbtStatus(True,1)
@@ -442,6 +442,28 @@ def taskm():
     if 'loggedin' in session:
         return render_template('task-management.html',username=session['username'], async_mode=async_mode)
 
+
+#Pause all station
+@app.route('/stations/<state>')
+def stnPause(state):
+    if 'loggedin' in session:
+        for i in range(1,7):
+            match state:
+                case 'pause':
+                    plcinterface.setStnState(stn=i,state='Pause')
+                case 'start':
+                    plcinterface.setStnState(stn=i,state='Start')
+        response = make_response("Stations paused", 200)
+        response.mimetype = "text/plain"
+        return response
+        
+def savepoint(stn):
+    if 'loggedin' in session:
+        #Save point code
+        robotinterface.save_point(stn=stn)
+        response = make_response("Command sent to AMR", 200)
+        response.mimetype = "text/plain"
+        return response
 #Get list of data for task management
 @app.route("/get_list_all")
 # @login_required

@@ -435,7 +435,7 @@ def sendWO2PLC(stn,wo):
         edstate.set_value(ua.DataValue(ua.Variant(wo[13],ua.VariantType.String)))
 
 
-    time.sleep(1.5)
+    time.sleep(1)
     wostatusstate.set_value(ua.DataValue(ua.Variant(2,ua.VariantType.UInt16)))
     wostartackstate.set_value(ua.DataValue(ua.Variant('RDYORD',ua.VariantType.String)))
     
@@ -457,12 +457,12 @@ def startWO(stn,wo):
     #Change back to variable
     reqqtystate.set_value(ua.DataValue(ua.Variant(wo[6],ua.VariantType.UInt16)))
     #If station 1 did not detect any tote box, request for empty bottle
-    
-    reqeb()
+    if(stn==1):
+        reqeb()
     
 
-    #CHANGE TO ALL STATION FOR PRODUCTION TO CHANGE PAUSED TO START
     # if(checkStnStatus(stn))==3 or (checkStnStatus(stn))==1:
+    #Set all station to start
     setStnState(stn,'Start')
 
 #Start station command
@@ -540,10 +540,17 @@ def checkStartAck(station):
     
 #Initialize tag for new batch
 def initTag():
+    #Add wasted qty by 2 to current tag
+    wastedqtypath="ns=2;s=Syngenta.SmartLab.FNP.BO.TotalWastedQty"
+    wastedqtystate=client.get_node(wastedqtypath)
+    currwastedqty=wastedqtystate.get_value()
+    wastedqtystate.set_value(ua.DataValue(ua.Variant(currwastedqty+2,ua.VariantType.UInt16)))
     #Init reject qty to 0 for new batch
     rejqtypath="ns=2;s=SyngentaPLC.Station5.RejectedQty"
     rejqtystate=client.get_node(rejqtypath)
     rejqtystate.set_value(ua.DataValue(ua.Variant(0,ua.VariantType.UInt16)))
+
+
 
     setNewBatch()
 

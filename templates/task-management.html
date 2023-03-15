@@ -41,31 +41,8 @@
       {% include "TopNavigationBar.html" %}
       <!-- Top navigation bar: End -->
 
-      <!-- Current Robot Status Start -->
-      <div class="container-fluid pt-4 px-4">
-        <div class="bg-content-card text-center rounded p-4">
-          <div class="d-flex align-items-center justify-content-between mb-4">
-            <h4 class="mb-0 text-white">Current Robot Status</h4>
-            <h4 id="numRbtAvail" class="mb-0 text-white"></h4>
-          </div>
-          <div class="table-responsive">
-            <table class="table text-start align-middle table-bordered table-hover mb-0">
-              <thead>
-                <tr class="text-white">
-                  <th scope="col">Robot ID</th>
-                  <th scope="col">Current Location</th>
-                  <th scope="col">X</th>
-                  <th scope="col">Y</th>
-                  <th scope="col">Battery(%)</th>
-                  <th scope="col">Status</th>
-                </tr>
-              </thead>
-              <tbody id="curRbtStatus"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      <!-- Current Robot Status End -->
+      <button type="button" onclick="pauseStation()" class="btn btn-danger w-100 mx-2">Pause All Machines</button>
+      <button type="button" onclick="startStation()" class="btn btn-danger w-100 mx-2">Start All Machines</button>
 
       <!-- Current Production Task and Custom Task Start -->
       <div class="container-fluid pt-4 px-4">
