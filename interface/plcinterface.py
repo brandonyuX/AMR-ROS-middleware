@@ -68,10 +68,10 @@ def incProcQty(station):
     procqtystate.set_value(ua.DataValue(ua.Variant(procqty+1,ua.VariantType.UInt16)))
     print(f'Increased station {station} processed quantity to {procqty+1}.')
     #Station is inspection
-    if(station==5):
-        reject = random.choices([True, False], [0.6,0.4])
-        if(reject[0]):
-            rejqtystate.set_value(ua.DataValue(ua.Variant(rejqty+1,ua.VariantType.UInt16)))
+    # if(station==5):
+    #     reject = random.choices([True, False], [0.6,0.4])
+    #     if(reject[0]):
+    #         rejqtystate.set_value(ua.DataValue(ua.Variant(rejqty+1,ua.VariantType.UInt16)))
 
 
 def checkProcQty(station):
@@ -477,6 +477,26 @@ def setNewBatch():
         reqqtystate=client.get_node(reqqtypath)
         reqqtystate.set_value(ua.DataValue(ua.Variant(True,ua.VariantType.Boolean)))
 
+#Write AMR Information to tag
+def writeAMRBatt(battlvl):
+    battpath='ns=2;s=Syngenta.SmartLab.FNP.AMR.BatteryLevel'
+    battstate=client.get_node(battpath)
+    battstate.set_value(ua.DataValue(ua.Variant(battlvl,ua.VariantType.UInt16)))
+
+#Write AMR Location to tag
+def writeAMRLocation(location):
+    locpath='ns=2;s=Syngenta.SmartLab.FNP.AMR.CurrentDestination'
+    locstate=client.get_node(locpath)
+    locstate.set_value(ua.DataValue(ua.Variant(location,ua.VariantType.String)))
+
+#Write AMR Charging tag
+
+def writeAMRCharging(charging):
+    reqqtypath="ns=2;s=Syngenta.SmartLab.FNP.AMR.Charging"
+    reqqtystate=client.get_node(reqqtypath)
+    reqqtystate.set_value(ua.DataValue(ua.Variant(charging,ua.VariantType.Boolean)))
+
+
 def informDocked(dock,stn):
     if stn==6:
         reqqtypath="ns=2;s=SyngentaPLC.Station6.AMRDocked"
@@ -574,7 +594,8 @@ def reqeb():
         #Generate robot path and insert as a robot task
         # pathinfo=pathcalculate.generate_path('WH','Stn1','')
         print('<PLC> Inserting robot task')
-        dbinterface.insertRbtTask("WH;Stn1",1,'REB')
+        randreqid=random.randrange(100000000,999999999)
+        dbinterface.insertRbtTask("WH;Stn1",1,'REB',randreqid)
         #Set wms ready bit to false
         os.environ['wmsrdy'] = 'False'
         # reqbotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
@@ -649,7 +670,8 @@ def readTags():
             #Generate robot path and insert as a robot task
             # pathinfo=pathcalculate.generate_path('WH','Stn1','')
             print('<PLC> Inserting robot task')
-            dbinterface.insertRbtTask("WH;Stn1",1,'REB')
+            randreqid=random.randrange(100000000,999999999)
+            dbinterface.insertRbtTask("WH;Stn1",1,'REB',randreqid)
             #Set wms ready bit to false
             os.environ['wmsrdy'] = 'False'
             reqbotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
@@ -661,7 +683,8 @@ def readTags():
             if production:
                 wmsinterface.reqstb()
             pathinfo=pathcalculate.generate_path('Stn1','WH','')
-            dbinterface.insertRbtTask('Stn1;WH',1,'STB')
+            randreqid=random.randrange(100000000,999999999)
+            dbinterface.insertRbtTask('Stn1;WH',1,'STB',randreqid)
             rettotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
 
         # if(cp2):
@@ -681,8 +704,10 @@ def readTags():
             
           
             #Insert robot task to fetch empty tote
-            print('<PLC> Insert robot task')
-            dbinterface.insertRbtTask('WH;Stn6;WH',6,'WAITCARTON')
+            
+            # print('<PLC> Insert robot task')
+            # randreqid=random.randrange(100000000,999999999)
+            # dbinterface.insertRbtTask('WH;Stn6;WH',6,'WAITCARTON',randreqid)
             
             rtbstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
         

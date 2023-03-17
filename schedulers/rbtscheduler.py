@@ -111,8 +111,17 @@ def tskpolling():
 
             #Logic to check if robot is charging
             chargingstatus=dbinterface.checkCharging(rbtid=1)
-
+            #print('<MS> Check if robot is charging')
+            plcinterface.writeAMRCharging(charging=chargingstatus)
+            if(chargingstatus):
+                dbinterface.writeLog(type='ms',msg='<MS> Robot is charging. Master scheduler cannot run!')
+                time.sleep(10)
             while(chargingstatus):
+                if(os.environ['ischarging']=='False'):
+                    print('<MS>Detected not charging')
+                    dbinterface.writeLog(msg='<MS> Robot stopped charging')
+                    chrinterface.stopcharge()
+                    break
                 chargingstatus=dbinterface.checkCharging(rbtid=1)
                 time.sleep(1)
                 pass
@@ -152,7 +161,7 @@ def tskpolling():
                 
 
                     #Do not execute next step when task is still processing
-                    if(int(tsk.exec)==1 and int(tsk.completed)==0):
+                    if(int(tsk.exec)==1):
                         # choice=input('<MS> Previous task did not complete. Do you want to retry(1) or cancel(2)?')
                         # match choice:
                         #     case '1':
@@ -310,6 +319,8 @@ def tskpolling():
                                         
                                         #Write mcstep based on current index and update robot location
                                         dbinterface.updateRbtLoc(1,pathlist[i])
+                                        #Write plc interface for location
+                                        plcinterface.writeAMRLocation(pathlist[i])
                                         
                                         
                                     print('<MS> Robot reached destination')
@@ -405,13 +416,13 @@ def tskpolling():
                                         pass
                                     dbinterface.updateRbtLoc(1,tskq[0])
                                     dbinterface.setExecute(0,tsk.tid,table)
-                                    dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
+                                    dbinterface.incStep(tsk.tid,tsk.currstep+1,False,table)
                                 else:
                                     dbinterface.setExecute(1,tsk.tid,table) 
                                     time.sleep(5)
                                     dbinterface.writeLog('ms','Move Completed',True)
                                     dbinterface.setExecute(0,tsk.tid,table)
-                                    dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
+                                    dbinterface.incStep(tsk.tid,tsk.currstep+1,False,table)
                                     
                             #Misc location
                             if(subtsk[0].at=='Misc'):
@@ -425,7 +436,7 @@ def tskpolling():
                                 
                                 dbinterface.writeLog('ms','<MS>Wait Completed',True)
                                 dbinterface.setExecute(0,tsk.tid,table)
-                                dbinterface.incStep(tsk.tid,tsk.currstep+1,False)
+                                dbinterface.incStep(tsk.tid,tsk.currstep+1,False,table)
                             
 
 
@@ -535,22 +546,31 @@ def tskpolling():
                                         # plcinterface.writePLC("resetwmsoutrdy",0,"WH")
                                         #os.environ['wmsrdy']='False'
                                         os.environ['wmsrdy']='False'
-                                        while os.environ['wmsrdy']=='False':
+                                        os.environ['override']='False'
+                                        while os.environ['wmsrdy']=='False' and os.environ.get('override')=='False':
                                             pass
-                                        dbinterface.writeLog('ms','<MS>Start rolling conveyor and send ready to receive',True)
-                                        if production:
-                                            robotinterface.receive_item()
-                                            #Send ready to receive to plc
-                                            time.sleep(0.5)
-                                            plcinterface.writePLC("rtr",True,'WH')
-                                            time.sleep(0.5)
-                                            dbinterface.writeLog('ms','<MS>Wait for Station 1 Head End sensor to clear',True)
-                                            while(plcinterface.readPLC("he","WH")==True):
-                                                pass
-                                        dbinterface.writeLog('ms','<MS>Sensor cleared on station 1',True)
+                                        if os.environ.get('override')=='True':
+                                            #Override function to solve deadlock
+                                            os.environ['convcomplete']='True'
+                                            dbinterface.forceTaskComplete(reqid=tsk.reqid,table=table)
+                                            break
+                                            pass
+                                        else:
+                                            dbinterface.writeLog('ms','<MS>Start rolling conveyor and send ready to receive',True)
+                                            if production:
+                                                os.environ['convcomplete']='False'
+                                                robotinterface.receive_item()
+                                                #Send ready to receive to plc
+                                                time.sleep(0.5)
+                                                plcinterface.writePLC("rtr",True,'WH')
+                                                time.sleep(0.5)
+                                                dbinterface.writeLog('ms','<MS>Wait for Station 1 Head End sensor to clear',True)
+                                                while(plcinterface.readPLC("he","WH")==True):
+                                                    pass
+                                            dbinterface.writeLog('ms','<MS>Sensor cleared on station 1',True)
                                     else:
-                                        if production:
-                                            robotinterface.receive_item()
+                                        #print('<MS>Cannot receive item at this location')
+                                        dbinterface.writeLog(type='ms',msg='<MS>Cannot receive item at this location',disp=True)
                                 #robotinterface.receive_item()
                                 #Wait for load to complete
                                 if production:
@@ -587,7 +607,7 @@ def tskpolling():
                                 time.sleep(5)
                                 dbinterface.writeLog('ms','<MS>Retracting Rod',True)
                                 chrinterface.retract()
-                                time.sleep(15)
+                                #time.sleep(15)
                                 dbinterface.updateRbtCharge(1,0)
                                 dbinterface.setExecute(0,tsk.tid,table)
                                 dbinterface.incStep(tsk.tid,tsk.currstep+1,False,table)
@@ -596,7 +616,7 @@ def tskpolling():
                                 if table=='custom':
                                     os.environ['waitcustom'] = 'False'
                                     dbinterface.writeLog('ms','<MS>Wait for next action from WMS',True)
-                                    
+                                    os.environ['override']='False'
                                     while(os.environ.get('waitcustom')!='Confirmed'):
                                         if(os.environ.get('waitcustom')=='Continue-Confirm'):
                                             #Roll back conveyor if item not in position
@@ -605,6 +625,7 @@ def tskpolling():
                                             #     pass
                                             # robotinterface.reset_conv()
                                             os.environ['waitcustom']='Confirmed'
+                                            
                                         elif(os.environ.get('waitcustom')=='Cancel-Confirm'):
                                             dbinterface.setNxtComp(tsk.tid)
                                             os.environ['waitcustom']='Confirmed'
@@ -616,6 +637,7 @@ def tskpolling():
                                     pass
                                 else:
                                     os.environ['waitcomplete'] = 'False'
+                                    os.environ['override']='False'
                                     dbinterface.writeLog('ms','<MS>Wait for user to signal complete',True)
                                     robotinterface.publish_sound('wait-carton')
                                     # pp=True

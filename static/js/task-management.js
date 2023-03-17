@@ -19,12 +19,25 @@ woRadioBtns.forEach((button) => {
 
 //Function to pause all stations
 function pauseStation(){
-  fetch("stations/pause")
+  fetch("stations/Pause")
 }
 
 //Function to start all stations
 function startStation(){
-  fetch("stations/start")
+  fetch("stations/Start")
+}
+
+//Function to stop all stations
+function stopStation(){
+  fetch("stations/Stop")
+}
+
+//Function to stop all stations
+function abortTask(){
+  var confirmresult=confirm("This will complete current request and abort task!! Please confirm this action!");
+  if (confirmresult==true){
+  fetch("task/abort")
+  }
 }
 //Get all data table from flask server
 var get_all_table = function getInfo() {
@@ -61,7 +74,7 @@ var get_all_table = function getInfo() {
         availno += 1
       }
     }
-    document.getElementById("curRbtStatus").innerHTML = HTML;
+    // document.getElementById("curRbtStatus").innerHTML = HTML;
 
     //Build task information table from array
     var taskarr = JSON.parse(data['taskarr'])

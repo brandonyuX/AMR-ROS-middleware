@@ -77,7 +77,7 @@ def startup():
 def getBundleInfo():
    
    
-    rbt_list.clear()
+    rbt_list=[]
     
   
 
@@ -110,7 +110,7 @@ def getRobotList():
 
 
 def getSubTaskList():
-    subtsk_list.clear()
+    subtsk_list=[]
     cursor.execute("SELECT * FROM SubTask") 
     row = cursor.fetchone() 
     while row: 
@@ -128,7 +128,7 @@ def delSubTaskByID(tskmodno):
 
 #Retrieve Subtask information by task model id
 def getSubTaskListByID(tskmodno):
-    subtsk_list.clear()
+    subtsk_list=[]
     if tskmodno == "":
         cursor.execute("SELECT * FROM SubTask")
     else: 
@@ -144,7 +144,7 @@ def getSubTaskListByID(tskmodno):
 
 #Retrieve Subtask information by task model id and step
 def getSubTaskListByStepID(tskmodno,step):
-    subtsk_list.clear()
+    subtsk_list=[]
     cursor.execute("SELECT * FROM SubTask WHERE TaskModelID = ? AND Step=?",tskmodno,step) 
     row = cursor.fetchone() 
     while row: 
@@ -156,7 +156,7 @@ def getSubTaskListByStepID(tskmodno,step):
     return subtsk_list
 
 def getReqList():
-    req_list.clear()
+    req_list=[]
     #Fetch PLC request list from database
     cursor.execute("SELECT * FROM PLCRequest") 
     row = cursor.fetchone() 
@@ -169,7 +169,7 @@ def getReqList():
 
 def getProductionTaskList(data=None):
      #Fetch Robot task list
-    tsk_list.clear()
+    tsk_list=[]
     cursor2=cnxn.cursor()
     match data:
         case None:
@@ -208,9 +208,9 @@ def getMCStep(tid,table):
 #Get the latest task that is not completed
 def getTaskListTop():
      #Fetch Robot task list
-    tsk_list.clear()
+    tsk_list=[]
     cursor2=cnxn.cursor()
-    cursor2.execute("SELECT TOP 1 * FROM ProductionTask WHERE Completed=0") 
+    cursor2.execute("SELECT TOP 1 * FROM ProductionTask WHERE Completed=0 ORDER BY TaskID asc") 
     row = cursor2.fetchone() 
     cursor2.close()
     if row:
@@ -222,9 +222,9 @@ def getTaskListTop():
 #Get the latest custom task that is not completed
 def getCustomListTop():
      #Fetch Robot task list
-    tsk_list.clear()
+    tsk_list=[]
     cursor2=cnxn.cursor()
-    cursor2.execute("SELECT TOP 1 * FROM CustomTask WHERE Completed=0") 
+    cursor2.execute("SELECT TOP 1 * FROM CustomTask WHERE Completed=0 ORDER BY TaskID asc") 
     row = cursor2.fetchone() 
     cursor2.close()
     if row:
@@ -233,9 +233,17 @@ def getCustomListTop():
     
     return tsk_list
 
+#Set to complete all related task
+def forceTaskComplete(reqid,table):
+    if table=='production':
+        cursor.execute("UPDATE ProductionTask SET Completed=1 WHERE WMSReqID=?",reqid) 
+    else:
+        cursor.execute("UPDATE CustomTask SET Completed=1 WHERE WMSReqID=?",reqid) 
+
+    cursor.commit()
 #Get all custom task that is not completed
 def getCustomTaskList(data=None):
-    tsk_list.clear()
+    tsk_list=[]
     cursor2=cnxn.cursor()
     #Fetch custom task list
     match data:
@@ -255,7 +263,7 @@ def getCustomTaskList(data=None):
 
 #Get all custom request
 def getCustomRequestList(data=None):
-    cus_req_list.clear()
+    cus_req_list=[]
     #Fetch custom request list
     cursor2=cnxn.cursor()
     match data:
@@ -321,11 +329,11 @@ def insertReq(plcid,reqid,destloc,priority,reqtime,tskmodno):
     cursor.commit()
 
 
-def insertRbtTask(destloc,tskmod,task):
+def insertRbtTask(destloc,tskmod,task,reqid=100):
     cursor.execute("SELECT EndStep FROM SubTask WHERE TaskModelID=?",tskmod) 
     row=cursor.fetchone()
     es=row[0]
-    cursor.execute("INSERT INTO ProductionTask(RobotID,Completed,TaskCode,CurrStep,EndStep,DestLoc,Executing,TaskModelID,ReqID,MoveStep,HSMsg) VALUES (?,?,?,?,?,?,?,?,?,?,?)",1,0,0,1,es,destloc,0,tskmod,100,0,task)
+    cursor.execute("INSERT INTO ProductionTask(RobotID,Completed,TaskCode,CurrStep,EndStep,DestLoc,Executing,TaskModelID,ReqID,MoveStep,HSMsg) VALUES (?,?,?,?,?,?,?,?,?,?,?)",1,0,0,1,es,destloc,0,tskmod,reqid,0,task)
     cursor.commit()
     print('<DB> Write to robot task destination {}'.format(destloc))
 
@@ -340,19 +348,21 @@ def insertCustomTask(destloc,tskmod,wmsreq,wmstsk,action):
 
 #Write movestep
 def incMoveStep(tid,table):
-    
+    cursor3=cnxn.cursor()
     if table=='production':
-        cursor.execute("SELECT MoveStep FROM ProductionTask WHERE TaskID=?",tid) 
-        row = cursor.fetchone() 
+        
+        cursor3.execute("SELECT MoveStep FROM ProductionTask WHERE TaskID=?",tid) 
+        row = cursor3.fetchone() 
         newstep=row[0]+1
-        cursor.execute("UPDATE ProductionTask SET MoveStep = ? WHERE TaskID=?",newstep,tid) 
-        cursor.commit()
+        cursor3.execute("UPDATE ProductionTask SET MoveStep = ? WHERE TaskID=?",newstep,tid) 
+        cursor3.commit()
     else:
-        cursor.execute("SELECT MoveStep FROM CustomTask WHERE TaskID=?",tid) 
-        row = cursor.fetchone() 
+        cursor3.execute("SELECT MoveStep FROM CustomTask WHERE TaskID=?",tid) 
+        row = cursor3.fetchone() 
         newstep=row[0]+1
-        cursor.execute("UPDATE CustomTask SET MoveStep = ? WHERE TaskID=?",newstep,tid) 
-        cursor.commit()
+        cursor3.execute("UPDATE CustomTask SET MoveStep = ? WHERE TaskID=?",newstep,tid) 
+        cursor3.commit()
+    cursor3.close()
 
 #Read movestep
 def getMoveStep(tskid,table):
@@ -436,9 +446,10 @@ def updateRbtBatt(rbtid,battlvl):
 
 #Update position status to database
 def updateRbtMsg(rbtid,msg):
-
-    cursor.execute("UPDATE Robot SET msg=? WHERE RobotID=?",msg,rbtid) 
-    cursor.commit()
+    cursor2=cnxn.cursor()
+    cursor2.execute("UPDATE Robot SET msg=? WHERE RobotID=?",msg,rbtid) 
+    cursor2.commit()
+    cursor2.close()
 
 #Delete task based on request id
 def deltask(reqid):
@@ -446,7 +457,8 @@ def deltask(reqid):
     cursor.commit()
 
 #Increment step to task customtask
-def incStep(tid,step,comp,table):
+def incStep(tid,step,comp=False,table=None):
+    print(f'<DB>Increase for {tid} for {table} ')
     if table=='production':
         if comp:
             cursor.execute("UPDATE ProductionTask SET Completed=? WHERE TaskID=?",1,tid) 
@@ -464,14 +476,17 @@ def incStep(tid,step,comp,table):
 
 #Set execution bit for task
 def setExecute(exec,tid,table):
+    cursor3=cnxn.cursor()
+    print(f'<DB>Set Execute for {tid} for {table} ')
     if table=='production':
-        cursor.execute("UPDATE ProductionTask SET Executing=? WHERE TaskID=?",exec,tid) 
+        cursor3.execute("UPDATE ProductionTask SET Executing=? WHERE TaskID=?",exec,tid) 
     else:
-        cursor.execute("UPDATE CustomTask SET Executing=? WHERE TaskID=?",exec,tid) 
-    cursor.commit()
+        cursor3.execute("UPDATE CustomTask SET Executing=? WHERE TaskID=?",exec,tid) 
+    cursor3.commit()
+    cursor3.close()
 
 #Write to log
-def writeLog(type,msg,disp):
+def writeLog(type='ms',msg='',disp=True):
     #logging.info(msg)
 
     if disp:
@@ -630,7 +645,7 @@ def writeStn6Qty(newqty,bnum,wolast):
 #         # cursor.commit()
 
 def getWO():
-    wo_list.clear()
+    wo_list=[]
     cursor.execute("SELECT * FROM WOList") 
     row = cursor.fetchone() 
     while row:
@@ -641,7 +656,7 @@ def getWO():
     return wo_list
 
 def getWOID(wo_id):
-    wo_list.clear()
+    wo_list=[]
     cursor.execute("SELECT * FROM WOList WHERE WOID=?",wo_id) 
     row = cursor.fetchone() 
     while row:
@@ -668,7 +683,7 @@ def getWOList(WOStn):
     if int(WOStn) > 6 or int(WOStn) < 1:
         print('No such station!')
     else:
-        wo_per_stn_list.clear()
+        wo_per_stn_list=[]
         
         if int(WOStn) == 1:
             sqlmsg = "SELECT * FROM wo_stn1 WHERE status = 'NEW'"

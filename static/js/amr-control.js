@@ -27,7 +27,7 @@ function moveFun(){
 	if(selectElement.value!=""){
 
 	//document.getElementById("stat").innerHTML = "Marking STN1" ;
-	var confirmresult=confirm("Move to "+selectElement.value);
+	var confirmresult=confirm("Please confirm you want to move AMR to "+selectElement.value);
     if (confirmresult==true){
         
         fetch("/amr/move/"+selectElement.value)
@@ -44,12 +44,18 @@ function resetMotor(){
 
 //FUnction to go charge
 function tocharge(){
+  var confirmresult=confirm("Please confirm you want to charge AMR ");
+    if (confirmresult==true){
     fetch("amr/action/tocharge")
+    }
 }
 
 //FUnction to stop charging
 function stopcharge(){
+  var confirmresult=confirm("Please confirm you want to stop charging AMR ");
+  if (confirmresult==true){
     fetch("amr/action/stopcharge")
+  }
 }
 
 function cancelnav(){
@@ -87,13 +93,15 @@ var get_all_table = function getInfo() {
         HTML += "<td>" + rbtarr.rbtinfo[i].x + "</td>";
         HTML += "<td>" + rbtarr.rbtinfo[i].y + "</td>";
         HTML += "<td>" + rbtarr.rbtinfo[i].battlvl + "</td>";
-        HTML += "<td>" +charging + "</td></tr>";
+        HTML += "<td>" +rbtarr.rbtinfo[i].msg + "</td></tr>";
         
         if (rbtarr.rbtinfo[i].avail == true) {
           availno += 1
         }
       }
       document.getElementById("curRbtStatus").innerHTML = HTML;
+
+      document.getElementById("msmsg").innerHTML = data['msinfo'];
     });
 }
 

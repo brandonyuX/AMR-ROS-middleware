@@ -41,13 +41,12 @@ var get_all_table = function getInfo() {
         location=rbtarr.rbtinfo[i].currloc;
       }
 
-      HTML += '<tr><td><input type="button" id="rbtRow-' + i + '" value="Delete" class="btn btn-primary"></td>';
-      HTML += "<td>" + rbtarr.rbtinfo[i].rid + "</td>";
+      HTML += "<tr><td>" + rbtarr.rbtinfo[i].rid + "</td>";
       HTML += "<td>" + location + "</td>";
       HTML += "<td>" + rbtarr.rbtinfo[i].x + "</td>";
       HTML += "<td>" + rbtarr.rbtinfo[i].y + "</td>";
       HTML += "<td>" + rbtarr.rbtinfo[i].battlvl + "</td>";
-      HTML += "<td>" +charging + "</td></tr>";
+      HTML += "<td>" +rbtarr.rbtinfo[i].msg + "</td></tr>";
       
       if (rbtarr.rbtinfo[i].avail == true) {
         availno += 1
@@ -55,16 +54,24 @@ var get_all_table = function getInfo() {
     }
     document.getElementById("curRbtStatus").innerHTML = HTML;
 
+    //Build Station State
+    var HTML = "";
+    HTML += "<tr><td>" + data['stn1state'] + "</td>";
+    HTML += "<td>" + data['stn2state'] + "</td>";
+    HTML += "<td>" + data['stn3state'] + "</td>";
+    HTML += "<td>" + data['stn4state'] + "</td>";
+    HTML += "<td>" + data['stn5state'] + "</td>";
+    HTML += "<td>" +data['stn6state'] + "</td></tr>";
+    document.getElementById("curStnState").innerHTML = HTML;
+
     //Build task information table from array
     var taskarr = JSON.parse(data['taskarr'])
     var HTML = "";
     for (let i = 0; i < taskarr.taskinfo.length; i++) {
       HTML += '<tr><td><input type="button" id="taskRow-' + i + '" value="Delete" class="btn btn-primary"></td>';
       HTML += "<td>" + taskarr.taskinfo[i].tid + "</td>";
-      HTML += "<td>" + taskarr.taskinfo[i].rid + "</td>";
-      HTML += "<td>" + taskarr.taskinfo[i].reqid + "</td>";
-      HTML += "<td>" + taskarr.taskinfo[i].currstep + "</td>";
-      HTML += "<td>" + taskarr.taskinfo[i].endstep + "</td>";
+      HTML += "<td>" + taskarr.taskinfo[i].currstep + "/" + taskarr.taskinfo[i].endstep + "</td>";
+      HTML += "<td>" + taskarr.taskinfo[i].destloc + "</td>";
       HTML += "<td>" + taskarr.taskinfo[i].completed + "</td></tr>";
     }
     document.getElementById("productionTask").innerHTML = HTML;
@@ -75,11 +82,8 @@ var get_all_table = function getInfo() {
     for (let i = 0; i < custskarr.custskarr.length; i++) {
       HTML += '<tr><td><input type="button" id="cusTaskRow-' + i + '" value="Delete" class="btn btn-primary"></td>';
       HTML += "<td>" + custskarr.custskarr[i].tid + "</td>";
-      HTML += "<td>" + custskarr.custskarr[i].rid + "</td>";
-      HTML += "<td>" + custskarr.custskarr[i].reqid + "</td>";
+      HTML += "<td>" + custskarr.custskarr[i].currstep + "/" + custskarr.custskarr[i].endstep + "</td>";
       HTML += "<td>" + custskarr.custskarr[i].destloc + "</td>";
-      HTML += "<td>" + custskarr.custskarr[i].hsmsg + "</td>";
-      HTML += "<td>" + custskarr.custskarr[i].tskmodno + "</td>";
       HTML += "<td>" + custskarr.custskarr[i].completed + "</td></tr>";
     }
     document.getElementById("cusTsk").innerHTML = HTML;
@@ -123,6 +127,7 @@ var get_wo_table = function getWO() {
     var HTML = "";
     for (let i = 0; i < woarr.woperstnarr.length; i++) {
       HTML += '<tr><td><input type="button" id="woRow-' + i + '" value="Delete" class="btn btn-primary"></td>';
+      HTML += "<td>" +      woarr.woperstnarr[i].status + "</td>";
       HTML += "<td>" +       woarr.woperstnarr[i].state + "</td>";
       HTML += "<td>" +      woarr.woperstnarr[i].batchNum + "</td>";
       HTML += "<td>" +      woarr.woperstnarr[i].woNum + "</td>";
@@ -134,8 +139,7 @@ var get_wo_table = function getWO() {
       HTML += "<td>" +      woarr.woperstnarr[i].startTime + "</td>";
       HTML += "<td>" +      woarr.woperstnarr[i].endTime + "</td>";
       HTML += "<td>" +      woarr.woperstnarr[i].fillVol + "</td>";
-      HTML += "<td>" +      woarr.woperstnarr[i].targetTor + "</td>";
-      HTML += "<td>" +      woarr.woperstnarr[i].status + "</td>";
+      HTML += "<td>" +      woarr.woperstnarr[i].targetTor + "</td>"; 
       HTML += "<td>" +      woarr.woperstnarr[i].orderNum + "</td>";
       HTML += "<td>" +      woarr.woperstnarr[i].expDate + "</td></tr>";
     }

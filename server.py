@@ -290,7 +290,8 @@ def savepoint(stn):
 def move(stn):
     if 'loggedin' in session:
         # robotinterface.publish_cmd(rid=1,stn=stn)
-        dbinterface.insertRbtTask(destloc=stn,tskmod=10,task='COMMAND')
+        randreqid=random.randrange(100000000,999999999)
+        dbinterface.insertRbtTask(destloc=stn,tskmod=10,task='COMMAND',reqid=randreqid)
         while  os.environ['reached'] != 'True':
             pass
         #dbinterface.updateRbtLoc(rbtid=1,currloc=stn)
@@ -469,15 +470,21 @@ def taskm():
 def stnPause(state):
     if 'loggedin' in session:
         for i in range(1,7):
-            match state:
-                case 'pause':
-                    plcinterface.setStnState(stn=i,state='Pause')
-                case 'start':
-                    plcinterface.setStnState(stn=i,state='Start')
+            
+            plcinterface.setStnState(stn=i,state=state)
+                
         response = make_response("Stations paused", 200)
         response.mimetype = "text/plain"
         return response
-        
+
+#Abort task
+@app.route('/task/<action>')
+def taskAct(action):
+    if 'loggedin' in session:
+        match action:
+            case 'abort':
+                os.environ['override']='True'
+
 def savepoint(stn):
     if 'loggedin' in session:
         #Save point code
@@ -635,7 +642,7 @@ def get_list():
         
         msinfo=dbinterface.readLog('ms')
 
-        return make_response({"rbtarr": json.dumps(result),"taskarr":json.dumps(result2),"custskarr":json.dumps(result4),"cusreqarr":json.dumps(result5),"msinfo":msinfo})
+        return make_response({"rbtarr": json.dumps(result),"taskarr":json.dumps(result2),"custskarr":json.dumps(result4),"cusreqarr":json.dumps(result5),"msinfo":msinfo,'stn1state':os.environ.get('stn1state'),'stn2state':os.environ.get('stn2state'),'stn3state':os.environ.get('stn3state'),'stn4state':os.environ.get('stn4state'),'stn5state':os.environ.get('stn5state'),'stn6state':os.environ.get('stn6state')})
 
 #Get wo data for dashboard display
 @app.route("/get_wo")
@@ -1044,11 +1051,11 @@ def checkEmpty():
 #Initialize all interfaces
 dbinterface.startup()
 
-# robotinterface.startup()
-# plcinterface.startup()
+robotinterface.startup()
+plcinterface.startup()
 
-# rbtscheduler.startup()
-# woscheduler.startup()
+rbtscheduler.startup()
+woscheduler.startup()
 
 # time.sleep(10)
 app.run(host='0.0.0.0',debug=False)

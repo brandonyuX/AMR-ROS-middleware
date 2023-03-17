@@ -14,6 +14,7 @@ sys.path.append('../Middleware Development')
 
 import interface.dbinterface as dbinterface
 import interface.chrinterface as chrinterface
+import interface.plcinterface as plcinterface
 
 with open('server-config.yaml', 'r') as f:
     doc = yaml.safe_load(f)
@@ -81,8 +82,8 @@ def get_info():
 
         def start_receive_info():
             #Throttle pose received to 1 per sec
-            # listener2 = roslibpy.Topic(client, '/rosout','rosgraph_msgs/Log',throttle_rate=2000)
-            # listener2.subscribe(store_rosout)
+            listener2 = roslibpy.Topic(client, '/rosout','rosgraph_msgs/Log',throttle_rate=2000)
+            listener2.subscribe(store_rosout)
             #listener = roslibpy.Topic(client, '/robot_pose', 'geometry_msgs/Pose',throttle_rate=5000)
             #listener.subscribe(store_pose)
             listener3=roslibpy.Topic(client,'/move_base/result','move_base_msgs/MoveBaseActionResult')
@@ -117,7 +118,7 @@ def get_info():
 #Read charging info and write to system variable
 def chrcb(message):
     os.environ['ischarging']=str(message['data'])
-    # print(os.environ['ischarging'])
+    
 #Read head end sensor and write into system variable
 def he(message):
     os.environ['he']=message['data']
@@ -161,8 +162,9 @@ def convcb(message):
 #Battery callback function
 def batt_cb(message):
     #print(message)
-    
-    dbinterface.updateRbtBatt(1,math.floor(float(message['data'])))
+    batt=math.floor(float(message['data']))
+    dbinterface.updateRbtBatt(1,batt)
+    plcinterface.writeAMRBatt(battlvl=batt)
     
 
     

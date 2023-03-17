@@ -33,6 +33,7 @@ def startWOS():
             match wostatearr[stn]:
                 case wostate.INITIAL:
                     global forceack
+                    os.environ[f'stn{stn}state'] ='IDLE'  
                     #Check if station is available
                     stnstate,wowstate=plcinterface.checkStnStatus(stn)
                     #print(f'stn{stn} state {stnstate} wostate {wowstate}')
@@ -57,6 +58,7 @@ def startWOS():
                             #Write WO state to db
                             dbinterface.writeWOState(stn=stn,wo=wo[2],state='WAIT START ACK')
                             print(f'Station {stn} now in WAIT START ACK state')
+                            os.environ[f'stn{stn}state'] ='WAIT START ACK STATE' 
                     elif wowstate in [2,3]:
 
                         print("<WOS> Station {} is busy with work order. Jump to wait for completion".format(stn))
@@ -67,8 +69,10 @@ def startWOS():
                         #print(wo[2])
                         #dbinterface.writeWOState(stn=stn,wo=wo[2],state='WAIT COMPLETE')
                         print(f'Station {stn} now in WAIT COMPLETE state')
+                        os.environ[f'stn{stn}state'] =f'PROCESSING WO {wo[2]}' 
                     elif wowstate in [1,2] and plcinterface.checkStnDone(stn,check=True,bcode=None,wonum=None)==2:
                         print(f'Station {stn} now in WAIT START ACK state')
+                        os.environ[f'stn{stn}state'] ='WAIT START ACK STATE' 
                         wostatearr[stn]=wostate.WAITSTARTACK
                         wo=dbinterface.findWO(stn,'NEW')
                     
@@ -91,6 +95,7 @@ def startWOS():
                             wostatearr[stn]=wostate.WAITCOMPLETE
                             #dbinterface.writeWOState(stn=stn,wo=wo[2],state='WAIT COMPLETE')
                             print(f'Station {stn} now in WAIT COMPLETE state')
+                            os.environ[f'stn{stn}state'] =f'WAIT TO COMPLETE WO {wo[2]}' 
                 case wostate.WAITCOMPLETE:
                     #print(stn)
                     wo=dbinterface.findWO(stn,'STARTED')
@@ -104,6 +109,7 @@ def startWOS():
                         wostatearr[stn]=wostate.WAITCOMPLETEACK
                         #dbinterface.writeWOState(stn=stn,wo=wo[2],state='WAIT COMPLETE ACK')
                         print(f'Station {stn} now in WAIT COMPLETE ACK state')
+                        os.environ[f'stn{stn}state'] ='COMPLETED. WAIT MES ACK' 
                         
                     else:
                         #Wait for complete ack from MES in the next stage
@@ -122,7 +128,9 @@ def startWOS():
                             #Restart process
                             #dbinterface.writeWOState(stn=stn,wo=wo[2],state='COMPLETE')
                             print("<WOS>Complete acknowledgement for station {} received.".format(stn))
-                        wostatearr[stn]=wostate.INITIAL              
+                        wostatearr[stn]=wostate.INITIAL        
+                        print(f'Station {stn} back to INITIAL STATE')
+                        os.environ[f'stn{stn}state'] ='IDLE'  
             #If new WO exist and plc has completed order
             #print('{} for station {} is available'.format(wo[2],i))
             # if plcinterface.checkStnDone(i):

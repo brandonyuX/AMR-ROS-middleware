@@ -44,7 +44,7 @@ def reset():
     
 
 def gocharge():
-    dbinterface.insertRbtTask('CHR',3,'CHARGE')
+    dbinterface.insertRbtTask('CHR',3,'CHARGE',reqid=1001)
 
 def stopcharge():
     stop()

@@ -41,8 +41,41 @@
       {% include "TopNavigationBar.html" %}
       <!-- Top navigation bar: End -->
 
-      <button type="button" onclick="pauseStation()" class="btn btn-danger w-100 mx-2">Pause All Machines</button>
-      <button type="button" onclick="startStation()" class="btn btn-danger w-100 mx-2">Start All Machines</button>
+        
+      
+
+        <!-- Machine control and task abort -->
+      <div class="container-fluid pt-4 px-4">
+        <div class="row g-4 mb-4">
+          <div class="col-sm-12 col-xl-6">
+            <div class="bg-content-card text-center rounded p-4">
+              <div class="d-flex align-items-center justify-content-between mb-4">
+                <div style="vertical-align: bottom;">
+                  <h4 class="mb-0 text-white" style="display: inline; margin-right: 0.75rem;">Machine Control</h4>
+                  
+                </div>
+               
+              </div>
+              <button type="button" onclick="pauseStation()" class="btn btn-danger w-30 mr-1">Pause All Machines</button>
+             <button type="button" onclick="startStation()" class="btn btn-danger w-30 mr-1">Start All Machines</button>
+              <button type="button" onclick="stopStation()" class="btn btn-danger w-30 mr-1">Stop All Machines</button>
+            </div>
+          </div>
+
+          <div class="col-sm-12 col-xl-6">
+            <div class="bg-content-card text-center rounded p-4">
+              <div class="d-flex align-items-center justify-content-between mb-4">
+                <h4 class="mb-0 text-white">Task Control</h4>
+              </div>
+              <button type="button" onclick="abortTask()" class="btn btn-danger w-100 mr-1">Abort current task</button>
+
+            </div>
+          </div>
+        </div>
+        <!-- Current Production Task and Custom Task End -->
+     
+      
+      
 
       <!-- Current Production Task and Custom Task Start -->
       <div class="container-fluid pt-4 px-4">
