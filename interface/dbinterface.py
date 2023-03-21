@@ -678,6 +678,15 @@ def getWOQ(stn):
                 return row[1]
             row = cursor.fetchone()
 
+#Check if work order exist in the system
+def checkWOExist(batchnum):
+    cursor2=cnxn.cursor()
+    cursor2.execute('SELECT * FROM wo_stn1 WHERE batch_number = ?',batchnum)
+    row=cursor2.fetchone()
+    if(row):
+        return True
+    else:
+        return False
 #Get work order list based on stn number
 def getWOList(WOStn):
     if int(WOStn) > 6 or int(WOStn) < 1:

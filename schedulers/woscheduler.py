@@ -131,9 +131,11 @@ def startWOS():
                         wostatearr[stn]=wostate.INITIAL        
                         print(f'Station {stn} back to INITIAL STATE')
                         #Set command to stop after Work Order completion other then Station 6
-                        if(stn!=6 or stn!=5):
+                        if(stn in [1,2,3,4]):
                             plcinterface.setStnState(stn=stn,state='Stop')
+                            dbinterface.writeLog(msg=f'Stopping station {stn}')
                         if(stn==6):
+                            dbinterface.writeLog(msg='Stopping station 5')
                             plcinterface.setStnState(stn=5,state='Stop')
                         os.environ[f'stn{stn}state'] ='IDLE'  
             #If new WO exist and plc has completed order

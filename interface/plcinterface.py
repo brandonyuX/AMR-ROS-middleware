@@ -364,7 +364,8 @@ def checkStnDone(stn,check,bcode=None,wonum=None):
     else:
         #Check for tote if not completed
         if stn==1:
-            reqeb()
+            #reqeb()
+            pass
         return 0
 
 def setWoStatus(stn,state):

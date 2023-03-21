@@ -723,12 +723,14 @@ def taskmodelcreatepost():
 @app.route('/syngenta/rm/production/createwo',methods=['POST'])
 def createWOTask():
 
-    avail=True
+    avail='OK'
     for i in range(1,7):
         #Set avaialability to false if any station is not available
         stnstate,wowstate=plcinterface.checkStnStatus(i)
         if stnstate in [4,5] or wowstate in [2,3]:
-            avail=False
+            avail='STNNOTRDY'
+
+    
 
     #Check if station available
     if avail:
@@ -755,14 +757,20 @@ def createWOTask():
                 wo=WO(parsedJSON['Batch ID'],parsedJSON['Init SN'],parsedJSON['Manufacture Date'],parsedJSON['Fill and Pack Date'],parsedJSON['Fill Volume'],parsedJSON['Target Torque'],parsedJSON['Work Orders'][i],expdate=parsedJSON['Expiry Date'],ordernum=i,itemtype=parsedJSON['Item Type'])
                 wolist.append(wo)
             os.environ['currentBatch']=parsedJSON['Item Type']
-            
-             #Write to Work Order Table in database
-            dbinterface.writeWO(wolist)
-            #time.sleep(1)
-            
-            response = make_response("Work Order Received", 200)
-            response.mimetype = "text/plain"
-            return response
+
+
+            if(dbinterface.checkWOExist(parsedJSON['Batch ID'])):
+                response = make_response("Work Order Exist!", 400)
+                response.mimetype = "text/plain"
+                return response
+            else:
+                #Write to Work Order Table in database
+                dbinterface.writeWO(wolist)
+                #time.sleep(1)
+                
+                response = make_response("Work Order Received", 200)
+                response.mimetype = "text/plain"
+                return response
         except Exception as e:
             print(e)
             response = make_response("Invalid JSON format", 400)

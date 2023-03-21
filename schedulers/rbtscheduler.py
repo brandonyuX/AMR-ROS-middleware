@@ -38,6 +38,7 @@ production=doc['ROBOT']['PRODUCTION']
 #Default custom request ack to true
 os.environ['creqack']='True'
 os.environ['wmsrdy']='False'
+os.environ['manualtask']='False'
 # log = open('rms-rbt-scheduler','a')
 # sys.stdout=log
 
@@ -122,6 +123,10 @@ def tskpolling():
                     chrinterface.stopcharge()
                     break
                 chargingstatus=dbinterface.checkCharging(rbtid=1)
+                time.sleep(1)
+                pass
+            while(os.environ['manualtask']=='True'):
+                dbinterface.writeLog(msg='<MS> Task scheduler stopped due to manual task.')
                 time.sleep(1)
                 pass
 
