@@ -161,7 +161,7 @@ def login():
                     session['username'] = account[1]    #account[0] referring to first column of user table which is "username"
                     # Redirect to home page
                     print('{0} (id:{1}) successfully login to M8M RMS!'.format(account[1], account[0]))
-                    return redirect(url_for('/'))
+                    return redirect(url_for('index'))
                 else:
                     # Account doesnt exist or username/password incorrect
                     return 'Incorrect username or password!'
@@ -397,7 +397,7 @@ def config():
                 }
                 return jsonify(response_data)
         else:
-            rc_list,sm_list,req_list,rbt_list=dbinterface.getBundleInfo()
+            rc_list=dbinterface.getBundleInfo()
             return render_template('configuration-new.html',rbtlist=rc_list, username=session['username'])        
 
 @app.route('/taskmodelquery', methods=['POST','GET'])

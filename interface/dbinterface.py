@@ -180,7 +180,7 @@ def getProductionTaskList(data=None):
     row = cursor2.fetchone() 
     while row: 
         #print(row[0])
-        tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12])
+        tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12],row[13])
         tsk_list.append(tsk)
         row = cursor2.fetchone()
     cursor2.close()
@@ -214,7 +214,7 @@ def getTaskListTop():
     row = cursor2.fetchone() 
     cursor2.close()
     if row:
-        tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12])  
+        tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12],row[13])  
         tsk_list.append(tsk)
     
     return tsk_list
@@ -228,7 +228,7 @@ def getCustomListTop():
     row = cursor2.fetchone() 
     cursor2.close()
     if row:
-        tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12])  
+        tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12],row[15])  
         tsk_list.append(tsk)
     
     return tsk_list
@@ -236,7 +236,7 @@ def getCustomListTop():
 #Set to complete all related task
 def forceTaskComplete(reqid,table):
     if table=='production':
-        cursor.execute("UPDATE ProductionTask SET Completed=1 WHERE WMSReqID=?",reqid) 
+        cursor.execute("UPDATE ProductionTask SET Completed=1 WHERE ReqID=?",reqid) 
     else:
         cursor.execute("UPDATE CustomTask SET Completed=1 WHERE WMSReqID=?",reqid) 
 
@@ -255,7 +255,7 @@ def getCustomTaskList(data=None):
     row = cursor2.fetchone()
 
     while row:
-        tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12])
+        tsk=Task(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12],row[15])
         tsk_list.append(tsk)
         row = cursor2.fetchone()
     cursor2.close()
@@ -561,7 +561,7 @@ def voidWO():
 #Cancel work orders
 def cancelWO():
     for i in range(1,7):
-        statement="UPDATE wo_stn{} SET status='CANCELLED' ".format(i)
+        statement="UPDATE wo_stn{} SET status='CANCELLED' WHERE status='NEW' ".format(i)
         print(statement)
         cursor.execute(statement)
         cursor.commit()
@@ -794,8 +794,8 @@ def checkNormalTask():
         return False
 
 #Change Custom Request status
-def setCRStatus(reqid):
-    cursor.execute("UPDATE CustomRequest SET status='PROCESSED' WHERE reqid = ?",reqid)
+def setCRStatus(status,reqid):
+    cursor.execute("UPDATE CustomRequest SET status=? WHERE reqid = ?",status,reqid)
     cursor.commit()
 
 

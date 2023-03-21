@@ -83,9 +83,11 @@ var get_all_table = function getInfo() {
       HTML += "<tr><td>" + taskarr.taskinfo[i].tid + "</td>";
       HTML += "<td>" + taskarr.taskinfo[i].rid + "</td>";
       HTML += "<td>" + taskarr.taskinfo[i].reqid + "</td>";
-      HTML += "<td>" + taskarr.taskinfo[i].currstep + "</td>";
-      HTML += "<td>" + taskarr.taskinfo[i].endstep + "</td>";
-      HTML += "<td>" + taskarr.taskinfo[i].completed + "</td></tr>";
+      HTML += "<td>" + taskarr.taskinfo[i].destloc + "</td>";
+      HTML += "<td>" + taskarr.taskinfo[i].hsmsg + "</td>";
+      HTML += "<td>" + taskarr.taskinfo[i].tskmodno + "</td>";
+      HTML += "<td>" + taskarr.taskinfo[i].completed + "</td>";
+      HTML += "<td>" + taskarr.taskinfo[i].datecreated + "</td></tr>";
     }
     document.getElementById("productionTask").innerHTML = HTML;
 
@@ -99,7 +101,8 @@ var get_all_table = function getInfo() {
       HTML += "<td>" + custskarr.custskarr[i].destloc + "</td>";
       HTML += "<td>" + custskarr.custskarr[i].hsmsg + "</td>";
       HTML += "<td>" + custskarr.custskarr[i].tskmodno + "</td>";
-      HTML += "<td>" + custskarr.custskarr[i].completed + "</td></tr>";
+      HTML += "<td>" + custskarr.custskarr[i].completed + "</td>";
+      HTML += "<td>" + custskarr.custskarr[i].datecreated + "</td></tr>";
     }
     document.getElementById("cusTsk").innerHTML = HTML;
 

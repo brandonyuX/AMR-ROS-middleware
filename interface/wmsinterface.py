@@ -70,9 +70,13 @@ def customop(reqid):
             print('<WMS> WMS unable to generate task')
             os.environ['CUSTORDERSTATUS']='ERROR'
         elif res.status_code==200:
-            os.environ['CUSTORDERSTATUS']='OK'
+            
             print('<WMS>Task response from MES:'+res.text)
             data = json.loads(res.text)
+            if len(data)>0:
+                os.environ['CUSTORDERSTATUS']='OK'
+            else:
+                os.environ['CUSTORDERSTATUS']='NO DATA'
             for item in data:
                 print("WMSRequestID:", item["WMSRequestID"])
                 print("WMSTaskID:", item["WMSTaskID"])

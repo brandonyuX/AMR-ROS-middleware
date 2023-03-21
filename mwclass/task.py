@@ -2,7 +2,7 @@
 import json 
 
 class Task:
-    def __init__(self,tid,rid,reqid,completed,mcstep,currstep,endstep,destloc,hsmsg,lastupd,exec,tskmodno,processing) -> None:
+    def __init__(self,tid,rid,reqid,completed,mcstep,currstep,endstep,destloc,hsmsg,lastupd,exec,tskmodno,processing,datecreated) -> None:
         self.tid=tid                    #task id
         self.rid=rid                    #robot id
         self.reqid=reqid                #request id
@@ -16,6 +16,7 @@ class Task:
         self.exec=exec                  #Executing
         self.tskmodno=tskmodno          #task model ID
         self.processing=processing
+        self.datecreated=str(datecreated)
         
     
 

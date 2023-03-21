@@ -64,10 +64,10 @@ sys.stdout = Logger()
 def getCO(priority):
     global coflag
     #Get request id and push it to custom operation
-    print('<MS> Ready to start custom operation. Wait for custom request acknowledgement')
+    dbinterface.writeLog(msg='<MS> Ready to start custom operation. Wait for custom request acknowledgement')
     while os.environ['creqack']=='False':
         pass
-    print('<MS> Start custom operation')
+    dbinterface.writeLog(msg='<MS> Start custom operation')
     os.environ['CUSTORDERSTATUS']='QUERY'
     #Decide on task id based on priority
     if priority:
@@ -80,12 +80,11 @@ def getCO(priority):
     while os.environ['CUSTORDERSTATUS']=='QUERY':
         pass
     costat=os.environ['CUSTORDERSTATUS']
-    #Set custom order flag to 1 if MES is able to generate task
-    if costat=='OK':
-        dbinterface.setCRStatus(ctid)
-        coflag=True
-    else:
-        pass
+    #Set custom order flag 
+    
+    dbinterface.setCRStatus(costat,ctid)
+    coflag=True
+
 
 def tskpolling():
     #Initialize database connection
@@ -196,6 +195,10 @@ def tskpolling():
                             tskq.clear()
                             tsklist.clear()
                             dbinterface.setExecute(0,tsk.tid,table)
+
+                            #Check if reqeb flag is set
+                            if(tsk.hsmsg=='REB'):
+                                os.environ['reqeb']='False'
                             
                             #dbinterface.updateReqStatus('REQUEST COMPLETED',tsk.reqid)
                            
@@ -211,7 +214,7 @@ def tskpolling():
                         
                         if(tsk.currstep<=tsk.endstep):
                             # print('<MS> Current step is {}'.format(tsk.currstep))
-                            print('<MS>Processing master step {} out of step {}'.format(tsk.currstep,tsk.endstep))
+                            dbinterface.writeLog(msg='<MS>Processing master step {} out of step {}'.format(tsk.currstep,tsk.endstep))
                             # dbinterface.updateReqStatus('PROCESSING REQUEST',tsk.reqid)
                             subtsk=dbinterface.getSubTaskListByStepID(tsk.tskmodno,tsk.currstep)
                             
@@ -297,13 +300,13 @@ def tskpolling():
                                     mcstep=dbinterface.getMCStep(tsk.tid,table)
                                     
                                     for i in range(mcstep,len(pathlist)):
-                                        print('<MS>Sending move command to robot {} bound for {}'.format(tsk.rid,pathlist[i]))
+                                        dbinterface.writeLog(msg='<MS>Sending move command to robot {} bound for {}'.format(tsk.rid,pathlist[i]))
                                         
 
                                         os.environ['reached'] = 'False'
                                         
                                         
-                                        print('<MS>Processing move chain {} out of {}'.format(i+1,len(pathlist)))
+                                        dbinterface.writeLog(msg='<MS>Processing move chain {} out of {}'.format(i+1,len(pathlist)))
                                         #print('Moving robot to {}'.format(pathlist[i]))
                                         if production:
                                             robotinterface.publish_cmd(tsk.rid,pathlist[i])
@@ -323,7 +326,7 @@ def tskpolling():
                                         plcinterface.writeAMRLocation(pathlist[i])
                                         
                                         
-                                    print('<MS> Robot reached destination')
+                                    dbinterface.writeLog(msg='<MS> Robot reached destination')
                                     robotinterface.publish_sound('reach')
                                     dbinterface.incMoveStep(tsk.tid,table)
                                     #End of loop means completed
@@ -553,6 +556,8 @@ def tskpolling():
                                             #Override function to solve deadlock
                                             os.environ['convcomplete']='True'
                                             dbinterface.forceTaskComplete(reqid=tsk.reqid,table=table)
+                                            dbinterface.setExecute(0,tsk.tid,table)
+                                            dbinterface.incStep(tsk.tid,tsk.endstep+1,False,table)
                                             break
                                             pass
                                         else:
@@ -674,15 +679,15 @@ def tskpolling():
                 
             else:
                 #print('=====No task found yet. Polling...')
-                #dbinterface.writeLog('ms','No Task Found',False)
+                dbinterface.writeLog('ms','Task Scheduler idle',False)
                 
                 #Check for priority task REQUEST first before checking for non priority task
                 if(dbinterface.checkPriorityTask()):
-                    print('<MS>Priority task found')
+                    dbinterface.writeLog(msg='<MS>Priority task found')
                     getCO(True)
                 else:
                     if(dbinterface.checkNormalTask()):
-                        print('<MS>Non-Priority task found')
+                        dbinterface.writeLog(msg='<MS>Non-Priority task found')
                         getCO(False)
                     
                         

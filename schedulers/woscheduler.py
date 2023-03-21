@@ -130,6 +130,11 @@ def startWOS():
                             print("<WOS>Complete acknowledgement for station {} received.".format(stn))
                         wostatearr[stn]=wostate.INITIAL        
                         print(f'Station {stn} back to INITIAL STATE')
+                        #Set command to stop after Work Order completion other then Station 6
+                        if(stn!=6 or stn!=5):
+                            plcinterface.setStnState(stn=stn,state='Stop')
+                        if(stn==6):
+                            plcinterface.setStnState(stn=5,state='Stop')
                         os.environ[f'stn{stn}state'] ='IDLE'  
             #If new WO exist and plc has completed order
             #print('{} for station {} is available'.format(wo[2],i))

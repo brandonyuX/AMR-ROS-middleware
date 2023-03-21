@@ -75,75 +75,74 @@
         <!-- Current Production Task and Custom Task End -->
      
       
-      
+       
 
-      <!-- Current Production Task and Custom Task Start -->
-      <div class="container-fluid pt-4 px-4">
-        <div class="row g-4 mb-4">
-          <div class="col-sm-12 col-xl-6">
-            <div class="bg-content-card text-center rounded p-4">
-              <div class="d-flex align-items-center justify-content-between mb-4">
-                <div style="vertical-align: bottom;">
-                  <h4 class="mb-0 text-white" style="display: inline; margin-right: 0.75rem;">Current Production Task</h4>
-                  <a href="#" data-bs-toggle="modal" data-bs-target="#exampleModal"
-                    style="color: #19c0e1; text-decoration: none;">
-                    <u>Add Task</u>
-                  </a>
-                </div>
-                <h4 id="numProductionTask" class="mb-0 text-white"></h4>
-              </div>
-              <div class="table-responsive" style="height: calc(50vh - 10px);">
-                <table class="table text-start align-middle table-bordered table-hover mb-0">
-                  <thead>
-                    <tr class="text-white">
-                      <th scope="col">Task ID</th>
-                      <th scope="col">Robot ID</th>
-                      <th scope="col">Request ID</th>
-                      <th scope="col">Current Step</th>
-                      <th scope="col">End Step</th>
-                      <th scope="col">Completion</th>
-                    </tr>
-                  </thead>
-                  <tbody id="productionTask"></tbody>
-                </table>
-              </div>
+        <!-- Production Start -->
+        <div class="container-fluid pt-4 px-4">
+          <div class="bg-content-card text-center rounded p-4">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                
+              <h4 class="mb-0 text-white" style="display: inline; margin-right: 0.75rem;">Production Task</h4>
+              
             </div>
+            <h4 id="numProductionTask" class="mb-0 text-white"></h4>
           </div>
-
-          <div class="col-sm-12 col-xl-6">
-            <div class="bg-content-card text-center rounded p-4">
-              <div class="d-flex align-items-center justify-content-between mb-4">
-                <h4 class="mb-0 text-white">Current Custom Task</h4>
-                <h4 id="numCusTsk" class="mb-0 text-white"></h4>
-              </div>
-              <div class="table-responsive" style="height: calc(50vh - 10px);">
-                <table class="table text-start align-middle table-bordered table-hover mb-0">
-                  <thead>
-                    <tr class="text-white">
-                      <th scope="col">Task ID</th>
-                      <th scope="col">Robot ID</th>
-                      <th scope="col">WMS Request ID</th>
-                      <th scope="col">Dest Loc</th>
-                      <th scope="col">HS Msg</th>
-                      <th scope="col">Task Model ID</th>
-                      <th scope="col">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody id="cusTsk"></tbody>
-                </table>
-              </div>
-            </div>
+          <div class="table-responsive" style="height: calc(20vh - 10px);">
+            <table id="productionTaskTable" class="table text-start align-middle table-bordered table-hover mb-0">
+              <thead>
+                <tr class="text-white">
+                  <th scope="col">Task ID</th>
+                  <th scope="col">Robot ID</th>
+                  <th scope="col">WMS Request ID</th>
+                  <th scope="col">Dest Loc</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Task Model ID</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Date Created</th>
+                </tr>
+              </thead>
+              <tbody id="productionTask"></tbody>
+            </table>
           </div>
         </div>
-        <!-- Current Production Task and Custom Task End -->
+        <!--Production Stop End -->
 
+        <!-- Custom Start -->
+        <div class="container-fluid pt-4 px-4">
+          <div class="bg-content-card text-center rounded p-4">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+              <h4 class="mb-0 text-white">Current Custom Task</h4>
+              <h4 id="numCusTsk" class="mb-0 text-white"></h4>
+            </div>
+            <div class="table-responsive" style="height: calc(20vh - 10px);">
+              <table class="table text-start align-middle table-bordered table-hover mb-0">
+                <thead>
+                  <tr class="text-white">
+                    <th scope="col">Task ID</th>
+                    <th scope="col">Robot ID</th>
+                    <th scope="col">WMS Request ID</th>
+                    <th scope="col">Dest Loc</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Task Model ID</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Date Created</th>
+                  </tr>
+                </thead>
+                <tbody id="cusTsk"></tbody>
+              </table>
+            </div>
+        </div>
+        </div>
+        <!--Custom Stop End -->
+
+    
         <!-- Current Custom Request and Work Order Start -->
         <div class="row g-4 ">
           <div class="col-sm-12 col-xl-6">
             <div class="bg-content-card text-center rounded p-4">
               <div class="d-flex align-items-center justify-content-between mb-4">
                 <div style="vertical-align: bottom;">
-                  <h4 class="mb-0 text-white" style="display: inline; margin-right: 0.75rem;">Current Custom Request</h4>
+                  <h4 class="mb-0 text-white" style="display: inline; margin-right: 0.75rem;">Custom Request</h4>
                 </div>
                 <h4 id="numCusReq" class="mb-0 text-white"></h4>
               </div>

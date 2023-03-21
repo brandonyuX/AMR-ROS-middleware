@@ -21,6 +21,7 @@ rejlist=[]
 
 currrejqty=-1
 
+os.environ['reqeb'] ='False'
 
 decdata=''
 try:
@@ -363,7 +364,7 @@ def checkStnDone(stn,check,bcode=None,wonum=None):
     else:
         #Check for tote if not completed
         if stn==1:
-            pass
+            reqeb()
         return 0
 
 def setWoStatus(stn,state):
@@ -416,7 +417,12 @@ def sendWO2PLC(stn,wo):
     if(stn==2):
         fvpath="ns=2;s=SyngentaPLC.Station2.FillVolume"
         fvstate=client.get_node(fvpath)
-        fvstate.set_value(ua.DataValue(ua.Variant(wo[11],ua.VariantType.UInt16)))
+        finalvol=0
+        if(wo[11]==100):
+            finalvol=1
+        else:
+            finalvol=2
+        fvstate.set_value(ua.DataValue(ua.Variant(finalvol,ua.VariantType.UInt16)))
     #Write target torque
     if(stn==3):
         ttpath="ns=2;s=SyngentaPLC.Station3.TargetTorque"
@@ -583,21 +589,17 @@ def checkEmpty(stn):
     else:
         return False
 def reqeb():
-    if readPLC("te","Stn1")==0:
-        print('<PLC> Request Tote box')
-        
-        #Call WMS to retrieve bottles bottles
-        if production:
-            print('<PLC> Call WMS interface to request empty bottle')
-            wmsinterface.reqEb()
-        
+    if readPLC("te","Stn1")==0 and os.environ['reqeb'] =='False':
+        dbinterface.writeLog(msg='<PLC> Request Empty Bottles')
+
         #Generate robot path and insert as a robot task
         # pathinfo=pathcalculate.generate_path('WH','Stn1','')
-        print('<PLC> Inserting robot task')
+        
         randreqid=random.randrange(100000000,999999999)
         dbinterface.insertRbtTask("WH;Stn1",1,'REB',randreqid)
         #Set wms ready bit to false
         os.environ['wmsrdy'] = 'False'
+        os.environ['reqeb'] = 'True'
         # reqbotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
         return True
     else:
@@ -669,7 +671,7 @@ def readTags():
             
             #Generate robot path and insert as a robot task
             # pathinfo=pathcalculate.generate_path('WH','Stn1','')
-            print('<PLC> Inserting robot task')
+            print('<PLC> Write request empty bottle task')
             randreqid=random.randrange(100000000,999999999)
             dbinterface.insertRbtTask("WH;Stn1",1,'REB',randreqid)
             #Set wms ready bit to false
@@ -705,9 +707,9 @@ def readTags():
           
             #Insert robot task to fetch empty tote
             
-            # print('<PLC> Insert robot task')
-            # randreqid=random.randrange(100000000,999999999)
-            # dbinterface.insertRbtTask('WH;Stn6;WH',6,'WAITCARTON',randreqid)
+            print('<PLC> Write stn 6 task')
+            randreqid=random.randrange(100000000,999999999)
+            dbinterface.insertRbtTask('WH;Stn6;WH',6,'WAITCARTON',randreqid)
             
             rtbstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
         
