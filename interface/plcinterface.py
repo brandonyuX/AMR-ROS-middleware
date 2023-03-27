@@ -289,17 +289,20 @@ def checkStnDone(stn,check,bcode=None,wonum=None):
         rejstate=client.get_node(rejqtypath)
         currrej=rejstate.get_value()
 
-        stn6rejstate=client.get_node(stn6reqqty)
-        reqqty=int(os.environ['reqqty'])
+        stn6reqstate=client.get_node(stn6reqqty)
+        
+        reqqty=stn6reqstate.get_value()
         prevrej=int(os.environ['prevrej'])
         if currrej!=prevrej:
+            #Overwrite previous reject quantity to prevent loop
             os.environ['prevrej']=str(currrej)
-            
+            #Get bottles to reject and which WO to cancel
             wocancel,qtycancel=divmod(currrej,reqqty)
             newqty=reqqty-qtycancel
             wo2cancelfromlast=math.floor(wocancel)
-            if dbinterface.checkWOLast(stn=stn,wonum=wonum):
-                stn6rejstate.set_value(ua.DataValue(ua.Variant(newqty,ua.VariantType.UInt16)))
+            #If WO is last on station 6, if last WO set the current quantity, else write the last WO in DB
+            if dbinterface.checkWOLast(stn=6,batchnum=bcode):
+                stn6reqstate.set_value(ua.DataValue(ua.Variant(newqty,ua.VariantType.UInt16)))
             else:
                 dbinterface.writeStn6Qty(newqty,bcode,wo2cancelfromlast)
 
@@ -373,6 +376,13 @@ def setWoStatus(stn,state):
     wostatusstate=client.get_node(wostatuspath)
     wostatusstate.set_value(ua.DataValue(ua.Variant(state,ua.VariantType.UInt16)))
 
+def setLastWO(state):
+    wostatuspath="ns=2;s=SyngentaPLC.Station6.LastWorkOrder"
+    wostatusstate=client.get_node(wostatuspath)
+    if state:
+        wostatusstate.set_value(ua.DataValue(ua.Variant(1,ua.VariantType.UInt16)))
+    else:
+        wostatusstate.set_value(ua.DataValue(ua.Variant(0,ua.VariantType.UInt16)))
 
 def checkStnStatus(stn):
     reqqtypath="ns=2;s=SyngentaPLC.Station{}.RequiredQty".format(stn)
@@ -579,6 +589,8 @@ def initTag():
 
 
 
+
+    setLastWO(False)
     setNewBatch()
 
     pass

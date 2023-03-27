@@ -59,6 +59,13 @@ def startWOS():
                             dbinterface.writeWOState(stn=stn,wo=wo[2],state='WAIT START ACK')
                             print(f'Station {stn} now in WAIT START ACK state')
                             os.environ[f'stn{stn}state'] ='WAIT START ACK STATE' 
+
+                    elif wowstate in [1,2] and plcinterface.checkStnDone(stn,check=True,bcode=None,wonum=None)==2:
+                        print(f'Station {stn} now in WAIT START ACK state')
+                        #os.environ[f'stn{stn}state'] ='WAIT START ACK STATE' 
+                        wostatearr[stn]=wostate.WAITSTARTACK
+                        wo=dbinterface.findWO(stn,'NEW')
+
                     elif wowstate in [2,3]:
 
                         print("<WOS> Station {} is busy with work order. Jump to wait for completion".format(stn))
@@ -69,12 +76,8 @@ def startWOS():
                         #print(wo[2])
                         #dbinterface.writeWOState(stn=stn,wo=wo[2],state='WAIT COMPLETE')
                         print(f'Station {stn} now in WAIT COMPLETE state')
-                        os.environ[f'stn{stn}state'] =f'PROCESSING WO {wo[2]}' 
-                    elif wowstate in [1,2] and plcinterface.checkStnDone(stn,check=True,bcode=None,wonum=None)==2:
-                        print(f'Station {stn} now in WAIT START ACK state')
-                        os.environ[f'stn{stn}state'] ='WAIT START ACK STATE' 
-                        wostatearr[stn]=wostate.WAITSTARTACK
-                        wo=dbinterface.findWO(stn,'NEW')
+                        #os.environ[f'stn{stn}state'] =f'PROCESSING WO {wo[2]}' 
+                    
                     
                         #dbinterface.writeWOState(stn=stn,wo=wo[2],state='WAIT START ACK')
                         
@@ -90,8 +93,12 @@ def startWOS():
                             dbinterface.setWODBStart(stn,wo[2])
                             
                             #Check if Work Order is the last one
-                            if dbinterface.checkWOLast:
-                                pass
+                            if stn==6:
+                                if dbinterface.checkWOLast(stn=6,batchnum=wo[1]):
+                                    dbinterface.writeLog(msg='Detected last work order')
+                                    #time.sleep(5)
+                                    plcinterface.setLastWO(True)
+                                    pass
                             wostatearr[stn]=wostate.WAITCOMPLETE
                             #dbinterface.writeWOState(stn=stn,wo=wo[2],state='WAIT COMPLETE')
                             print(f'Station {stn} now in WAIT COMPLETE state')
@@ -131,12 +138,12 @@ def startWOS():
                         wostatearr[stn]=wostate.INITIAL        
                         print(f'Station {stn} back to INITIAL STATE')
                         #Set command to stop after Work Order completion other then Station 6
-                        if(stn in [1,2,3,4]):
-                            plcinterface.setStnState(stn=stn,state='Stop')
-                            dbinterface.writeLog(msg=f'Stopping station {stn}')
-                        if(stn==6):
-                            dbinterface.writeLog(msg='Stopping station 5')
-                            plcinterface.setStnState(stn=5,state='Stop')
+                        
+                        if(stn==6) and dbinterface.checkWOLast(stn=6,batchnum=wo[1]):
+                            for i in range(1,6):
+                                plcinterface.setStnState(stn=i,state='Stop')
+                                dbinterface.writeLog(msg=f'Stopping station {stn}')
+
                         os.environ[f'stn{stn}state'] ='IDLE'  
             #If new WO exist and plc has completed order
             #print('{} for station {} is available'.format(wo[2],i))

@@ -45,7 +45,7 @@ async_mode = None
 
 app = Flask("RMS-Server")
 log = logging.getLogger('werkzeug')
-log.setLevel(logging.INFO)
+log.setLevel(logging.ERROR)
 app.debug=False
 
 # socketio = SocketIO(app, async_mode=async_mode)
@@ -742,8 +742,7 @@ def createWOTask():
         #     # print(msg)
         try:
             #print(len(parsedJSON['Work Orders']))
-            dbinterface.voidWO()
-            plcinterface.initTag()
+            
             #plcinterface.setNewBatch()
             print(recv)
         #Parse to json object from string
@@ -764,6 +763,9 @@ def createWOTask():
                 response.mimetype = "text/plain"
                 return response
             else:
+                #Void started work orders and initialize tag for new order
+                dbinterface.voidWO()
+                plcinterface.initTag()
                 #Write to Work Order Table in database
                 dbinterface.writeWO(wolist)
                 #time.sleep(1)

@@ -65,6 +65,7 @@ def startup():
     global cursor
     print('<DB>Database stack start up')
     os.environ['reqqty']=str(req_qty)
+    os.environ['prevrej']='0'
     
     
     
@@ -536,9 +537,9 @@ def setWODBStart(stn,wonum):
     cursor2.close()
 
 #Check if last work order
-def checkWOLast(stn,wonum):
+def checkWOLast(stn,batchnum):
     cursor2 = cnxn.cursor()
-    statement="SELECT * FROM wo_stn{} WHERE wo_number='{}' AND status='NEW'".format(stn,wonum)   
+    statement="SELECT * FROM wo_stn{} WHERE batch_number='{}' AND status='NEW'".format(stn,batchnum)   
     print(statement)
     cursor2.execute(statement) 
     row = cursor2.fetchone() 
@@ -574,6 +575,7 @@ def checkWOComplete(stn):
 #Get work order
 def writeWO(wolist):
     reqqty=int( os.environ['reqqty'])
+    
     
     for wo in wolist:
         cursor2=cnxn.cursor()

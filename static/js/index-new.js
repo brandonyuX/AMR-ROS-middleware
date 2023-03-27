@@ -109,7 +109,7 @@ var get_all_table = function getInfo() {
     document.getElementById("numCusReq").innerHTML = "<small>In Queue: " + cusreqarr.cusreqarr.length + '</small>';
 
     //Attach button listener for all the four tables
-    attach_btn_listener(rbtarr.rbtinfo.length, "#robotTable","#rbtRow-", "numRbtAvail", "/", "robotID", "td:nth-child(2)", undefined, undefined, "Robot Successfully Deleted!");
+    // attach_btn_listener(rbtarr.rbtinfo.length, "#robotTable","#rbtRow-", "numRbtAvail", "/", "robotID", "td:nth-child(2)", undefined, undefined, "Robot Successfully Deleted!");
     attach_btn_listener(taskarr.taskinfo.length, "#productionTaskTable","#taskRow-", "numProductionTask", "/", "productionTaskID", "td:nth-child(2)", undefined, undefined, "Production Task Successfully Deleted!");
     attach_btn_listener(custskarr.custskarr.length, "#cusTaskTable","#cusTaskRow-", "numCusTsk", "/", "cusTaskID", "td:nth-child(2)", undefined, undefined, "Custom Task Successfully Deleted!");
     attach_btn_listener(cusreqarr.cusreqarr.length, "#cusReqTable","#cusReqRow-", "numCusReq", "/", "cusReqID", "td:nth-child(2)", undefined, undefined, "Custom Request Successfully Deleted!");
@@ -300,5 +300,6 @@ function attach_btn_listener(nRows, tableName, rowIDPrefix, inQueueID, formActio
 
 
 get_all_table()
-setInterval(get_all_table, 5000);
+//Set refresh rate
+setInterval(get_all_table, 3000);
 get_all_table();
