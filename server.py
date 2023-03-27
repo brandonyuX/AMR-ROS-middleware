@@ -484,6 +484,9 @@ def taskAct(action):
         match action:
             case 'abort':
                 os.environ['override']='True'
+        response = make_response("Task action completed", 200)
+        response.mimetype = "text/plain"
+        return response
 
 def savepoint(stn):
     if 'loggedin' in session:

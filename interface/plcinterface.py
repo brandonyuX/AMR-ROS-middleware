@@ -302,6 +302,11 @@ def checkStnDone(stn,check,bcode=None,wonum=None):
             wo2cancelfromlast=math.floor(wocancel)
             #If WO is last on station 6, if last WO set the current quantity, else write the last WO in DB
             if dbinterface.checkWOLast(stn=6,batchnum=bcode):
+                #If last WO, check how many bottles were rejected previously
+                currreqqty=stn6reqstate.get_value()
+                prevrejbtl=int(os.environ['reqqty'])-currreqqty
+                #Do not count previously rejected bottles and add previously rejected bottles back to newqty
+                newqty=newqty+prevrejbtl
                 stn6reqstate.set_value(ua.DataValue(ua.Variant(newqty,ua.VariantType.UInt16)))
             else:
                 dbinterface.writeStn6Qty(newqty,bcode,wo2cancelfromlast)
@@ -410,6 +415,10 @@ def sendWO2PLC(stn,wo):
     bcodepath="ns=2;s=SyngentaPLC.Station{}.BatchCode".format(stn)
     wostatuspath="ns=2;s=SyngentaPLC.Station{}.WorkOrderStatus".format(stn)
     wostartackpath="ns=2;s=Syngenta.SmartLab.FNP.WO.Station{}.StartAck".format(stn)
+    #Init reject qty to 0 for new wo
+    # rejqtypath="ns=2;s=SyngentaPLC.Station5.RejectedQty"
+    # rejqtystate=client.get_node(rejqtypath)
+    # rejqtystate.set_value(ua.DataValue(ua.Variant(0,ua.VariantType.UInt16)))
     
     
     

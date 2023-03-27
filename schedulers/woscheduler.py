@@ -96,7 +96,7 @@ def startWOS():
                             if stn==6:
                                 if dbinterface.checkWOLast(stn=6,batchnum=wo[1]):
                                     dbinterface.writeLog(msg='Detected last work order')
-                                    #time.sleep(5)
+                                    time.sleep(2)
                                     plcinterface.setLastWO(True)
                                     pass
                             wostatearr[stn]=wostate.WAITCOMPLETE
