@@ -24,7 +24,7 @@ def reqEb():
 
         print ('response from server:'+res.text)
     except Exception as e:
-        print(e)
+        print(str(e))
 
 #Send empty tote box from unscrambling station to warehouse
 
@@ -34,7 +34,7 @@ def reqstb():
         print('reponse code from server: {}'.format(res.status_code))
         print ('response from server:'+res.text)
     except Exception as e:
-        print(e)
+        print(str(e))
 
 
 #Send empty tote box from warehouse to case packing station
@@ -45,17 +45,21 @@ def reqetb():
         print('<WMS>reponse code from server: {}'.format(res.status_code))
         print ('<WMS>response from server:'+res.text)
     except Exception as e:
-        print(e)
+        print(str(e))
 
 #Check if WMS is available for operation
 
-def reqwmsrdy():
+def chkwmsrdy():
     try:
         res = requests.post('http://'+wmsip+':3000/syngenta/mc/wms/status',timeout=5)
-        print('<WMS>reponse code from server: {}'.format(res.status_code))
-        print ('<WMS>response from server:'+res.text)
+        #print('<WMS>reponse code from server: {}'.format(res.status_code))
+        #print ('<WMS>response from server:'+res.text)
+        if res.text=='Ready':
+            return True
+        else:
+            return False
     except Exception as e:
-        print(e)
+        print(str(e))
 
 #Inform WMS to start the custom operation. WMS subsequently create the tasks required for the custom operation. E.g. Retrieve multiple Tote Box
 
@@ -116,7 +120,7 @@ def customop(reqid):
                 
             
     except Exception as e:
-        print(e)
+        print(str(e))
         
 
 
@@ -130,7 +134,7 @@ def reqrtb(wmsid):
         print('<WMS>reponse code from server: {}'.format(res.status_code))
         print ('<WMS>response from server:'+res.text)
     except Exception as e:
-        print(e)
+        print(str(e))
 
 #AMR to store tote box with WMS task ID
 
@@ -143,7 +147,7 @@ def reqstbwid(wmsid):
         print('<WMS>reponse code from server: {}'.format(res.status_code))
         print ('<WMS>response from server:'+res.text)
     except Exception as e:
-        print(e)
+        print(str(e))
 
 #AMR to retrieve custom carton with WMS task ID
 
@@ -154,7 +158,7 @@ def reqrcc():
         print('<WMS>reponse code from server: {}'.format(res.status_code))
         print ('<WMS>response from server:'+res.text)
     except Exception as e:
-        print(e)
+        print(str(e))
 
 #AMR to store filled carton to WMS
 
@@ -166,7 +170,7 @@ def reqsfc(batchid):
         print('<WMS>reponse code from server: {}'.format(res.status_code))
         print ('<WMS>response from server:'+res.text)
     except Exception as e:
-        print(e)
+        print(str(e))
         
 #Inform WMS ready for manual task
 def informManualTask(tid):
@@ -177,7 +181,7 @@ def informManualTask(tid):
         print('<WMS>reponse code from server: {}'.format(res.status_code))
         print ('<WMS>response from server:'+res.text)
     except Exception as e:
-        print(e) 
+        print(str(e)) 
         
 #Signal WMS bin is at tail sensor of warehouse
 def signalBinAtWH():
@@ -187,7 +191,7 @@ def signalBinAtWH():
         print('<WMS>reponse code from server: {}'.format(res.status_code))
         print ('<WMS>response from server:'+res.text)
     except Exception as e:
-        print(e)
+        print(str(e))
         
 
 #Signal WMS bin to sending into the station
@@ -198,4 +202,4 @@ def signalBinToWH():
         print('<WMS>reponse code from server: {}'.format(res.status_code))
         print ('<WMS>response from server:'+res.text)
     except Exception as e:
-        print(e)
+        print(str(e))

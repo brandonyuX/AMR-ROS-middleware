@@ -33,9 +33,11 @@ def start():
     
 
 def stop():
+    dbinterface.writeLog(msg='<CHR> Stopping charger')
     client.write_coil(2,0,3)
     client.write_coil(4,1,3)
     time.sleep(1)
+    client.write_coil(4,0,3)
 
 def reset():
     client.write_coil(7,1,3)

@@ -21,6 +21,22 @@ function savepoint(){
     }
 
 }
+
+function locpoint(){
+  //location.reload();
+const selectElement = document.getElementById("exampleFormControlSelect1");
+if(selectElement.value!=""){
+
+//document.getElementById("stat").innerHTML = "Marking STN1" ;
+var confirmresult=confirm("Localize AMR to "+selectElement.value);
+ if (confirmresult==true){
+     
+     fetch("/amr/localize/"+selectElement.value)
+
+}
+ }
+
+}
 function moveFun(){
     //location.reload();
 	const selectElement = document.getElementById("exampleFormControlSelect1");

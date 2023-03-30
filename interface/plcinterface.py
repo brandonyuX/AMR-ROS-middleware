@@ -371,8 +371,11 @@ def checkStnDone(stn,check,bcode=None,wonum=None):
             return 1
     else:
         #Check for tote if not completed
+
         if stn==1:
             #reqeb()
+            #Interlock call by setting flag
+            #os.environ['reqeb-call']='True'
             pass
         return 0
 
@@ -704,9 +707,11 @@ def readTags():
         if(rettot):
             pass
             #Call WMS to store tote box
+            #Set request bottle flag to false when returning empty tote
+            #os.environ['reqeb-call']='False'
             if production:
                 wmsinterface.reqstb()
-            pathinfo=pathcalculate.generate_path('Stn1','WH','')
+            # pathinfo=pathcalculate.generate_path('Stn1','WH','')
             randreqid=random.randrange(100000000,999999999)
             dbinterface.insertRbtTask('Stn1;WH',1,'STB',randreqid)
             rettotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
@@ -731,7 +736,7 @@ def readTags():
             
             print('<PLC> Write stn 6 task')
             randreqid=random.randrange(100000000,999999999)
-            dbinterface.insertRbtTask('WH;Stn6;WH',6,'WAITCARTON',randreqid)
+            dbinterface.insertRbtTask('WH;Stn6;WH;TPLeft',6,'WAITCARTON',randreqid)
             
             rtbstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
         
@@ -750,16 +755,20 @@ def readTags():
         #Start BO from MES
         if(bostart):
             for i in range(1,7):
-                setStnState(i,'Start')
-                setWoStatus(i,2)
+                #Skip station 3 from start
+                if i!=3:
+                    setStnState(i,'Start')
+                    setWoStatus(i,2)
             startstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
             pass
 
         #Receive pause from MES
         if(bopause):
             for i in range(1,7):
-                setStnState(i,'Pause')
-                setWoStatus(i,3)
+                #Skip station 3 from pause
+                if i!=3:
+                    setStnState(i,'Pause')
+                    setWoStatus(i,3)
             pausestate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))
             pass
 

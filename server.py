@@ -285,6 +285,17 @@ def savepoint(stn):
         response = make_response("Command sent to AMR", 200)
         response.mimetype = "text/plain"
         return response
+
+#Localize amr to particular point
+@app.route('/amr/localize/<stn>')
+def locpoint(stn):
+    if 'loggedin' in session:
+        #Save point code
+        dbinterface.updateRbtLoc(rbtid=1,currloc=stn)
+        response = make_response("AMR localized", 200)
+        response.mimetype = "text/plain"
+        return response
+
  #Move function for amr
 @app.route('/amr/move/<stn>')
 def move(stn):

@@ -76,7 +76,7 @@ def startWOS():
                         #print(wo[2])
                         #dbinterface.writeWOState(stn=stn,wo=wo[2],state='WAIT COMPLETE')
                         print(f'Station {stn} now in WAIT COMPLETE state')
-                        #os.environ[f'stn{stn}state'] =f'PROCESSING WO {wo[2]}' 
+                        os.environ[f'stn{stn}state'] =f'PROCESSING Work Order' 
                     
                     
                         #dbinterface.writeWOState(stn=stn,wo=wo[2],state='WAIT START ACK')

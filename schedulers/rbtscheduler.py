@@ -111,8 +111,12 @@ def tskpolling():
 
             #Logic to check if robot is charging
             chargingstatus=dbinterface.checkCharging(rbtid=1)
+            #Logic to check if wms is busy
+            
             #print('<MS> Check if robot is charging')
             plcinterface.writeAMRCharging(charging=chargingstatus)
+            # if(wmsstatus == False):
+            #     dbinterface.writeLog(type='ms',msg='<MS> WMS is busy. Task will not run')
             if(chargingstatus):
                 dbinterface.writeLog(type='ms',msg='<MS> Robot is charging. Master scheduler cannot run!')
                 time.sleep(10)
@@ -129,6 +133,10 @@ def tskpolling():
                 dbinterface.writeLog(msg='<MS> Task scheduler stopped due to manual task.')
                 time.sleep(1)
                 pass
+            # while(wmsstatus==False):
+            #     wmsstatus=wmsinterface.chkwmsrdy()
+            #     time.sleep(1)
+            #     pass
 
             table='production'
             # global coflag
@@ -222,6 +230,7 @@ def tskpolling():
                             dbinterface.writeLog(msg='<MS>Processing master step {} out of step {}'.format(tsk.currstep,tsk.endstep))
                             # dbinterface.updateReqStatus('PROCESSING REQUEST',tsk.reqid)
                             subtsk=dbinterface.getSubTaskListByStepID(tsk.tskmodno,tsk.currstep)
+                           
                             
                             #Handle wms custom request call here
                             if table=='custom' and tsk.currstep==1:
@@ -230,30 +239,60 @@ def tskpolling():
                                     case 'Retrieve':
                                         #Retrieve tote box
                                         print('<MS> Call WMS to retrieve tote with wms id')
+                                        while(wmsinterface.chkwmsrdy()!=True):
+                                            dbinterface.writeLog(msg='<MS> Cannot call WMS as it is busy',disp=False)
+                                            time.sleep(1)
+                                            pass
+                                        dbinterface.writeLog(msg='<MS> WMS Ready')
                                         wmsinterface.reqrtb(wmstid)
                                         pass
                                     case 'Store':
                                         #Store tote box with request id
                                         print('<MS> Call WMS to store tote with wms id')
+                                        while(wmsinterface.chkwmsrdy()!=True):
+                                            dbinterface.writeLog(msg='<MS> Cannot call WMS as it is busy',disp=False)
+                                            time.sleep(1)
+                                            pass
+                                        dbinterface.writeLog(msg='<MS> WMS Ready')
                                         wmsinterface.reqstbwid(wmstid)
                                         pass
+                                #Reset wms ready to false after calling endpoint
+                                os.environ['wmsrdy']='False'
                             elif table=='production' and tsk.currstep==1:
                                 match tsk.hsmsg:
                                     case 'REB':
                                         #Retrieve empty bottle
                                         print('<MS> Call WMS to request empty bottle')
+                                        while(wmsinterface.chkwmsrdy()!=True):
+                                            dbinterface.writeLog(msg='<MS> Cannot call WMS as it is busy',disp=False)
+                                            time.sleep(1)
+                                            pass
+                                        dbinterface.writeLog(msg='<MS> WMS Ready')
                                         wmsinterface.reqEb()
                                     case 'STB':
                                         #Store empty tote box
                                         print('<MS> Call WMS to store empty tote box')
+                                        while(wmsinterface.chkwmsrdy()!=True):
+                                            dbinterface.writeLog(msg='<MS> Cannot call WMS as it is busy',disp=False)
+                                            time.sleep(1)
+                                            pass
+                                        dbinterface.writeLog(msg='<MS> WMS Ready')
                                         wmsinterface.reqstb()
 
                                     case 'WAITCARTON':
                                         print('<MS> Call WMS to retrieve empty tote box')
+                                        while(wmsinterface.chkwmsrdy()!=True):
+                                            dbinterface.writeLog(msg='<MS> Cannot call WMS as it is busy',disp=False)
+                                            time.sleep(1)
+                                            pass
+                                        dbinterface.writeLog(msg='<MS> WMS Ready')
                                         #Call WMS to retrieve empty tote
                                         wmsinterface.reqetb()
+                                #Reset wms ready to false after calling endpoint
+                                os.environ['wmsrdy']='False'
                                         
                                 pass
+
                                 
                             
                             #Special move sequence
@@ -553,7 +592,7 @@ def tskpolling():
                                         # #Reset wms ready bit
                                         # plcinterface.writePLC("resetwmsoutrdy",0,"WH")
                                         #os.environ['wmsrdy']='False'
-                                        os.environ['wmsrdy']='False'
+                                        
                                         os.environ['override']='False'
                                         while os.environ['wmsrdy']=='False' and os.environ.get('override')=='False':
                                             pass
@@ -597,10 +636,14 @@ def tskpolling():
                             if(subtsk[0].at=="Charge"):
                                 dbinterface.writeLog('ms','<MS>Initiate Charging',True)
                                 #Extend rod
-                                dbinterface.writeLog('ms','<MS>Extending Rod',True)
+                                dbinterface.writeLog('ms','<MS>Charger initialization',True)
+                                #Reset charger
+                                chrinterface.reset()
+                                time.sleep(5)
                                 if production:
+                                    dbinterface.writeLog('ms','<MS>Extending Rod',True)
                                     chrinterface.extend()
-                                time.sleep(15)
+                                time.sleep(10)
                                 #Start charge
                                 dbinterface.writeLog('ms','<MS>Start Charging',True)
                                 if production:
