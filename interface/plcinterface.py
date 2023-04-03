@@ -621,7 +621,7 @@ def reqeb():
         # pathinfo=pathcalculate.generate_path('WH','Stn1','')
         
         randreqid=random.randrange(100000000,999999999)
-        dbinterface.insertRbtTask("WH;Stn1",1,'REB',randreqid)
+        dbinterface.insertRbtTask("WH;Stn1;TPLeft",1,'REB',randreqid)
         #Set wms ready bit to false
         os.environ['wmsrdy'] = 'False'
         os.environ['reqeb'] = 'True'
@@ -698,7 +698,7 @@ def readTags():
             # pathinfo=pathcalculate.generate_path('WH','Stn1','')
             print('<PLC> Write request empty bottle task')
             randreqid=random.randrange(100000000,999999999)
-            dbinterface.insertRbtTask("WH;Stn1",1,'REB',randreqid)
+            dbinterface.insertRbtTask("WH;Stn1;TPLeft",1,'REB',randreqid)
             #Set wms ready bit to false
             os.environ['wmsrdy'] = 'False'
             reqbotstate.set_value(ua.DataValue(ua.Variant(False,ua.VariantType.Boolean)))

@@ -713,7 +713,7 @@ def taskmodelcreatepost():
         
         elif (posttype=='registerTM'):
             print('Create task model')
-            tskmodno=request.form['tskmodno']
+            tskmodno=request.form['tskmodno'] 
             print(tskmodno)
             querysublist=dbinterface.getSubTaskListByID(int(tskmodno))
             print(len(querysublist))
