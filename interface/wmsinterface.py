@@ -100,7 +100,7 @@ def customop(reqid):
                         pass
                     case 'Store':
                         print('<SVR> Write store action to custom task table')
-                        dbinterface.insertCustomTask('{};WH'.format(dest),8,reqid,tskid,action)
+                        dbinterface.insertCustomTask('{};WH;CHR'.format(dest),8,reqid,tskid,action)
                         pass
                     case 'Custom':
                         print('<SVR> Write custom action to db')
@@ -161,10 +161,11 @@ def reqrcc():
         print(str(e))
 
 #AMR to store filled carton to WMS
-
+os.environ['currentBatch']='Null'
 def reqsfc(batchid):
     print(batchid)
-    dictToSend = {"BatchID":batchid,"ItemType":"SKU 1 - 250ml Bottles"}
+    # print(os.environ['currentBatch'])
+    dictToSend = {"BatchID":batchid,"ItemType":os.environ['currentBatch']}
     try:
         res = requests.post('http://'+wmsip+':3000/syngenta/mc/production/storefc',json=dictToSend,timeout=5)
         print('<WMS>reponse code from server: {}'.format(res.status_code))
@@ -185,7 +186,7 @@ def informManualTask(tid):
         
 #Signal WMS bin is at tail sensor of warehouse
 def signalBinAtWH():
-    
+    print('<WMS> Bin at station')
     try:
         res = requests.post('http://'+wmsip+':3000/syngenta/mc/wms/binatstation',timeout=5)
         print('<WMS>reponse code from server: {}'.format(res.status_code))
@@ -196,7 +197,7 @@ def signalBinAtWH():
 
 #Signal WMS bin to sending into the station
 def signalBinToWH():
-    
+    print('<WMS> Sending bin into station')
     try:
         res = requests.post('http://'+wmsip+':3000/syngenta/mc/wms/binentering',timeout=5)
         print('<WMS>reponse code from server: {}'.format(res.status_code))

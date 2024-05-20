@@ -55,12 +55,16 @@ actiondict={'0':'Move','1':'Unload','2':'Load','3':'Custom Command'}
 subtasklist=[]
 tclist=[]
 
+#Initialize WO abort
+os.environ['woabort']='False'
 
 
 with open('server-config.yaml', 'r') as f:
     doc = yaml.safe_load(f)
 
 wmsip=doc['SERVER']['WMSIP']
+
+virtual=doc['ROBOT']['VIRTUAL']
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 db = SQLAlchemy(app)
 
@@ -267,6 +271,8 @@ def action(act):
                 robotinterface.reset_motor()
             case 'tocharge':
                 chrinterface.gocharge()
+            case 'forcecharge':
+                chrinterface.forcecharge()
             case 'stopcharge':
                 chrinterface.stopcharge()
             case 'cancelnav':
@@ -328,7 +334,9 @@ def move(stn):
 def index():
     # Check if user is loggedin
     if 'loggedin' in session:
+        
         if request.method == "GET":
+            #print('User logged in index page')
             # User is loggedin show them the home page
             # tsklist=dbinterface.getProductionTaskList()
             # cus_tsk_list=dbinterface.getCustomTaskList()
@@ -350,9 +358,9 @@ def index():
             elif len(request.form.get("robotID", "")) != 0:
                 dbinterface.deleteRobot(request.form['robotID'])
                 return "Robot Successfully Deleted!"
-
-    # User is not loggedin redirect to login page
-    return redirect(url_for('login'))
+    else:
+        # User is not loggedin redirect to login page
+        return redirect(url_for('login'))
 
 
 # @app.route('/', methods=['POST'])
@@ -495,6 +503,8 @@ def taskAct(action):
         match action:
             case 'abort':
                 os.environ['override']='True'
+            case 'woabort':
+                os.environ['woabort']='True'
         response = make_response("Task action completed", 200)
         response.mimetype = "text/plain"
         return response
@@ -769,10 +779,14 @@ def createWOTask():
                 
                 wo=WO(parsedJSON['Batch ID'],parsedJSON['Init SN'],parsedJSON['Manufacture Date'],parsedJSON['Fill and Pack Date'],parsedJSON['Fill Volume'],parsedJSON['Target Torque'],parsedJSON['Work Orders'][i],expdate=parsedJSON['Expiry Date'],ordernum=i,itemtype=parsedJSON['Item Type'])
                 wolist.append(wo)
+            #Write current batch and batch id into environment variable when order is received
             os.environ['currentBatch']=parsedJSON['Item Type']
+            os.environ['currbatchid']=parsedJSON['Batch ID']
+            
 
 
             if(dbinterface.checkWOExist(parsedJSON['Batch ID'])):
+                print('Work Order Exist')
                 response = make_response("Work Order Exist!", 400)
                 response.mimetype = "text/plain"
                 return response
@@ -789,7 +803,7 @@ def createWOTask():
                 return response
         except Exception as e:
             print(e)
-            response = make_response("Invalid JSON format", 400)
+            response = make_response("Invalid JSON format", 401)
             response.mimetype = "text/plain"
             return response
 
@@ -799,9 +813,62 @@ def createWOTask():
        
     else:
         print('<SVR> Station not ready')
-        response = make_response("Stations not ready", 400)
+        response = make_response("Stations not ready", 403)
         response.mimetype = "text/plain"
         return response 
+
+#Route to create work order 
+#{"Batch ID": String, "Init SN": String, "Manufacture Date": String, "Fill and Pack Date": String, "Fill Volume": Number, "Target Torque": Number, "Work Orders": [String, String, String, ...]}
+
+@app.route('/syngenta/rm/production/createwotest',methods=['POST'])
+def createWOTaskTest():
+
+    avail='OK'
+    
+
+    
+
+    
+    #Receive body information
+    recv=request.get_data()
+    
+    # for item in parsedJSON:
+    #     # msg='Batch ID:{}\nInit SN:{}\nManufacture Date:{}\nFill and Pack Date:{}ml\nFill Volume:{}\nTarget Torque:{}\nWork Orders:{}\n'.format(item['Batch ID'],item['Init SN'],item['Manufacture Date'],item['Fill and Pack Date'],item['Fill Volume'],item['Target Torque'],item['Work Orders'][0])
+    #     # print(msg)
+    try:
+        #print(len(parsedJSON['Work Orders']))
+        
+        #plcinterface.setNewBatch()
+        print(recv)
+    #Parse to json object from string
+        parsedJSON= json.loads(recv)
+        #Send information to database
+        print(parsedJSON)
+        #
+        wolist=[]
+        for i in range(len(parsedJSON['Work Orders'])):
+            
+            #wo=WO(parsedJSON['Batch ID'],parsedJSON['Init SN'],parsedJSON['Manufacture Date'],parsedJSON['Fill and Pack Date'],parsedJSON['Fill Volume'],parsedJSON['Target Torque'],parsedJSON['Work Orders'][i],expdate=parsedJSON['Expiry Date'],ordernum=i,itemtype=parsedJSON['Item Type'])
+            wolist.append(parsedJSON['Work Orders'][i])
+        #os.environ['currentBatch']=parsedJSON['Item Type']
+
+
+       
+            
+        response = make_response(wolist[0], 200)
+        response.mimetype = "text/plain"
+        return response
+    except Exception as e:
+        print(e)
+        response = make_response("Invalid JSON format", 401)
+        response.mimetype = "text/plain"
+        return response
+
+        #Tell MES station not ready if state is not 1
+
+
+       
+
 #Route for information carton completion status
 @app.route('/syngenta/rm/production/cartonready',methods=['POST'])
 def cartonReady():
@@ -919,30 +986,36 @@ def nextAction():
         os.environ['waitcustom'] = parsedJSON['NextAction']
         
         if(os.environ.get('waitcustom')=='Continue'):
-            ioc=robotinterface.itemOnConveyor()
-            if(ioc=='EMPTY' ):
-                print('<MS> Detected no tote when asked to continue')
-                #Tell WMS no tote on AMR
-                response = make_response("Detected no tote when asked to continue", 200)
-                response.mimetype = "text/plain"
-                return response 
-               
+            if not virtual:
+                ioc=robotinterface.itemOnConveyor()
+                if(ioc=='EMPTY' ):
+                    print('<MS> Detected no tote when asked to continue')
+                    #Tell WMS no tote on AMR
+                    response = make_response("Detected no tote when asked to continue", 200)
+                    response.mimetype = "text/plain"
+                    return response 
+                
+                else:
+                    os.environ['waitcustom']='Continue-Confirm'
             else:
                 os.environ['waitcustom']='Continue-Confirm'
                 
         elif(os.environ.get('waitcustom')=='Cancel'):
-            ioc=robotinterface.itemOnConveyor()
-            if ioc=="BLOCKED" or ioc=='OK' or ioc=='ALL OCCUPIED':
-                #Tell WMS got tote on AMR
-                print('<MS> Detected tote when asked to cancel')
-                response = make_response("Detected tote when asked to cancel", 200)
-                response.mimetype = "text/plain"
-                return response 
+            if not virtual:
+                ioc=robotinterface.itemOnConveyor()
+                if ioc=="BLOCKED" or ioc=='OK' or ioc=='ALL OCCUPIED':
+                    #Tell WMS got tote on AMR
+                    print('<MS> Detected tote when asked to cancel')
+                    response = make_response("Detected tote when asked to cancel", 200)
+                    response.mimetype = "text/plain"
+                    return response 
+                    
+                    
                 
-                
-              
+                else:
+                    
+                    os.environ['waitcustom']='Cancel-Confirm'
             else:
-                
                 os.environ['waitcustom']='Cancel-Confirm'
             
             #os.environ['waitcustom']='Confirmed'
@@ -989,7 +1062,7 @@ def queryTaskStatus():
     #Parse to json object from string
     parsedJSON= json.loads(recv)
     #Send information to database
-    
+    print(recv)
     wmstid=parsedJSON['WMSTaskID']
     tstatus=parsedJSON['TaskStatus']
     

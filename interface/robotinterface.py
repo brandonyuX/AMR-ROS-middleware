@@ -20,10 +20,11 @@ with open('server-config.yaml', 'r') as f:
     doc = yaml.safe_load(f)
 
 production=doc['ROBOT']['PRODUCTION']
+rbtip=doc['ROBOT']['RBTIP']
 # production=True
 #Define ros connection
 if production:
-    client = roslibpy.Ros(host="192.168.0.90", port=8080)
+    client = roslibpy.Ros(host=rbtip, port=8080)
 else:
     client = roslibpy.Ros(host="0.0.0.0", port=8080)
 
@@ -32,19 +33,23 @@ lastgoal=''
 os.environ['convcomplete'] = 'False'
 os.environ['reached'] = 'False'
 aligncomplete=False
+connected=False
 
 def connect():
+    global connected
     print('<RI>Connecting to ROS robot')
     try:
         
         client.run(timeout=5)
         dbinterface.updateRbtStatus(True,1)
         print('<RI>Connection suceeded')
+        connected=True
         
     except:
         dbinterface.writeLog('ms','<ERR>No connection to ROS robot',True)
         dbinterface.updateRbtStatus(False,1)
-
+        connected=False
+        # connect()
         #sys.exit(0)
 
 #Specify connection to ros host
@@ -84,8 +89,8 @@ def get_info():
             #Throttle pose received to 1 per sec
             listener2 = roslibpy.Topic(client, '/rosout','rosgraph_msgs/Log',throttle_rate=2000)
             listener2.subscribe(store_rosout)
-            #listener = roslibpy.Topic(client, '/robot_pose', 'geometry_msgs/Pose',throttle_rate=5000)
-            #listener.subscribe(store_pose)
+            listener = roslibpy.Topic(client, '/robot_pose', 'geometry_msgs/Pose',throttle_rate=5000)
+            listener.subscribe(store_pose)
             listener3=roslibpy.Topic(client,'/move_base/result','move_base_msgs/MoveBaseActionResult')
             listener3.subscribe(move_complete)
             battlisterner=roslibpy.Topic(client,'/batt_charge','std_msgs/String',throttle_rate=5000)
@@ -114,6 +119,7 @@ def get_info():
         t1.join()
     except:
         print('No connection to ROS Robot')
+        connect()
 
 #Read charging info and write to system variable
 def chrcb(message):
@@ -163,8 +169,11 @@ def convcb(message):
 def batt_cb(message):
     #print(message)
     batt=math.floor(float(message['data']))
+    if batt ==None:
+        batt=0
     dbinterface.updateRbtBatt(1,batt)
     plcinterface.writeAMRBatt(battlvl=batt)
+    os.environ['rbtbatt']=str(batt)
     
 
     
@@ -211,7 +220,9 @@ def store_pose(message):
     x=round(x,5)
     y=round(y,5)
     r=round(r,5)
-    dbinterface.updateRbtPosStatus(1,x,y,r)       
+    
+    plcinterface.writeAMRABSLocation(x,y)
+    # dbinterface.updateRbtPosStatus(1,x,y,r)       
 
 def store_rosout(message):
     rosmsg=message['msg']
@@ -220,7 +231,7 @@ def store_rosout(message):
     #     print('Jack down completed')
     # elif rosmsg=='------------ jstate 11 : up cmd completed. -----------':
     #     print('Jack Up Completed')
-    dbinterface.updateRbtMsg(1,rosmsg)
+    # dbinterface.updateRbtMsg(1,rosmsg)
 
 def jack_up(rid):
     ip=dbinterface.getIP(rid)
@@ -451,7 +462,9 @@ def startup():
     print('<RI>Robot Interface stack start up')
     #Start connection
     connect()
-    get_info()
+    print('<RI> Connected to robot, getting info')
+    if connected:
+        get_info()
 #publish_cmd(1,2)
 #localize(1)
 #get_single_info()

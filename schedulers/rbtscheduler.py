@@ -30,17 +30,28 @@ mapdict={"STN1":0,
             }
 coflag=False
 
+
 with open('server-config.yaml', 'r') as f:
     doc = yaml.safe_load(f)
 
 production=doc['ROBOT']['PRODUCTION']
+virtual=doc['ROBOT']['VIRTUAL']
+
+#Battery threshold to start charging
+battthreshold=int(doc['ROBOT']['CHARGETHRES'])
+workthreshold=int(doc['ROBOT']['WORKTHRES'])
 
 #Default custom request ack to true
 os.environ['creqack']='True'
 os.environ['wmsrdy']='False'
 os.environ['manualtask']='False'
+os.environ['ischarging']='True'
 # log = open('rms-rbt-scheduler','a')
 # sys.stdout=log
+
+ #Allow iddle time of 600 seconds
+idletime=600
+os.environ['rbtbatt']='0'
 
 class Logger(object):
     def __init__(self):
@@ -101,6 +112,7 @@ def tskpolling():
     print('<MS> Start robot scheduler')
     loop=True
     currIndex=0
+   
     
     while(loop):
         #print('=====Start Async task get=====')
@@ -108,35 +120,12 @@ def tskpolling():
             #time.sleep(1)
             tsklist=[]
             global table
+            global idletime
+            batt=int(os.environ['rbtbatt'])
 
-            #Logic to check if robot is charging
-            chargingstatus=dbinterface.checkCharging(rbtid=1)
-            #Logic to check if wms is busy
-            
-            #print('<MS> Check if robot is charging')
-            plcinterface.writeAMRCharging(charging=chargingstatus)
-            # if(wmsstatus == False):
-            #     dbinterface.writeLog(type='ms',msg='<MS> WMS is busy. Task will not run')
-            if(chargingstatus):
-                dbinterface.writeLog(type='ms',msg='<MS> Robot is charging. Master scheduler cannot run!')
-                time.sleep(10)
-            while(chargingstatus):
-                if(os.environ['ischarging']=='False'):
-                    print('<MS>Detected not charging')
-                    dbinterface.writeLog(msg='<MS> Robot stopped charging')
-                    chrinterface.stopcharge()
-                    break
-                chargingstatus=dbinterface.checkCharging(rbtid=1)
-                time.sleep(1)
+            #Wait for robot battery to update
+            while(batt==-1): 
                 pass
-            while(os.environ['manualtask']=='True'):
-                dbinterface.writeLog(msg='<MS> Task scheduler stopped due to manual task.')
-                time.sleep(1)
-                pass
-            # while(wmsstatus==False):
-            #     wmsstatus=wmsinterface.chkwmsrdy()
-            #     time.sleep(1)
-            #     pass
 
             table='production'
             # global coflag
@@ -154,10 +143,98 @@ def tskpolling():
                 #Reset production priority bit
                 # if pp:
                 #     pp=False
+             
+            #Logic to check if robot is charging
+            chargingstatus=dbinterface.checkCharging(rbtid=1)   
+            #Logic to check if wms is busy
+            
+            #print('<MS> Check if robot is charging')
+            plcinterface.writeAMRCharging(charging=chargingstatus)
+            # if(wmsstatus == False):
+            #     dbinterface.writeLog(type='ms',msg='<MS> WMS is busy. Task will not run')
+            if not virtual:
+                #Check RM and internal robot charging bit
+                if(chargingstatus) or os.environ['ischarging']=='True':
+                    dbinterface.updateRbtCharge(rbtid=1,state=True)
+                    dbinterface.writeLog(type='ms',msg='<MS> Robot is charging. Master scheduler cannot run!')
+                    time.sleep(10)
+                    #time.sleep(10)
+                while(chargingstatus or os.environ['ischarging']=='True'):
+                    time.sleep(5)
+                    batt=int(os.environ['rbtbatt'])
+                     #Check if uncompleted task exist in Custom Action Table
+                    CTExist=dbinterface.checkCTExist()
+                    #Get from different action database based on custom order flag
+                    # print(CTExist)
+                    if(CTExist):
+                        tsklist=dbinterface.getCustomListTop()
+                        table='custom'
+               
+                    else:
+                        tsklist=dbinterface.getTaskListTop()
+                        table='production'
+                    
+                    charge=os.environ['ischarging']
+                    # print(f'<MS> Number of task :{len(tsklist)}, Charging status: {charge}')
+                    #Check if robot has stop receiving charged or work order comes in above work threshold    
+                    if(os.environ['ischarging']=='False') or (len(tsklist)>0 and batt>workthreshold):
+                        if (os.environ['ischarging']=='False'):
+                         dbinterface.writeLog(msg='<MS>Robot not charging! Stopping charger.')
+                        else:
+                          dbinterface.writeLog(msg=f'<MS>Detected work order and battery above work threshold ({workthreshold}. Stopping charger.')
+                        # dbinterface.writeLog(msg='<MS> Robot stopped charging')
+                        chrinterface.stopcharge()
+                        break
+                    chargingstatus=dbinterface.checkCharging(rbtid=1)
+                    #Check for priority task REQUEST first before checking for non priority task
+                    if(dbinterface.checkPriorityTask()):
+                        dbinterface.writeLog(msg='<MS>Priority task found')
+                        getCO(True)
+                    else:
+                        if(dbinterface.checkNormalTask()):
+                            dbinterface.writeLog(msg='<MS>Non-Priority task found')
+                            getCO(False)
+
+                # time.sleep(2)
+                pass
+ 
+            while(os.environ['manualtask']=='True'):
+                dbinterface.writeLog(msg='<MS> Task scheduler stopped due to manual task.')
+                time.sleep(1)
+                pass
+            if not virtual:
+                
+                # print(f'<MS> {datetime.now()} Low battery!! Send AMR to charging. Disabling all automatic mode')
+                #Automatic charging when battery falls below 90
+                if((batt<battthreshold) and (os.environ['ischarging']=='False') and len(tsklist)==0) or (batt<workthreshold and (os.environ['ischarging']=='False')) :
+                    currentloc=dbinterface.getRbtLoc(1)
+                    time.sleep(1)
+                    # print(f'<MS> {datetime.now()} Check if robot is at charging position')
+                    if currentloc=='CHR':
+                        time.sleep(30)
+                        print(f'Robot battery: {batt}')
+                        #Align robot to charging station
+                        #robotinterface.publish_cmd(rid=1,stn='CHR')
+                        print(f'<MS> {datetime.now()} Robot at charging station. Start auto charging')
+                        chrinterface.forcecharge()
+                    else:
+                        if(idletime>0):
+                            # print(f'Robot going back to charging in {idletime} seconds')
+                            idletime=idletime-1
+                        
+                       
+                # while(wmsstatus==False):
+                #     wmsstatus=wmsinterface.chkwmsrdy()
+                #     time.sleep(1)
+                #     pass
+
+            
             
             #print(table)
- 
+            # print(f'Number of tasks: {len(tsklist)}')
             if len(tsklist)>0:
+                
+                idletime=600
                 tskq.clear()
                 #Populate location list
                 for tsk in (tsklist):
@@ -165,6 +242,7 @@ def tskpolling():
                     for loc in splitloc:
                         #print(tsk.rid)
                         tskq.append(loc)
+            
             
             
                 #print('<MS> Task id {} is running'.format(tsk.tid))
@@ -305,7 +383,7 @@ def tskpolling():
                                     #dbinterface.writeLog('ms','<MS>Executing step {} out of {}'.format(tsk.currstep,tsk.endstep),True)
                                     #print(currIndex)
 
-                                    dbinterface.writeLog('ms','<MS>Processing move chain',True)
+                                    # dbinterface.writeLog('ms','<MS>Processing move chain',True)
                                     
                                     #Detect previously moved and adjust move chain
                                     # if tsk.currstep>1:
@@ -326,6 +404,7 @@ def tskpolling():
                                     #Get destination location based on movestep
                                     pathlist=pathcalculate.generate_path_simple(tskq[movestep])
                                     robotinterface.publish_sound(tskq[movestep])
+                                    
                                     if(tskq[movestep]=='Stn1'):
                                         plcinterface.informDocked(dock=True,stn=1)
                                     else:
@@ -336,6 +415,7 @@ def tskpolling():
                                         plcinterface.informDocked(dock=True,stn=6)
                                     else:
                                         plcinterface.informDocked(dock=False,stn=6)
+                                    
 
                                     dest=tskq[movestep]
                                 
@@ -495,7 +575,7 @@ def tskpolling():
                                 dbinterface.writeLog('ms','<MS>Sending unload command to robot {}.'.format(tsk.rid),True)
                                 dbinterface.setExecute(1,tsk.tid,table)
                                 #Test set execute to false after 5 seconds
-                                if production:
+                                if production or virtual:
                                     dbinterface.writeLog('ms','<MS>Get current location to determine handshake',True)
                                     currentloc=dbinterface.getRbtLoc(1)
                                     #Check last location to determine type of handshake
@@ -529,7 +609,9 @@ def tskpolling():
                                         print('<MS> Received ready to receive from PLC. Start rolling conveyor.')
                                         #Tell WMS that bin is going to send to station
                                         print('<MS> Tell WMS tote is sending in.')
-                                        wmsinterface.signalBinToWH()
+                                        #Send signal 3 times
+                                        for i in range(3):
+                                            wmsinterface.signalBinToWH()
                                         if production:
                                             robotinterface.send_item()
                                             print('<MS> Wait for warehouse to detect item on tail end sensor.')
@@ -538,7 +620,9 @@ def tskpolling():
                                         print('<MS> Item detected on Warehouse')
                                         #Signal WMS ready bin
                                         dbinterface.writeLog('ms','<MS>Send bin ready signal to WMS',True)
-                                        wmsinterface.signalBinAtWH()
+                                        #Send signal 3 times
+                                        for i in range(3):
+                                            wmsinterface.signalBinAtWH()
                                        
                                         
                                     else:
@@ -576,13 +660,16 @@ def tskpolling():
                                             robotinterface.receive_item()
                                         #Send ready to receive to plc
                                         time.sleep(0.5)
-                                        if production:
+                                        if production or virtual:
+                                            plcinterface.setStnState(1,'Start')
                                             plcinterface.writePLC("rtr",True,'Stn1')
+                                            
                                             time.sleep(0.5)
                                             dbinterface.writeLog('ms','<MS>Wait for Station 1 Head End sensor to clear',True)
                                             while(plcinterface.readPLC("he","Stn1")==True):
                                                 pass
                                         dbinterface.writeLog('ms','<MS>Sensor cleared on station 1',True)
+                                        plcinterface.setStnState(1,'Stop')
                                     #Interface when robot reach warehouse
                                     elif(currentloc=="WH"):
                                         dbinterface.writeLog('ms','<MS>Check if WMS has ready item',True)
@@ -611,12 +698,13 @@ def tskpolling():
                                                 robotinterface.receive_item()
                                                 #Send ready to receive to plc
                                                 time.sleep(0.5)
+                                            if production or virtual:
                                                 plcinterface.writePLC("rtr",True,'WH')
                                                 time.sleep(0.5)
                                                 dbinterface.writeLog('ms','<MS>Wait for Station 1 Head End sensor to clear',True)
                                                 while(plcinterface.readPLC("he","WH")==True):
                                                     pass
-                                            dbinterface.writeLog('ms','<MS>Sensor cleared on station 1',True)
+                                                dbinterface.writeLog('ms','<MS>Sensor cleared on station 1',True)
                                     else:
                                         #print('<MS>Cannot receive item at this location')
                                         dbinterface.writeLog(type='ms',msg='<MS>Cannot receive item at this location',disp=True)
@@ -670,7 +758,7 @@ def tskpolling():
                                     os.environ['waitcustom'] = 'False'
                                     dbinterface.writeLog('ms','<MS>Wait for next action from WMS',True)
                                     os.environ['override']='False'
-                                    while(os.environ.get('waitcustom')!='Confirmed'):
+                                    while(os.environ.get('waitcustom')!='Confirmed') and os.environ.get('override')=='False':
                                         if(os.environ.get('waitcustom')=='Continue-Confirm'):
                                             #Roll back conveyor if item not in position
                                             # robotinterface.receive_item()
@@ -694,7 +782,7 @@ def tskpolling():
                                     dbinterface.writeLog('ms','<MS>Wait for user to signal complete',True)
                                     robotinterface.publish_sound('wait-carton')
                                     # pp=True
-                                    while(os.environ.get('waitcomplete')=='False'):
+                                    while(os.environ.get('waitcomplete')=='False') and os.environ.get('override')=='False':
                                         pass
                                     
                                     #Signal WMS to return tote box
@@ -704,6 +792,7 @@ def tskpolling():
                                         final_bid=str(rand_batch)
                                     else:
                                         final_bid=(os.environ['currbatchid'])
+                                        os.environ['currbatchid']='Null'
                                     #Call WMS to receive item
 
                                     
@@ -728,6 +817,11 @@ def tskpolling():
             else:
                 #print('=====No task found yet. Polling...')
                 dbinterface.writeLog('ms','Task Scheduler idle',False)
+
+                #Send tote box back to station while all are idle
+                # if plcinterface.readPLC(type="te",loc="Stn1"):
+                #     dbinterface.writeLog(msg='Stations are idle. Sending back tote box from station 1.')
+                #     plcinterface.returnEmptyTote()
                 
                 #Check for priority task REQUEST first before checking for non priority task
                 if(dbinterface.checkPriorityTask()):

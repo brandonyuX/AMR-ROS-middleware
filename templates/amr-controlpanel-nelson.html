@@ -184,7 +184,8 @@
 <script type="text/javascript" src="js/nav2djs.js"></script>
 <script type="text/javascript" type="text/javascript">
 
-var hostIP = "ws://"+"192.168.0.90"+":8080";
+//var hostIP = "ws://"+"192.168.0.90"+":8080";
+var hostIP = "ws://"+"172.28.120.34"+":8080";
 var ros = new ROSLIB.Ros();
 var rosmsg="";
 ros.connect(hostIP);
@@ -1142,7 +1143,8 @@ function shutdown_nopwd() {
 function init(){
         
         var ros = new ROSLIB.Ros();
-		var hostIP = "ws://"+"192.168.0.90"+":8080";
+		//var hostIP = "ws://"+"192.168.0.90"+":8080";
+		var hostIP = "ws://"+"172.28.120.34"+":8080";
         ros.connect(hostIP);
     
         

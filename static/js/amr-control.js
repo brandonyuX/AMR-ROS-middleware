@@ -66,6 +66,14 @@ function tocharge(){
     }
 }
 
+//FUnction to force charge
+function forcecharge(){
+  var confirmresult=confirm("Please confirm you want to FORCE charge AMR ");
+    if (confirmresult==true){
+    fetch("amr/action/forcecharge")
+    }
+}
+
 //FUnction to stop charging
 function stopcharge(){
   var confirmresult=confirm("Please confirm you want to stop charging AMR ");

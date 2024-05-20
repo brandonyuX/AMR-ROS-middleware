@@ -39,6 +39,13 @@ function abortTask(){
   fetch("task/abort")
   }
 }
+
+function abortWO(){
+  var confirmresult=confirm("This will complete current Work Order!! Please confirm this action!");
+  if (confirmresult==true){
+  fetch("task/woabort")
+  }
+}
 //Get all data table from flask server
 var get_all_table = function getInfo() {
   let myRequest = new Request('/get_list_all');

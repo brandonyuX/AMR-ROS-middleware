@@ -303,7 +303,17 @@ def checkCTExist():
         return True
     else:
         return False
-    
+
+#Check if uncompleted task exists in Production Task table
+def checkProdExist():
+    cursor2=cnxn.cursor()
+    cursor2.execute("SELECT * FROM ProductionTask WHERE Completed=0") 
+    row = cursor2.fetchone() 
+    cursor2.close()
+    if row:
+        return True
+    else:
+        return False 
 def getIPList():
     iplist=[]
     cursor2=cnxn.cursor()
@@ -500,9 +510,12 @@ def writeLog(type='ms',msg='',disp=True):
 #Read from log
 def readLog(type):
     if(type=='ms'):
-        cursor.execute("SELECT MSMsg FROM MessageTable WHERE MsgID=1") 
-        row = cursor.fetchone() 
+        cursor2=cnxn.cursor()
+        cursor2.execute("SELECT MSMsg FROM MessageTable WHERE MsgID=1") 
+        row = cursor2.fetchone() 
+        cursor2.close()
         return row[0]
+        
 
 #Find available work order in each station
 def findWO(stn,type):

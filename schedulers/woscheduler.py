@@ -9,7 +9,7 @@ import interface.plcinterface as plcinterface
 from enum import Enum
 #Sample work order json
 # {"Batch ID": String, "Init SN": String, "Manufacture Date": String, "Fill and Pack Date": String, "Fill Volume": Number, "Target Torque": Number, "Work Orders": [String, String, String, ...]}
-req_qty=12
+req_qty=20
 #Find all available work order
 
 #Initialize batch number
@@ -33,10 +33,22 @@ def startWOS():
             match wostatearr[stn]:
                 case wostate.INITIAL:
                     global forceack
-                    os.environ[f'stn{stn}state'] ='IDLE'  
+                    os.environ[f'stn{stn}state'] ='IDLE'
+                    #Make sure all staitons are in idle state when wo abort is signaled
+                    while(os.environ['woabort']=='True'):
+                        print('Some stations are not in IDLE state when aborted')
+                        #Check if any station is not in initial state
+                        allinit=True
+                        for stn in range(1,7):
+                            if wostatearr[stn]!=wostate.INITIAL:
+                                allinit=False
+                        if allinit:
+                            os.environ['woabort']='False'
+                      
                     #Check if station is available
                     stnstate,wowstate=plcinterface.checkStnStatus(stn)
-                    #print(f'stn{stn} state {stnstate} wostate {wowstate}')
+                    time.sleep(0.2)
+                    # print(f'stn{stn} state {stnstate} wostate {wowstate}')
                     if stnstate in [1,2,3] and wowstate in [0,1,4,5]:
 
                         # if plcinterface.checkStnDone(stn,check=True):
@@ -82,9 +94,10 @@ def startWOS():
                         #dbinterface.writeWOState(stn=stn,wo=wo[2],state='WAIT START ACK')
                         
                 case wostate.WAITSTARTACK:
+                    #Check if abort is on
                     
-                    #Check whether start acknowledge is received
-                    if plcinterface.checkStartAck(stn):
+                    #Check whether start acknowledge is received or owrk order is aborted, skipping start ack
+                    if plcinterface.checkStartAck(stn) or os.environ['woabort']=='True':
                         print("<WOS> Start acknowledgement received for station {}.".format(stn))
                         #Start WO by changing required qty 
                         wo=dbinterface.findWO(stn,'NEW')
@@ -103,15 +116,23 @@ def startWOS():
                             #dbinterface.writeWOState(stn=stn,wo=wo[2],state='WAIT COMPLETE')
                             print(f'Station {stn} now in WAIT COMPLETE state')
                             os.environ[f'stn{stn}state'] =f'WAIT TO COMPLETE WO {wo[2]}' 
+                    
+
                 case wostate.WAITCOMPLETE:
                     #print(stn)
                     wo=dbinterface.findWO(stn,'STARTED')
-                    #print(wo)
+                    #Check abort condition
+                    
+                    print(wo)
                     #print(wo[2])
-                    #Check whether order is completed
-                    if plcinterface.checkStnDone(stn,check=False,bcode=wo[1],wonum=wo[2])==1:
-                        if stn==6:
-                            os.environ['currbatchid']=wo[1]
+                    #Check whether order is completed or wo is aborted
+                    if plcinterface.checkStnDone(stn,check=False,bcode=wo[1],wonum=wo[2])==1 or os.environ['woabort']=='True':
+                        if os.environ['woabort']=='True':
+                            #Force the work cell to be complete
+                            plcinterface.forceComplete(stn)
+                        # if stn==6:
+                        #     os.environ['currbatchid']=wo[1]
+                        
                         print("<WOS> Order completed for station {}. Waiting for MES acknowledgement.".format(stn))
                         wostatearr[stn]=wostate.WAITCOMPLETEACK
                         #dbinterface.writeWOState(stn=stn,wo=wo[2],state='WAIT COMPLETE ACK')
@@ -123,7 +144,8 @@ def startWOS():
                         pass
                     
                 case wostate.WAITCOMPLETEACK:
-                    if plcinterface.checkCMPAck(stn):
+                    #Wait for complete ack or abort signal
+                    if plcinterface.checkCMPAck(stn) or os.environ['woabort']=='True':
                         
                         
                         wo=dbinterface.findWO(stn,'STARTED')
@@ -137,12 +159,22 @@ def startWOS():
                             print("<WOS>Complete acknowledgement for station {} received.".format(stn))
                         wostatearr[stn]=wostate.INITIAL        
                         print(f'Station {stn} back to INITIAL STATE')
+                        # os.environ['woabort']='False'
                         #Set command to stop after Work Order completion other then Station 6
+
+                        if(stn==1 and dbinterface.checkWOLast(stn=1,batchnum=wo[1])):
+                            time.sleep(10)
+                            #Send back tote if stations are idle
+                            if plcinterface.readPLC(type="te",loc="Stn1"):
+                                dbinterface.writeLog(msg='Sending back tote box from station 1.')
+                                plcinterface.returnEmptyTote()
                         
                         if(stn==6) and dbinterface.checkWOLast(stn=6,batchnum=wo[1]):
-                            for i in range(1,6):
+                            for i in range(2,6):
                                 plcinterface.setStnState(stn=i,state='Stop')
-                                dbinterface.writeLog(msg=f'Stopping station {stn}')
+                                dbinterface.writeLog(msg=f'Stopping station {i}')
+                                
+
 
                         os.environ[f'stn{stn}state'] ='IDLE'  
             #If new WO exist and plc has completed order
